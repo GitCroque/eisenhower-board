@@ -1,20 +1,25 @@
-# Build frontend
-FROM node:20-alpine AS build-frontend
+# Build stage
+FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+
+# Build frontend and server
 RUN npm run build
+RUN npm run build:server
 
 # Production
 FROM node:20-alpine
 WORKDIR /app
 
 # Copy built frontend
-COPY --from=build-frontend /app/dist ./dist
+COPY --from=build /app/dist ./dist
 
-# Copy server files
-COPY server ./server
+# Copy compiled server files (JS, not TS)
+COPY --from=build /app/server/*.js ./server/
+
+# Copy package files
 COPY package*.json ./
 
 # Install production dependencies only
