@@ -13,7 +13,8 @@ function getAppVersion(): string {
     // Try to get the latest git tag
     const tag = execSync('git describe --tags --abbrev=0', { 
       encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'ignore'] // Suppress stderr
+      cwd: __dirname,
+      stdio: ['pipe', 'pipe', 'ignore']
     }).trim()
     return tag || 'dev'
   } catch {
@@ -21,10 +22,13 @@ function getAppVersion(): string {
   }
 }
 
+const APP_VERSION = getAppVersion()
+console.log(`[vite] App version: ${APP_VERSION}`)
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   define: {
-    __APP_VERSION__: JSON.stringify(getAppVersion()),
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
   },
   resolve: {
     alias: {
