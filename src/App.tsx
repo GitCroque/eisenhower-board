@@ -16,8 +16,8 @@ function AppContent() {
       <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-gradient-to-br from-pink-400/30 to-orange-400/30 blur-3xl dark:from-pink-600/20 dark:to-orange-600/20" />
       <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-indigo-400/20 to-cyan-400/20 blur-3xl dark:from-indigo-600/10 dark:to-cyan-600/10" />
 
-      <div className="relative z-10 flex min-h-screen flex-col p-4 md:p-8">
-        <div className="mx-auto max-w-7xl flex-1">
+      <div className="relative z-10 p-4 md:p-8">
+        <div className="mx-auto max-w-7xl">
           <header className="relative mb-8">
             <div className="text-center">
               <h1 className="mb-2 text-3xl font-bold text-slate-800 drop-shadow-sm dark:text-white md:text-4xl">
@@ -33,12 +33,12 @@ function AppContent() {
             </div>
           </header>
           <EisenhowerMatrix />
+          <footer className="mt-8 text-center">
+            <span className="text-xs text-slate-400/50 dark:text-slate-600/50">
+              {__APP_VERSION__}
+            </span>
+          </footer>
         </div>
-        <footer className="mt-8 text-center">
-          <span className="text-xs text-slate-400/60 dark:text-slate-600/60">
-            v{__APP_VERSION__}
-          </span>
-        </footer>
       </div>
     </div>
   );

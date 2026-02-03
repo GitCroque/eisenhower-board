@@ -11,8 +11,11 @@ function getAppVersion(): string {
   }
   try {
     // Try to get the latest git tag
-    const tag = execSync('git describe --tags --abbrev=0 2>/dev/null', { encoding: 'utf-8' }).trim()
-    return tag
+    const tag = execSync('git describe --tags --abbrev=0', { 
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'ignore'] // Suppress stderr
+    }).trim()
+    return tag || 'dev'
   } catch {
     return 'dev'
   }
