@@ -64,7 +64,7 @@ export function QuadrantCard({
       ref={setNodeRef}
       className={cn(
         colorClass,
-        'hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/10',
+        'border-2 backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:shadow-black/10',
         isOver && 'scale-[1.02] ring-4 ring-slate-400/50'
       )}
     >
@@ -75,10 +75,12 @@ export function QuadrantCard({
         </CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="max-h-[400px] min-h-[200px] space-y-2 overflow-y-auto">
+      <CardContent className="space-y-4">
+        <div className="max-h-[400px] min-h-[200px] space-y-3 overflow-y-auto pr-1">
           {tasks.length === 0 ? (
-            <p className="py-8 text-center text-slate-400 dark:text-slate-500">{t.tasks.noTasks}</p>
+            <div className="flex items-center justify-center h-[200px]">
+              <p className="text-slate-400 dark:text-slate-500 text-center">{t.tasks.noTasks}</p>
+            </div>
           ) : (
             tasks.map((task) => (
               <TaskItem
@@ -93,7 +95,7 @@ export function QuadrantCard({
         </div>
 
         {isAdding ? (
-          <form onSubmit={handleSubmit} className="space-y-2">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <Input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
@@ -101,7 +103,7 @@ export function QuadrantCard({
               autoFocus
               className="border-white/60 bg-white/80 backdrop-blur-md transition-all duration-200 focus:bg-white/95 dark:border-slate-700/60 dark:bg-slate-800/80 dark:focus:bg-slate-800/95"
             />
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Button
                 type="submit"
                 size="sm"

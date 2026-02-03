@@ -90,40 +90,39 @@ export function EisenhowerMatrix() {
       onDragEnd={handleDragEnd}
       collisionDetection={pointerWithin}
     >
-      <div className="space-y-4">
-        {/* Horizontal axis labels */}
-        <div className="relative hidden md:ml-16 md:grid md:grid-cols-2 md:gap-4">
-          <div className="text-center">
-            <span className="tracking-wider text-slate-700 dark:text-slate-300">{t.axes.urgent}</span>
+      <div className="w-full max-w-7xl mx-auto">
+        {/* Container with left margin for vertical label */}
+        <div className="relative md:ml-20">
+          {/* Vertical axis labels - Important / Non-important */}
+          <div className="hidden md:block absolute -left-20 top-0 bottom-0 w-20">
+            {/* IMPORTANT label - top half */}
+            <div className="absolute top-1/4 left-0 right-0 flex items-center justify-center">
+              <span className="text-slate-700 dark:text-slate-300 tracking-[0.3em] -rotate-90 whitespace-nowrap text-sm font-medium">
+                {t.axes.important}
+              </span>
+            </div>
+            {/* NON-IMPORTANT label - bottom half */}
+            <div className="absolute top-3/4 left-0 right-0 flex items-center justify-center">
+              <span className="text-slate-700 dark:text-slate-300 tracking-[0.3em] -rotate-90 whitespace-nowrap text-sm font-medium">
+                {t.axes.notImportant}
+              </span>
+            </div>
           </div>
-          <div className="text-center">
-            <span className="tracking-wider text-slate-700 dark:text-slate-300">{t.axes.notUrgent}</span>
-          </div>
-        </div>
 
-        {/* Important row */}
-        <div className="relative md:ml-16">
-          {/* Vertical axis label - IMPORTANT */}
-          <div className="absolute -left-16 bottom-0 top-0 hidden items-center justify-center md:flex">
-            <span className="-rotate-90 whitespace-nowrap tracking-wider text-slate-700 dark:text-slate-300">
-              {t.axes.important}
-            </span>
+          {/* Horizontal axis labels container */}
+          <div className="hidden md:flex justify-between mb-6 px-2">
+            <div className="w-1/2 flex justify-center">
+              <span className="text-slate-700 dark:text-slate-300 tracking-[0.3em] text-sm font-medium">{t.axes.urgent}</span>
+            </div>
+            <div className="w-1/2 flex justify-center">
+              <span className="text-slate-700 dark:text-slate-300 tracking-[0.3em] text-sm font-medium">{t.axes.notUrgent}</span>
+            </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+          {/* Grid of quadrants */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {renderQuadrant('urgentImportant')}
             {renderQuadrant('notUrgentImportant')}
-          </div>
-        </div>
-
-        {/* Not Important row */}
-        <div className="relative md:ml-16">
-          {/* Vertical axis label - NOT IMPORTANT */}
-          <div className="absolute -left-16 bottom-0 top-0 hidden items-center justify-center md:flex">
-            <span className="-rotate-90 whitespace-nowrap tracking-wider text-slate-700 dark:text-slate-300">
-              {t.axes.notImportant}
-            </span>
-          </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {renderQuadrant('urgentNotImportant')}
             {renderQuadrant('notUrgentNotImportant')}
           </div>
