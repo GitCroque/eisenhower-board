@@ -91,9 +91,14 @@ export function QuadrantCard({
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Entrez une tâche..."
               autoFocus
+              className="border-white/60 bg-white/80 backdrop-blur-md transition-all duration-200 focus:bg-white/95 dark:border-slate-700/60 dark:bg-slate-800/80 dark:focus:bg-slate-800/95"
             />
             <div className="flex gap-2">
-              <Button type="submit" size="sm" className="flex-1">
+              <Button
+                type="submit"
+                size="sm"
+                className="flex-1 border border-white/20 bg-slate-900/80 shadow-lg backdrop-blur-md transition-all duration-200 hover:bg-slate-900 dark:bg-white/80 dark:text-slate-900 dark:hover:bg-white/90"
+              >
                 Ajouter
               </Button>
               <Button
@@ -104,13 +109,18 @@ export function QuadrantCard({
                   setIsAdding(false);
                   setInputValue('');
                 }}
+                className="border-white/60 bg-white/70 backdrop-blur-md transition-all duration-200 hover:bg-white/90 dark:border-slate-700/60 dark:bg-slate-800/70 dark:hover:bg-slate-800/90"
               >
                 Annuler
               </Button>
             </div>
           </form>
         ) : (
-          <Button onClick={() => setIsAdding(true)} variant="outline" className="w-full">
+          <Button
+            onClick={() => setIsAdding(true)}
+            variant="outline"
+            className="w-full border-white/60 bg-white/70 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:shadow-lg hover:shadow-black/5 dark:border-slate-700/60 dark:bg-slate-800/70 dark:hover:bg-slate-800/90"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Ajouter une tâche
           </Button>

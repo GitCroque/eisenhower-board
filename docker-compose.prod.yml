@@ -1,0 +1,11 @@
+services:
+  app:
+    image: ghcr.io/gitcroque/eisenhower-board:latest
+    ports:
+      - "3080:3080"
+    volumes:
+      - eisenhower-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  eisenhower-data:
