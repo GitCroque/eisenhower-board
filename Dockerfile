@@ -17,7 +17,7 @@ WORKDIR /app
 COPY --from=build /app/dist ./dist
 
 # Copy compiled server files (JS, not TS)
-COPY --from=build /app/server/*.js ./server/
+COPY --from=build /app/dist-server ./dist-server
 
 # Copy package files
 COPY package*.json ./
@@ -35,4 +35,4 @@ ENV DATA_DIR=/app/data
 
 EXPOSE 3080
 
-CMD ["node", "server/index.js"]
+CMD ["node", "dist-server/server/index.js"]

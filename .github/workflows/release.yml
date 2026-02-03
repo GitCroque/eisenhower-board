@@ -33,9 +33,9 @@ jobs:
 
       - name: Create release archive
         run: |
-          mkdir -p release/server
+          mkdir -p release
           cp -r dist release/
-          cp server/*.js release/server/
+          cp -r dist-server release/
           cp package.json package-lock.json release/
           cd release && zip -r ../eisenhower-board-${{ github.ref_name }}.zip .
 

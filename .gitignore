@@ -32,9 +32,8 @@ npm-debug.log*
 # Build
 dist/
 build/
-
-# Compiled server files (keep .ts sources)
-server/*.js
+dist-server/
+tsconfig.tsbuildinfo
 
 # Claude Code
 CLAUDE.md
