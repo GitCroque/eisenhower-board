@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
-import { Task, QuadrantKey, QuadrantConfig } from '@/types';
+import { useLanguage } from '@/i18n';
+import { Task, QuadrantKey } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -18,7 +19,10 @@ const QUADRANT_ICONS = {
 
 interface QuadrantCardProps {
   quadrantKey: QuadrantKey;
-  config: QuadrantConfig;
+  title: string;
+  description: string;
+  colorClass: string;
+  iconColor: string;
   tasks: Task[];
   onAddTask: (text: string) => void;
   onDeleteTask: (id: string) => void;
@@ -27,7 +31,10 @@ interface QuadrantCardProps {
 
 export function QuadrantCard({
   quadrantKey,
-  config,
+  title,
+  description,
+  colorClass,
+  iconColor,
   tasks,
   onAddTask,
   onDeleteTask,
@@ -35,6 +42,7 @@ export function QuadrantCard({
 }: QuadrantCardProps) {
   const [inputValue, setInputValue] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const { t } = useLanguage();
 
   const { setNodeRef, isOver } = useDroppable({
     id: quadrantKey,
@@ -55,22 +63,22 @@ export function QuadrantCard({
     <Card
       ref={setNodeRef}
       className={cn(
-        config.colorClass,
+        colorClass,
         'hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/10',
         isOver && 'scale-[1.02] ring-4 ring-slate-400/50'
       )}
     >
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Icon className={cn('h-5 w-5 drop-shadow-sm', config.iconColor)} />
-          <span className="text-slate-800 dark:text-slate-100">{config.title}</span>
+          <Icon className={cn('h-5 w-5 drop-shadow-sm', iconColor)} />
+          <span className="text-slate-800 dark:text-slate-100">{title}</span>
         </CardTitle>
-        <CardDescription>{config.description}</CardDescription>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="max-h-[400px] min-h-[200px] space-y-2 overflow-y-auto">
           {tasks.length === 0 ? (
-            <p className="py-8 text-center text-slate-400 dark:text-slate-500">Aucune tâche</p>
+            <p className="py-8 text-center text-slate-400 dark:text-slate-500">{t.tasks.noTasks}</p>
           ) : (
             tasks.map((task) => (
               <TaskItem
@@ -89,7 +97,7 @@ export function QuadrantCard({
             <Input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Entrez une tâche..."
+              placeholder={t.tasks.enterTask}
               autoFocus
               className="border-white/60 bg-white/80 backdrop-blur-md transition-all duration-200 focus:bg-white/95 dark:border-slate-700/60 dark:bg-slate-800/80 dark:focus:bg-slate-800/95"
             />
@@ -99,7 +107,7 @@ export function QuadrantCard({
                 size="sm"
                 className="flex-1 border border-white/20 bg-slate-900/80 shadow-lg backdrop-blur-md transition-all duration-200 hover:bg-slate-900 dark:bg-white/80 dark:text-slate-900 dark:hover:bg-white/90"
               >
-                Ajouter
+                {t.tasks.add}
               </Button>
               <Button
                 type="button"
@@ -111,7 +119,7 @@ export function QuadrantCard({
                 }}
                 className="border-white/60 bg-white/70 backdrop-blur-md transition-all duration-200 hover:bg-white/90 dark:border-slate-700/60 dark:bg-slate-800/70 dark:hover:bg-slate-800/90"
               >
-                Annuler
+                {t.tasks.cancel}
               </Button>
             </div>
           </form>
@@ -122,7 +130,7 @@ export function QuadrantCard({
             className="w-full border-white/60 bg-white/70 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:shadow-lg hover:shadow-black/5 dark:border-slate-700/60 dark:bg-slate-800/70 dark:hover:bg-slate-800/90"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Ajouter une tâche
+            {t.tasks.addTask}
           </Button>
         )}
       </CardContent>

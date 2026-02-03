@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Pencil, X, Check } from 'lucide-react';
+import { useLanguage } from '@/i18n';
 import { Task } from '@/types';
 import { Input } from './ui/input';
 import { cn } from '@/lib/utils';
@@ -16,6 +17,7 @@ interface TaskItemProps {
 export function TaskItem({ task, quadrantKey, onDelete, onEdit }: TaskItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(task.text);
+  const { t } = useLanguage();
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
@@ -90,14 +92,14 @@ export function TaskItem({ task, quadrantKey, onDelete, onEdit }: TaskItemProps)
             <button
               onClick={() => setIsEditing(true)}
               className="text-slate-400 transition-colors hover:text-blue-600"
-              aria-label="Modifier la tâche"
+              aria-label={t.tasks.editTask}
             >
               <Pencil className="h-4 w-4" />
             </button>
             <button
               onClick={() => onDelete(task.id)}
               className="text-slate-400 transition-colors hover:text-red-600"
-              aria-label="Supprimer la tâche"
+              aria-label={t.tasks.deleteTask}
             >
               <X className="h-4 w-4" />
             </button>
