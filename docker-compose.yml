@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3080:3080"
+    volumes:
+      - eisenhower-data:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3080
+      - DATA_DIR=/app/data
+
+volumes:
+  eisenhower-data:

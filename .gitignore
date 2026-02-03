@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Database
+/data/
+*.db
+*.db-journal
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build
+dist/
+build/
+
+# Compiled server files (keep .ts sources)
+server/*.js
+
+# Claude Code
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+
+# AI Context
+PROJECT_CONTEXT.md
