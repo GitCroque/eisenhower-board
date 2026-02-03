@@ -163,7 +163,7 @@ app.delete('/api/tasks/:id', validateCsrf, (req: Request, res: Response) => {
 });
 
 // Fallback: serve index.html for SPA routing
-app.get('*', (_req: Request, res: Response) => {
+app.get('/{*splat}', (_req: Request, res: Response) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
