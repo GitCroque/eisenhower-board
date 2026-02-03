@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for changelog generation
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -42,17 +44,46 @@ jobs:
       - name: Generate changelog
         id: changelog
         run: |
-          echo "## What's Changed" > CHANGELOG.md
+          VERSION=${{ github.ref_name }}
+          echo "## $VERSION" > CHANGELOG.md
           echo "" >> CHANGELOG.md
-          git log $(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || git rev-list --max-parents=0 HEAD)..HEAD --pretty=format:"- %s" >> CHANGELOG.md || echo "- Initial release" >> CHANGELOG.md
+          
+          # Find previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -z "$PREV_TAG" ]; then
+            echo "### Initial Release" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            git log --pretty=format:"- %s" >> CHANGELOG.md
+          else
+            echo "### Changes since $PREV_TAG" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            
+            # Group commits by type
+            echo "#### Features & Improvements" >> CHANGELOG.md
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --grep="^feat" --grep="^add" --grep="^improve" -i | head -20 >> CHANGELOG.md || true
+            echo "" >> CHANGELOG.md
+            
+            echo "#### Bug Fixes" >> CHANGELOG.md
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --grep="^fix" -i | head -20 >> CHANGELOG.md || true
+            echo "" >> CHANGELOG.md
+            
+            echo "#### Other Changes" >> CHANGELOG.md
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --invert-grep --grep="^feat" --grep="^add" --grep="^improve" --grep="^fix" -i | head -20 >> CHANGELOG.md || true
+          fi
+          
+          echo "" >> CHANGELOG.md
+          echo "---" >> CHANGELOG.md
+          echo "**Docker Image:** \`ghcr.io/gitcroque/eisenhower-board:${VERSION#v}\`" >> CHANGELOG.md
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           body_path: CHANGELOG.md
           files: |
             eisenhower-board-${{ github.ref_name }}.zip
-          generate_release_notes: true
+          draft: false
+          prerelease: false
 
   docker:
     runs-on: ubuntu-latest
@@ -89,5 +120,7 @@ jobs:
           tags: |
             ghcr.io/${{ steps.meta.outputs.IMAGE_NAME }}:${{ steps.meta.outputs.VERSION }}
             ghcr.io/${{ steps.meta.outputs.IMAGE_NAME }}:latest
+          build-args: |
+            APP_VERSION=${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

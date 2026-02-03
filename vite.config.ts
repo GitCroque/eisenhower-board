@@ -2,9 +2,27 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
+import { execSync } from 'child_process'
+
+// Get version: APP_VERSION env var (Docker build) > git tag > "dev"
+function getAppVersion(): string {
+  if (process.env.APP_VERSION && process.env.APP_VERSION !== 'dev') {
+    return process.env.APP_VERSION
+  }
+  try {
+    // Try to get the latest git tag
+    const tag = execSync('git describe --tags --abbrev=0 2>/dev/null', { encoding: 'utf-8' }).trim()
+    return tag
+  } catch {
+    return 'dev'
+  }
+}
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  define: {
+    __APP_VERSION__: JSON.stringify(getAppVersion()),
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

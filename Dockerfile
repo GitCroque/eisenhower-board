@@ -2,6 +2,9 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
+# Version from release tag (passed via --build-arg)
+ARG APP_VERSION=dev
+
 # Install build dependencies for native modules (better-sqlite3)
 RUN apk add --no-cache python3 make g++
 
@@ -9,7 +12,8 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 
-# Build frontend and server
+# Build frontend and server (pass version to Vite)
+ENV APP_VERSION=${APP_VERSION}
 RUN npm run build
 RUN npm run build:server
 
