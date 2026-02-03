@@ -11,16 +11,18 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 const STORAGE_KEY = 'eisenhower-language';
 
+const SUPPORTED_LANGUAGES: Language[] = ['en', 'zh', 'hi', 'es', 'fr', 'ar', 'bn', 'de', 'it', 'pt', 'nl', 'pl', 'ru', 'uk'];
+
 function getBrowserLanguage(): Language {
-  const browserLang = navigator.language.split('-')[0];
-  return browserLang === 'fr' ? 'fr' : 'en';
+  const browserLang = navigator.language.split('-')[0] as Language;
+  return SUPPORTED_LANGUAGES.includes(browserLang) ? browserLang : 'en';
 }
 
 function getInitialLanguage(): Language {
   if (typeof window === 'undefined') return 'en';
 
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === 'en' || stored === 'fr') {
+  const stored = localStorage.getItem(STORAGE_KEY) as Language;
+  if (stored && SUPPORTED_LANGUAGES.includes(stored)) {
     return stored;
   }
 

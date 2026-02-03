@@ -4,10 +4,17 @@ import { Button } from './ui/button';
 
 const LANGUAGES: { code: Language; label: string; flag: string }[] = [
   { code: 'en', label: 'English', flag: '🇬🇧' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'es', label: 'Español', flag: '🇪🇸' },
+  { code: 'it', label: 'Italiano', flag: '🇮🇹' },
+  { code: 'pt', label: 'Português', flag: '🇵🇹' },
+  { code: 'nl', label: 'Nederlands', flag: '🇳🇱' },
+  { code: 'pl', label: 'Polski', flag: '🇵🇱' },
+  { code: 'ru', label: 'Русский', flag: '🇷🇺' },
+  { code: 'uk', label: 'Українська', flag: '🇺🇦' },
   { code: 'zh', label: '中文', flag: '🇨🇳' },
   { code: 'hi', label: 'हिन्दी', flag: '🇮🇳' },
-  { code: 'es', label: 'Español', flag: '🇪🇸' },
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
   { code: 'ar', label: 'العربية', flag: '🇸🇦' },
   { code: 'bn', label: 'বাংলা', flag: '🇧🇩' },
 ];

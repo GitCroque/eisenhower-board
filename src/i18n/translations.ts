@@ -1,4 +1,4 @@
-export type Language = 'en' | 'zh' | 'hi' | 'es' | 'fr' | 'ar' | 'bn';
+export type Language = 'en' | 'zh' | 'hi' | 'es' | 'fr' | 'ar' | 'bn' | 'de' | 'it' | 'pt' | 'nl' | 'pl' | 'ru' | 'uk';
 
 export interface Translations {
   // Header
@@ -379,6 +379,335 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'লোড হচ্ছে...',
       error: 'ত্রুটি',
+    },
+  },
+
+  de: {
+    title: 'Eisenhower-Matrix',
+    subtitle: 'Organisiere deine Aufgaben nach Priorität und Dringlichkeit',
+
+    quadrants: {
+      urgentImportant: {
+        title: 'Dringend & Wichtig',
+        description: 'Sofort erledigen',
+      },
+      notUrgentImportant: {
+        title: 'Wichtig, aber nicht dringend',
+        description: 'Planen',
+      },
+      urgentNotImportant: {
+        title: 'Dringend, aber nicht wichtig',
+        description: 'Delegieren',
+      },
+      notUrgentNotImportant: {
+        title: 'Weder dringend noch wichtig',
+        description: 'Eliminieren',
+      },
+    },
+
+    axes: {
+      important: 'WICHTIG',
+      notImportant: 'NICHT WICHTIG',
+      urgent: 'DRINGEND',
+      notUrgent: 'NICHT DRINGEND',
+    },
+
+    tasks: {
+      noTasks: 'Keine Aufgaben',
+      addTask: 'Aufgabe hinzufügen',
+      enterTask: 'Aufgabe eingeben...',
+      add: 'Hinzufügen',
+      cancel: 'Abbrechen',
+      editTask: 'Aufgabe bearbeiten',
+      deleteTask: 'Aufgabe löschen',
+      completeTask: 'Aufgabe abschließen',
+    },
+
+    states: {
+      loading: 'Laden...',
+      error: 'Fehler',
+    },
+  },
+
+  it: {
+    title: 'Matrice di Eisenhower',
+    subtitle: 'Organizza le tue attività per priorità e urgenza',
+
+    quadrants: {
+      urgentImportant: {
+        title: 'Urgente e Importante',
+        description: 'Fai subito',
+      },
+      notUrgentImportant: {
+        title: 'Importante ma Non Urgente',
+        description: 'Pianifica',
+      },
+      urgentNotImportant: {
+        title: 'Urgente ma Non Importante',
+        description: 'Delega',
+      },
+      notUrgentNotImportant: {
+        title: 'Né Urgente né Importante',
+        description: 'Elimina',
+      },
+    },
+
+    axes: {
+      important: 'IMPORTANTE',
+      notImportant: 'NON IMPORTANTE',
+      urgent: 'URGENTE',
+      notUrgent: 'NON URGENTE',
+    },
+
+    tasks: {
+      noTasks: 'Nessuna attività',
+      addTask: 'Aggiungi attività',
+      enterTask: 'Inserisci un\'attività...',
+      add: 'Aggiungi',
+      cancel: 'Annulla',
+      editTask: 'Modifica attività',
+      deleteTask: 'Elimina attività',
+      completeTask: 'Completa attività',
+    },
+
+    states: {
+      loading: 'Caricamento...',
+      error: 'Errore',
+    },
+  },
+
+  pt: {
+    title: 'Matriz de Eisenhower',
+    subtitle: 'Organize suas tarefas por prioridade e urgência',
+
+    quadrants: {
+      urgentImportant: {
+        title: 'Urgente e Importante',
+        description: 'Fazer imediatamente',
+      },
+      notUrgentImportant: {
+        title: 'Importante mas Não Urgente',
+        description: 'Agendar',
+      },
+      urgentNotImportant: {
+        title: 'Urgente mas Não Importante',
+        description: 'Delegar',
+      },
+      notUrgentNotImportant: {
+        title: 'Nem Urgente nem Importante',
+        description: 'Eliminar',
+      },
+    },
+
+    axes: {
+      important: 'IMPORTANTE',
+      notImportant: 'NÃO IMPORTANTE',
+      urgent: 'URGENTE',
+      notUrgent: 'NÃO URGENTE',
+    },
+
+    tasks: {
+      noTasks: 'Sem tarefas',
+      addTask: 'Adicionar tarefa',
+      enterTask: 'Digite uma tarefa...',
+      add: 'Adicionar',
+      cancel: 'Cancelar',
+      editTask: 'Editar tarefa',
+      deleteTask: 'Excluir tarefa',
+      completeTask: 'Concluir tarefa',
+    },
+
+    states: {
+      loading: 'Carregando...',
+      error: 'Erro',
+    },
+  },
+
+  nl: {
+    title: 'Eisenhower-matrix',
+    subtitle: 'Organiseer je taken op prioriteit en urgentie',
+
+    quadrants: {
+      urgentImportant: {
+        title: 'Urgent & Belangrijk',
+        description: 'Direct doen',
+      },
+      notUrgentImportant: {
+        title: 'Belangrijk maar Niet Urgent',
+        description: 'Plannen',
+      },
+      urgentNotImportant: {
+        title: 'Urgent maar Niet Belangrijk',
+        description: 'Delegeren',
+      },
+      notUrgentNotImportant: {
+        title: 'Niet Urgent en Niet Belangrijk',
+        description: 'Elimineren',
+      },
+    },
+
+    axes: {
+      important: 'BELANGRIJK',
+      notImportant: 'NIET BELANGRIJK',
+      urgent: 'URGENT',
+      notUrgent: 'NIET URGENT',
+    },
+
+    tasks: {
+      noTasks: 'Geen taken',
+      addTask: 'Taak toevoegen',
+      enterTask: 'Voer een taak in...',
+      add: 'Toevoegen',
+      cancel: 'Annuleren',
+      editTask: 'Taak bewerken',
+      deleteTask: 'Taak verwijderen',
+      completeTask: 'Taak voltooien',
+    },
+
+    states: {
+      loading: 'Laden...',
+      error: 'Fout',
+    },
+  },
+
+  pl: {
+    title: 'Macierz Eisenhowera',
+    subtitle: 'Organizuj zadania według priorytetu i pilności',
+
+    quadrants: {
+      urgentImportant: {
+        title: 'Pilne i Ważne',
+        description: 'Zrób natychmiast',
+      },
+      notUrgentImportant: {
+        title: 'Ważne, ale Niepilne',
+        description: 'Zaplanuj',
+      },
+      urgentNotImportant: {
+        title: 'Pilne, ale Nieważne',
+        description: 'Deleguj',
+      },
+      notUrgentNotImportant: {
+        title: 'Ani Pilne, ani Ważne',
+        description: 'Wyeliminuj',
+      },
+    },
+
+    axes: {
+      important: 'WAŻNE',
+      notImportant: 'NIEWAŻNE',
+      urgent: 'PILNE',
+      notUrgent: 'NIEPILNE',
+    },
+
+    tasks: {
+      noTasks: 'Brak zadań',
+      addTask: 'Dodaj zadanie',
+      enterTask: 'Wpisz zadanie...',
+      add: 'Dodaj',
+      cancel: 'Anuluj',
+      editTask: 'Edytuj zadanie',
+      deleteTask: 'Usuń zadanie',
+      completeTask: 'Zakończ zadanie',
+    },
+
+    states: {
+      loading: 'Ładowanie...',
+      error: 'Błąd',
+    },
+  },
+
+  ru: {
+    title: 'Матрица Эйзенхауэра',
+    subtitle: 'Организуйте задачи по приоритету и срочности',
+
+    quadrants: {
+      urgentImportant: {
+        title: 'Срочное и Важное',
+        description: 'Сделать немедленно',
+      },
+      notUrgentImportant: {
+        title: 'Важное, но Несрочное',
+        description: 'Запланировать',
+      },
+      urgentNotImportant: {
+        title: 'Срочное, но Неважное',
+        description: 'Делегировать',
+      },
+      notUrgentNotImportant: {
+        title: 'Несрочное и Неважное',
+        description: 'Удалить',
+      },
+    },
+
+    axes: {
+      important: 'ВАЖНО',
+      notImportant: 'НЕВАЖНО',
+      urgent: 'СРОЧНО',
+      notUrgent: 'НЕСРОЧНО',
+    },
+
+    tasks: {
+      noTasks: 'Нет задач',
+      addTask: 'Добавить задачу',
+      enterTask: 'Введите задачу...',
+      add: 'Добавить',
+      cancel: 'Отмена',
+      editTask: 'Редактировать задачу',
+      deleteTask: 'Удалить задачу',
+      completeTask: 'Завершить задачу',
+    },
+
+    states: {
+      loading: 'Загрузка...',
+      error: 'Ошибка',
+    },
+  },
+
+  uk: {
+    title: 'Матриця Ейзенхауера',
+    subtitle: 'Організуйте завдання за пріоритетом та терміновістю',
+
+    quadrants: {
+      urgentImportant: {
+        title: 'Термінове та Важливе',
+        description: 'Зробити негайно',
+      },
+      notUrgentImportant: {
+        title: 'Важливе, але Нетермінове',
+        description: 'Запланувати',
+      },
+      urgentNotImportant: {
+        title: 'Термінове, але Неважливе',
+        description: 'Делегувати',
+      },
+      notUrgentNotImportant: {
+        title: 'Нетермінове та Неважливе',
+        description: 'Видалити',
+      },
+    },
+
+    axes: {
+      important: 'ВАЖЛИВО',
+      notImportant: 'НЕВАЖЛИВО',
+      urgent: 'ТЕРМІНОВО',
+      notUrgent: 'НЕТЕРМІНОВО',
+    },
+
+    tasks: {
+      noTasks: 'Немає завдань',
+      addTask: 'Додати завдання',
+      enterTask: 'Введіть завдання...',
+      add: 'Додати',
+      cancel: 'Скасувати',
+      editTask: 'Редагувати завдання',
+      deleteTask: 'Видалити завдання',
+      completeTask: 'Завершити завдання',
+    },
+
+    states: {
+      loading: 'Завантаження...',
+      error: 'Помилка',
     },
   },
 };
