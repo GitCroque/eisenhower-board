@@ -1,20 +1,18 @@
-export interface Task {
-  id: string;
-  text: string;
-  createdAt: number;
-}
+// Re-export shared types
+export type {
+  Task,
+  QuadrantKey,
+  QuadrantsState,
+  CreateTaskRequest,
+  UpdateTaskRequest,
+} from '@shared/types';
 
-export type QuadrantKey =
-  | 'urgentImportant'
-  | 'notUrgentImportant'
-  | 'urgentNotImportant'
-  | 'notUrgentNotImportant';
+export { QUADRANT_KEYS } from '@shared/types';
 
+// Frontend-specific types
 export interface QuadrantConfig {
   title: string;
   description: string;
   colorClass: string;
   iconColor: string;
 }
-
-export type QuadrantsState = Record<QuadrantKey, Task[]>;

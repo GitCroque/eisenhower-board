@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Task, QuadrantKey, QuadrantsState } from '@/types';
 
 const API_BASE = '/api';
@@ -25,6 +25,47 @@ export function useApi(): UseApiResult {
   const [quadrants, setQuadrants] = useState<QuadrantsState>(INITIAL_STATE);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const csrfTokenRef = useRef<string | null>(null);
+
+  // Fetch CSRF token
+  const fetchCsrfToken = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE}/csrf-token`);
+      if (response.ok) {
+        const data = await response.json();
+        csrfTokenRef.current = data.token;
+      }
+    } catch {
+      console.error('Failed to fetch CSRF token');
+    }
+  }, []);
+
+  // Helper for mutating requests with CSRF token
+  const fetchWithCsrf = useCallback(async (url: string, options: RequestInit): Promise<Response> => {
+    // Ensure we have a CSRF token
+    if (!csrfTokenRef.current) {
+      await fetchCsrfToken();
+    }
+
+    const headers: HeadersInit = {
+      ...options.headers,
+      'X-CSRF-Token': csrfTokenRef.current || '',
+    };
+
+    const response = await fetch(url, { ...options, headers });
+
+    // If CSRF token is invalid, try once to refresh it
+    if (response.status === 403) {
+      await fetchCsrfToken();
+      const retryHeaders: HeadersInit = {
+        ...options.headers,
+        'X-CSRF-Token': csrfTokenRef.current || '',
+      };
+      return fetch(url, { ...options, headers: retryHeaders });
+    }
+
+    return response;
+  }, [fetchCsrfToken]);
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -43,13 +84,14 @@ export function useApi(): UseApiResult {
   }, []);
 
   useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+    // Fetch CSRF token and tasks on mount
+    Promise.all([fetchCsrfToken(), fetchTasks()]);
+  }, [fetchCsrfToken, fetchTasks]);
 
   const addTask = useCallback(async (quadrantKey: QuadrantKey, text: string) => {
     try {
       setError(null);
-      const response = await fetch(`${API_BASE}/tasks`, {
+      const response = await fetchWithCsrf(`${API_BASE}/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, quadrant: quadrantKey }),
@@ -69,12 +111,12 @@ export function useApi(): UseApiResult {
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
     }
-  }, []);
+  }, [fetchWithCsrf]);
 
   const deleteTask = useCallback(async (quadrantKey: QuadrantKey, taskId: string) => {
     try {
       setError(null);
-      const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+      const response = await fetchWithCsrf(`${API_BASE}/tasks/${taskId}`, {
         method: 'DELETE',
       });
 
@@ -90,12 +132,12 @@ export function useApi(): UseApiResult {
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
     }
-  }, []);
+  }, [fetchWithCsrf]);
 
   const editTask = useCallback(async (quadrantKey: QuadrantKey, taskId: string, newText: string) => {
     try {
       setError(null);
-      const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+      const response = await fetchWithCsrf(`${API_BASE}/tasks/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: newText }),
@@ -115,24 +157,31 @@ export function useApi(): UseApiResult {
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
     }
-  }, []);
+  }, [fetchWithCsrf]);
 
   const moveTask = useCallback(async (taskId: string, sourceQuadrant: QuadrantKey, targetQuadrant: QuadrantKey) => {
     if (sourceQuadrant === targetQuadrant) return;
 
-    // Optimistic update
-    const task = quadrants[sourceQuadrant].find((t) => t.id === taskId);
-    if (!task) return;
+    // Store task reference for rollback
+    let movedTask: Task | undefined;
 
-    setQuadrants((prev) => ({
-      ...prev,
-      [sourceQuadrant]: prev[sourceQuadrant].filter((t) => t.id !== taskId),
-      [targetQuadrant]: [...prev[targetQuadrant], task],
-    }));
+    // Optimistic update - use functional update to avoid quadrants dependency
+    setQuadrants((prev) => {
+      movedTask = prev[sourceQuadrant].find((t) => t.id === taskId);
+      if (!movedTask) return prev;
+
+      return {
+        ...prev,
+        [sourceQuadrant]: prev[sourceQuadrant].filter((t) => t.id !== taskId),
+        [targetQuadrant]: [...prev[targetQuadrant], movedTask],
+      };
+    });
+
+    if (!movedTask) return;
 
     try {
       setError(null);
-      const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+      const response = await fetchWithCsrf(`${API_BASE}/tasks/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ quadrant: targetQuadrant }),
@@ -140,9 +189,10 @@ export function useApi(): UseApiResult {
 
       if (!response.ok) {
         // Rollback on failure
+        const taskToRestore = movedTask;
         setQuadrants((prev) => ({
           ...prev,
-          [sourceQuadrant]: [...prev[sourceQuadrant], task],
+          [sourceQuadrant]: [...prev[sourceQuadrant], taskToRestore],
           [targetQuadrant]: prev[targetQuadrant].filter((t) => t.id !== taskId),
         }));
         throw new Error('Failed to move task');
@@ -151,7 +201,7 @@ export function useApi(): UseApiResult {
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
     }
-  }, [quadrants]);
+  }, [fetchWithCsrf]);
 
   return {
     quadrants,

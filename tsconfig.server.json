@@ -7,10 +7,14 @@
     "strict": true,
     "skipLibCheck": true,
     "outDir": "./server",
-    "rootDir": "./server",
+    "rootDir": ".",
     "declaration": false,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./shared/*"]
+    }
   },
-  "include": ["server/**/*.ts"],
+  "include": ["server/**/*.ts", "shared/**/*.ts"],
   "exclude": ["node_modules"]
 }

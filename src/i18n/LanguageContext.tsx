@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Language, Translations, translations } from './translations';
 
 interface LanguageContextType {
@@ -14,19 +15,9 @@ const STORAGE_KEY = 'eisenhower-language';
 const SUPPORTED_LANGUAGES: Language[] = ['en', 'zh', 'hi', 'es', 'fr', 'ar', 'bn', 'de', 'it', 'pt', 'nl', 'pl', 'ru', 'uk'];
 
 function getBrowserLanguage(): Language {
+  if (typeof window === 'undefined') return 'en';
   const browserLang = navigator.language.split('-')[0] as Language;
   return SUPPORTED_LANGUAGES.includes(browserLang) ? browserLang : 'en';
-}
-
-function getInitialLanguage(): Language {
-  if (typeof window === 'undefined') return 'en';
-
-  const stored = localStorage.getItem(STORAGE_KEY) as Language;
-  if (stored && SUPPORTED_LANGUAGES.includes(stored)) {
-    return stored;
-  }
-
-  return getBrowserLanguage();
 }
 
 interface LanguageProviderProps {
@@ -34,23 +25,22 @@ interface LanguageProviderProps {
 }
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [language, setLanguageState] = useState<Language>(getInitialLanguage);
+  const [language, setLanguageState] = useLocalStorage<Language>(STORAGE_KEY, getBrowserLanguage());
 
-  const setLanguage = (lang: Language) => {
+  const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem(STORAGE_KEY, lang);
-  };
+  }, [setLanguageState]);
 
   useEffect(() => {
     // Update html lang attribute
     document.documentElement.lang = language;
   }, [language]);
 
-  const value: LanguageContextType = {
+  const value = useMemo<LanguageContextType>(() => ({
     language,
     setLanguage,
     t: translations[language],
-  };
+  }), [language, setLanguage]);
 
   return (
     <LanguageContext.Provider value={value}>

@@ -1,5 +1,5 @@
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, pointerWithin } from '@dnd-kit/core';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useApi } from '@/hooks/useApi';
 import { useLanguage } from '@/i18n';
 import { Task, QuadrantKey } from '@/types';
@@ -30,16 +30,16 @@ const QUADRANT_STYLES: Record<QuadrantKey, QuadrantStyle> = {
 };
 
 export function EisenhowerMatrix() {
-  const { quadrants, loading, error, addTask, deleteTask, editTask, moveTask } = useApi();
+  const { quadrants, loading, error, addTask, deleteTask, moveTask } = useApi();
   const { t } = useLanguage();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     const { task } = event.active.data.current as { task: Task };
     setActiveTask(task);
-  };
+  }, []);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     setActiveTask(null);
     const { active, over } = event;
 
@@ -51,7 +51,7 @@ export function EisenhowerMatrix() {
     if (sourceQuadrant === targetQuadrant) return;
 
     moveTask(active.id as string, sourceQuadrant, targetQuadrant);
-  };
+  }, [moveTask]);
 
   const renderQuadrant = (key: QuadrantKey) => (
     <QuadrantCard
@@ -64,7 +64,6 @@ export function EisenhowerMatrix() {
       tasks={quadrants[key]}
       onAddTask={(text) => addTask(key, text)}
       onDeleteTask={(id) => deleteTask(key, id)}
-      onEditTask={(id, newText) => editTask(key, id, newText)}
     />
   );
 

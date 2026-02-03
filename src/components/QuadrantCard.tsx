@@ -26,7 +26,6 @@ interface QuadrantCardProps {
   tasks: Task[];
   onAddTask: (text: string) => void;
   onDeleteTask: (id: string) => void;
-  onEditTask: (id: string, newText: string) => void;
 }
 
 export function QuadrantCard({
@@ -38,7 +37,6 @@ export function QuadrantCard({
   tasks,
   onAddTask,
   onDeleteTask,
-  onEditTask,
 }: QuadrantCardProps) {
   const [inputValue, setInputValue] = useState('');
   const [isAdding, setIsAdding] = useState(false);
@@ -88,7 +86,6 @@ export function QuadrantCard({
                 task={task}
                 quadrantKey={quadrantKey}
                 onDelete={onDeleteTask}
-                onEdit={onEditTask}
               />
             ))
           )}
@@ -100,6 +97,7 @@ export function QuadrantCard({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={t.tasks.enterTask}
+              aria-label={t.tasks.enterTask}
               autoFocus
               className="border-white/60 bg-white/80 backdrop-blur-md transition-all duration-200 focus:bg-white/95 dark:border-slate-700/60 dark:bg-slate-800/80 dark:focus:bg-slate-800/95"
             />

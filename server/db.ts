@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
+import type { Task, QuadrantKey, QuadrantsState } from '../shared/types.js';
 
 const DATA_DIR = process.env.DATA_DIR || '/app/data';
 const DB_PATH = path.join(DATA_DIR, 'tasks.db');
@@ -32,19 +33,8 @@ export interface DbTask {
   created_at: number;
 }
 
-export type QuadrantKey =
-  | 'urgentImportant'
-  | 'notUrgentImportant'
-  | 'urgentNotImportant'
-  | 'notUrgentNotImportant';
-
-export interface Task {
-  id: string;
-  text: string;
-  createdAt: number;
-}
-
-export type QuadrantsState = Record<QuadrantKey, Task[]>;
+// Re-export types for convenience
+export type { Task, QuadrantKey, QuadrantsState };
 
 // Get all tasks grouped by quadrant
 export function getAllTasks(): QuadrantsState {

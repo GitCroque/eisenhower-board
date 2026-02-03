@@ -45,6 +45,27 @@ export interface Translations {
     completeTask: string;
   };
 
+  // Theme
+  theme: {
+    toggle: string;
+  };
+
+  // Dialogs
+  dialogs: {
+    deleteConfirmTitle: string;
+    deleteConfirmDescription: string;
+    confirm: string;
+    cancel: string;
+  };
+
+  // Toasts
+  toasts: {
+    taskAdded: string;
+    taskDeleted: string;
+    taskMoved: string;
+    error: string;
+  };
+
   // States
   states: {
     loading: string;
@@ -94,6 +115,24 @@ export const translations: Record<Language, Translations> = {
       completeTask: 'Complete task',
     },
 
+    theme: {
+      toggle: 'Toggle theme',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: 'Delete task?',
+      deleteConfirmDescription: 'This action cannot be undone.',
+      confirm: 'Delete',
+      cancel: 'Cancel',
+    },
+
+    toasts: {
+      taskAdded: 'Task added',
+      taskDeleted: 'Task deleted',
+      taskMoved: 'Task moved',
+      error: 'An error occurred',
+    },
+
     states: {
       loading: 'Loading...',
       error: 'Error',
@@ -139,6 +178,24 @@ export const translations: Record<Language, Translations> = {
       editTask: 'Modifier la tâche',
       deleteTask: 'Supprimer la tâche',
       completeTask: 'Terminer la tâche',
+    },
+
+    theme: {
+      toggle: 'Changer le thème',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: 'Supprimer la tâche ?',
+      deleteConfirmDescription: 'Cette action est irréversible.',
+      confirm: 'Supprimer',
+      cancel: 'Annuler',
+    },
+
+    toasts: {
+      taskAdded: 'Tâche ajoutée',
+      taskDeleted: 'Tâche supprimée',
+      taskMoved: 'Tâche déplacée',
+      error: 'Une erreur est survenue',
     },
 
     states: {
@@ -188,6 +245,24 @@ export const translations: Record<Language, Translations> = {
       completeTask: '完成任务',
     },
 
+    theme: {
+      toggle: '切换主题',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: '删除任务？',
+      deleteConfirmDescription: '此操作无法撤消。',
+      confirm: '删除',
+      cancel: '取消',
+    },
+
+    toasts: {
+      taskAdded: '任务已添加',
+      taskDeleted: '任务已删除',
+      taskMoved: '任务已移动',
+      error: '发生错误',
+    },
+
     states: {
       loading: '加载中...',
       error: '错误',
@@ -233,6 +308,24 @@ export const translations: Record<Language, Translations> = {
       editTask: 'कार्य संपादित करें',
       deleteTask: 'कार्य हटाएं',
       completeTask: 'कार्य पूर्ण करें',
+    },
+
+    theme: {
+      toggle: 'थीम बदलें',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: 'कार्य हटाएं?',
+      deleteConfirmDescription: 'यह क्रिया पूर्ववत नहीं की जा सकती।',
+      confirm: 'हटाएं',
+      cancel: 'रद्द करें',
+    },
+
+    toasts: {
+      taskAdded: 'कार्य जोड़ा गया',
+      taskDeleted: 'कार्य हटाया गया',
+      taskMoved: 'कार्य स्थानांतरित',
+      error: 'एक त्रुटि हुई',
     },
 
     states: {
@@ -282,6 +375,24 @@ export const translations: Record<Language, Translations> = {
       completeTask: 'Completar tarea',
     },
 
+    theme: {
+      toggle: 'Cambiar tema',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: '¿Eliminar tarea?',
+      deleteConfirmDescription: 'Esta acción no se puede deshacer.',
+      confirm: 'Eliminar',
+      cancel: 'Cancelar',
+    },
+
+    toasts: {
+      taskAdded: 'Tarea añadida',
+      taskDeleted: 'Tarea eliminada',
+      taskMoved: 'Tarea movida',
+      error: 'Ocurrió un error',
+    },
+
     states: {
       loading: 'Cargando...',
       error: 'Error',
@@ -327,6 +438,24 @@ export const translations: Record<Language, Translations> = {
       editTask: 'تعديل المهمة',
       deleteTask: 'حذف المهمة',
       completeTask: 'إكمال المهمة',
+    },
+
+    theme: {
+      toggle: 'تغيير المظهر',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: 'حذف المهمة؟',
+      deleteConfirmDescription: 'لا يمكن التراجع عن هذا الإجراء.',
+      confirm: 'حذف',
+      cancel: 'إلغاء',
+    },
+
+    toasts: {
+      taskAdded: 'تمت إضافة المهمة',
+      taskDeleted: 'تم حذف المهمة',
+      taskMoved: 'تم نقل المهمة',
+      error: 'حدث خطأ',
     },
 
     states: {
@@ -376,6 +505,24 @@ export const translations: Record<Language, Translations> = {
       completeTask: 'কাজ সম্পূর্ণ করুন',
     },
 
+    theme: {
+      toggle: 'থিম পরিবর্তন করুন',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: 'কাজ মুছুন?',
+      deleteConfirmDescription: 'এই ক্রিয়াটি পূর্বাবস্থায় ফেরানো যাবে না।',
+      confirm: 'মুছুন',
+      cancel: 'বাতিল',
+    },
+
+    toasts: {
+      taskAdded: 'কাজ যোগ হয়েছে',
+      taskDeleted: 'কাজ মুছে ফেলা হয়েছে',
+      taskMoved: 'কাজ সরানো হয়েছে',
+      error: 'একটি ত্রুটি ঘটেছে',
+    },
+
     states: {
       loading: 'লোড হচ্ছে...',
       error: 'ত্রুটি',
@@ -421,6 +568,24 @@ export const translations: Record<Language, Translations> = {
       editTask: 'Aufgabe bearbeiten',
       deleteTask: 'Aufgabe löschen',
       completeTask: 'Aufgabe abschließen',
+    },
+
+    theme: {
+      toggle: 'Design wechseln',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: 'Aufgabe löschen?',
+      deleteConfirmDescription: 'Diese Aktion kann nicht rückgängig gemacht werden.',
+      confirm: 'Löschen',
+      cancel: 'Abbrechen',
+    },
+
+    toasts: {
+      taskAdded: 'Aufgabe hinzugefügt',
+      taskDeleted: 'Aufgabe gelöscht',
+      taskMoved: 'Aufgabe verschoben',
+      error: 'Ein Fehler ist aufgetreten',
     },
 
     states: {
@@ -470,6 +635,24 @@ export const translations: Record<Language, Translations> = {
       completeTask: 'Completa attività',
     },
 
+    theme: {
+      toggle: 'Cambia tema',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: 'Eliminare attività?',
+      deleteConfirmDescription: 'Questa azione non può essere annullata.',
+      confirm: 'Elimina',
+      cancel: 'Annulla',
+    },
+
+    toasts: {
+      taskAdded: 'Attività aggiunta',
+      taskDeleted: 'Attività eliminata',
+      taskMoved: 'Attività spostata',
+      error: 'Si è verificato un errore',
+    },
+
     states: {
       loading: 'Caricamento...',
       error: 'Errore',
@@ -515,6 +698,24 @@ export const translations: Record<Language, Translations> = {
       editTask: 'Editar tarefa',
       deleteTask: 'Excluir tarefa',
       completeTask: 'Concluir tarefa',
+    },
+
+    theme: {
+      toggle: 'Mudar tema',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: 'Excluir tarefa?',
+      deleteConfirmDescription: 'Esta ação não pode ser desfeita.',
+      confirm: 'Excluir',
+      cancel: 'Cancelar',
+    },
+
+    toasts: {
+      taskAdded: 'Tarefa adicionada',
+      taskDeleted: 'Tarefa excluída',
+      taskMoved: 'Tarefa movida',
+      error: 'Ocorreu um erro',
     },
 
     states: {
@@ -564,6 +765,24 @@ export const translations: Record<Language, Translations> = {
       completeTask: 'Taak voltooien',
     },
 
+    theme: {
+      toggle: 'Thema wisselen',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: 'Taak verwijderen?',
+      deleteConfirmDescription: 'Deze actie kan niet ongedaan worden gemaakt.',
+      confirm: 'Verwijderen',
+      cancel: 'Annuleren',
+    },
+
+    toasts: {
+      taskAdded: 'Taak toegevoegd',
+      taskDeleted: 'Taak verwijderd',
+      taskMoved: 'Taak verplaatst',
+      error: 'Er is een fout opgetreden',
+    },
+
     states: {
       loading: 'Laden...',
       error: 'Fout',
@@ -609,6 +828,24 @@ export const translations: Record<Language, Translations> = {
       editTask: 'Edytuj zadanie',
       deleteTask: 'Usuń zadanie',
       completeTask: 'Zakończ zadanie',
+    },
+
+    theme: {
+      toggle: 'Zmień motyw',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: 'Usunąć zadanie?',
+      deleteConfirmDescription: 'Tej czynności nie można cofnąć.',
+      confirm: 'Usuń',
+      cancel: 'Anuluj',
+    },
+
+    toasts: {
+      taskAdded: 'Zadanie dodane',
+      taskDeleted: 'Zadanie usunięte',
+      taskMoved: 'Zadanie przeniesione',
+      error: 'Wystąpił błąd',
     },
 
     states: {
@@ -658,6 +895,24 @@ export const translations: Record<Language, Translations> = {
       completeTask: 'Завершить задачу',
     },
 
+    theme: {
+      toggle: 'Сменить тему',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: 'Удалить задачу?',
+      deleteConfirmDescription: 'Это действие нельзя отменить.',
+      confirm: 'Удалить',
+      cancel: 'Отмена',
+    },
+
+    toasts: {
+      taskAdded: 'Задача добавлена',
+      taskDeleted: 'Задача удалена',
+      taskMoved: 'Задача перемещена',
+      error: 'Произошла ошибка',
+    },
+
     states: {
       loading: 'Загрузка...',
       error: 'Ошибка',
@@ -703,6 +958,24 @@ export const translations: Record<Language, Translations> = {
       editTask: 'Редагувати завдання',
       deleteTask: 'Видалити завдання',
       completeTask: 'Завершити завдання',
+    },
+
+    theme: {
+      toggle: 'Змінити тему',
+    },
+
+    dialogs: {
+      deleteConfirmTitle: 'Видалити завдання?',
+      deleteConfirmDescription: 'Цю дію не можна скасувати.',
+      confirm: 'Видалити',
+      cancel: 'Скасувати',
+    },
+
+    toasts: {
+      taskAdded: 'Завдання додано',
+      taskDeleted: 'Завдання видалено',
+      taskMoved: 'Завдання переміщено',
+      error: 'Сталася помилка',
     },
 
     states: {

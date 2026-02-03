@@ -3,6 +3,8 @@ import { LanguageProvider, useLanguage } from '@/i18n';
 import { EisenhowerMatrix } from './components/EisenhowerMatrix';
 import { ThemeToggle } from './components/ThemeToggle';
 import { LanguageSelector } from './components/LanguageSelector';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastProvider } from './components/ui/toast';
 
 function AppContent() {
   const { t } = useLanguage();
@@ -39,10 +41,14 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <LanguageProvider>
-        <AppContent />
-      </LanguageProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <LanguageProvider>
+          <ToastProvider>
+            <AppContent />
+          </ToastProvider>
+        </LanguageProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
