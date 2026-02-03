@@ -1,6 +1,10 @@
 # Build stage
 FROM node:20-alpine AS build
 WORKDIR /app
+
+# Install build dependencies for native modules (better-sqlite3)
+RUN apk add --no-cache python3 make g++
+
 COPY package*.json ./
 RUN npm ci
 COPY . .
@@ -13,6 +17,9 @@ RUN npm run build:server
 FROM node:20-alpine
 WORKDIR /app
 
+# Install build dependencies for native modules (better-sqlite3)
+RUN apk add --no-cache python3 make g++
+
 # Copy built frontend
 COPY --from=build /app/dist ./dist
 
@@ -22,8 +29,11 @@ COPY --from=build /app/dist-server ./dist-server
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies only
+# Install production dependencies only (rebuilds native modules for target arch)
 RUN npm ci --omit=dev
+
+# Remove build dependencies to reduce image size
+RUN apk del python3 make g++
 
 # Create data directory for SQLite
 RUN mkdir -p /app/data
