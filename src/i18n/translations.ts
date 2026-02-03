@@ -28,6 +28,7 @@ export interface Translations {
   // Axes
   axes: {
     important: string;
+    notImportant: string;
     urgent: string;
     notUrgent: string;
   };
@@ -76,6 +77,7 @@ export const translations: Record<Language, Translations> = {
 
     axes: {
       important: 'IMPORTANT',
+      notImportant: 'NOT IMPORTANT',
       urgent: 'URGENT',
       notUrgent: 'NOT URGENT',
     },
@@ -121,6 +123,7 @@ export const translations: Record<Language, Translations> = {
 
     axes: {
       important: 'IMPORTANT',
+      notImportant: 'NON-IMPORTANT',
       urgent: 'URGENT',
       notUrgent: 'NON-URGENT',
     },

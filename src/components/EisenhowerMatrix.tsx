@@ -29,13 +29,6 @@ const QUADRANT_STYLES: Record<QuadrantKey, QuadrantStyle> = {
   },
 };
 
-const QUADRANT_KEYS: QuadrantKey[] = [
-  'urgentImportant',
-  'notUrgentImportant',
-  'urgentNotImportant',
-  'notUrgentNotImportant',
-];
-
 export function EisenhowerMatrix() {
   const { quadrants, loading, error, addTask, deleteTask, editTask, moveTask } = useApi();
   const { t } = useLanguage();
@@ -60,6 +53,21 @@ export function EisenhowerMatrix() {
     moveTask(active.id as string, sourceQuadrant, targetQuadrant);
   };
 
+  const renderQuadrant = (key: QuadrantKey) => (
+    <QuadrantCard
+      key={key}
+      quadrantKey={key}
+      title={t.quadrants[key].title}
+      description={t.quadrants[key].description}
+      colorClass={QUADRANT_STYLES[key].colorClass}
+      iconColor={QUADRANT_STYLES[key].iconColor}
+      tasks={quadrants[key]}
+      onAddTask={(text) => addTask(key, text)}
+      onDeleteTask={(id) => deleteTask(key, id)}
+      onEditTask={(id, newText) => editTask(key, id, newText)}
+    />
+  );
+
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
@@ -83,37 +91,42 @@ export function EisenhowerMatrix() {
       collisionDetection={pointerWithin}
     >
       <div className="space-y-4">
-        <div className="relative grid grid-cols-1 gap-4 md:ml-16 md:grid-cols-2">
-          {/* Vertical axis label */}
+        {/* Horizontal axis labels */}
+        <div className="relative hidden md:ml-16 md:grid md:grid-cols-2 md:gap-4">
+          <div className="text-center">
+            <span className="tracking-wider text-slate-700 dark:text-slate-300">{t.axes.urgent}</span>
+          </div>
+          <div className="text-center">
+            <span className="tracking-wider text-slate-700 dark:text-slate-300">{t.axes.notUrgent}</span>
+          </div>
+        </div>
+
+        {/* Important row */}
+        <div className="relative md:ml-16">
+          {/* Vertical axis label - IMPORTANT */}
           <div className="absolute -left-16 bottom-0 top-0 hidden items-center justify-center md:flex">
             <span className="-rotate-90 whitespace-nowrap tracking-wider text-slate-700 dark:text-slate-300">
               {t.axes.important}
             </span>
           </div>
-
-          {/* Horizontal axis labels */}
-          <div className="absolute -top-8 left-1/4 hidden -translate-x-1/2 md:block">
-            <span className="tracking-wider text-slate-700 dark:text-slate-300">{t.axes.urgent}</span>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {renderQuadrant('urgentImportant')}
+            {renderQuadrant('notUrgentImportant')}
           </div>
-          <div className="absolute -top-8 right-1/4 hidden translate-x-1/2 md:block">
-            <span className="tracking-wider text-slate-700 dark:text-slate-300">{t.axes.notUrgent}</span>
-          </div>
+        </div>
 
-          {/* Quadrants */}
-          {QUADRANT_KEYS.map((key) => (
-            <QuadrantCard
-              key={key}
-              quadrantKey={key}
-              title={t.quadrants[key].title}
-              description={t.quadrants[key].description}
-              colorClass={QUADRANT_STYLES[key].colorClass}
-              iconColor={QUADRANT_STYLES[key].iconColor}
-              tasks={quadrants[key]}
-              onAddTask={(text) => addTask(key, text)}
-              onDeleteTask={(id) => deleteTask(key, id)}
-              onEditTask={(id, newText) => editTask(key, id, newText)}
-            />
-          ))}
+        {/* Not Important row */}
+        <div className="relative md:ml-16">
+          {/* Vertical axis label - NOT IMPORTANT */}
+          <div className="absolute -left-16 bottom-0 top-0 hidden items-center justify-center md:flex">
+            <span className="-rotate-90 whitespace-nowrap tracking-wider text-slate-700 dark:text-slate-300">
+              {t.axes.notImportant}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {renderQuadrant('urgentNotImportant')}
+            {renderQuadrant('notUrgentNotImportant')}
+          </div>
         </div>
       </div>
 
