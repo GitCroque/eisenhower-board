@@ -49,6 +49,7 @@ export function TaskItem({ task, quadrantKey, onDelete }: TaskItemProps) {
       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
         <button
           onClick={handleComplete}
+          onPointerDown={(e) => e.stopPropagation()}
           className="text-slate-400 hover:text-green-600 hover:scale-110 transition-all duration-200"
           aria-label={t.tasks.completeTask}
         >
@@ -56,6 +57,7 @@ export function TaskItem({ task, quadrantKey, onDelete }: TaskItemProps) {
         </button>
         <button
           onClick={() => onDelete(task.id)}
+          onPointerDown={(e) => e.stopPropagation()}
           className="text-slate-400 hover:text-red-600 hover:scale-110 transition-all duration-200"
           aria-label={t.tasks.deleteTask}
         >

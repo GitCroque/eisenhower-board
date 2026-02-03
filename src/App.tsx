@@ -16,8 +16,8 @@ function AppContent() {
 
       <div className="relative z-10 p-4 md:p-8">
         <div className="mx-auto max-w-7xl">
-          <header className="mb-8 flex items-center justify-between">
-            <div className="flex-1 text-center">
+          <header className="relative mb-8">
+            <div className="text-center">
               <h1 className="mb-2 text-3xl font-bold text-slate-800 drop-shadow-sm dark:text-white md:text-4xl">
                 {t.title}
               </h1>
@@ -25,7 +25,7 @@ function AppContent() {
                 {t.subtitle}
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="absolute right-0 top-0 flex gap-2">
               <LanguageSelector />
               <ThemeToggle />
             </div>
