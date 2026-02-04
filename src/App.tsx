@@ -33,11 +33,6 @@ function AppContent() {
             </div>
           </header>
           <EisenhowerMatrix />
-          <footer className="mt-8 text-center">
-            <span className="text-xs text-slate-400/50 dark:text-slate-600/50">
-              {__APP_VERSION__}
-            </span>
-          </footer>
         </div>
       </div>
     </div>
