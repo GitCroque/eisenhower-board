@@ -10,7 +10,7 @@ const mockTask = {
   createdAt: Date.now(),
 };
 
-function renderTaskItem(onDelete = vi.fn()) {
+function renderTaskItem(onDelete = vi.fn(), onComplete = vi.fn()) {
   return render(
     <LanguageProvider>
       <DndContext>
@@ -18,6 +18,7 @@ function renderTaskItem(onDelete = vi.fn()) {
           task={mockTask}
           quadrantKey="urgentImportant"
           onDelete={onDelete}
+          onComplete={onComplete}
         />
       </DndContext>
     </LanguageProvider>

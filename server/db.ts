@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
-import type { Task, QuadrantKey, QuadrantsState } from '../shared/types.js';
+import type { Task, QuadrantKey, QuadrantsState, ArchivedTask } from '../shared/types.js';
 
 const DATA_DIR = process.env.DATA_DIR || '/app/data';
 const DB_PATH = path.join(DATA_DIR, 'tasks.db');
@@ -26,19 +26,27 @@ db.exec(`
   )
 `);
 
+// Migration: add completed_at column if it doesn't exist
+const columns = db.prepare("PRAGMA table_info(tasks)").all() as { name: string }[];
+const hasCompletedAt = columns.some(col => col.name === 'completed_at');
+if (!hasCompletedAt) {
+  db.exec('ALTER TABLE tasks ADD COLUMN completed_at INTEGER');
+}
+
 export interface DbTask {
   id: string;
   text: string;
   quadrant: string;
   created_at: number;
+  completed_at: number | null;
 }
 
 // Re-export types for convenience
-export type { Task, QuadrantKey, QuadrantsState };
+export type { Task, QuadrantKey, QuadrantsState, ArchivedTask };
 
-// Get all tasks grouped by quadrant
+// Get all active tasks (not completed) grouped by quadrant
 export function getAllTasks(): QuadrantsState {
-  const rows = db.prepare('SELECT * FROM tasks ORDER BY created_at ASC').all() as DbTask[];
+  const rows = db.prepare('SELECT * FROM tasks WHERE completed_at IS NULL ORDER BY created_at ASC').all() as DbTask[];
 
   const result: QuadrantsState = {
     urgentImportant: [],
@@ -59,6 +67,31 @@ export function getAllTasks(): QuadrantsState {
   }
 
   return result;
+}
+
+// Get all archived (completed) tasks
+export function getArchivedTasks(): ArchivedTask[] {
+  const rows = db.prepare('SELECT * FROM tasks WHERE completed_at IS NOT NULL ORDER BY completed_at DESC').all() as DbTask[];
+
+  return rows.map(row => ({
+    id: row.id,
+    text: row.text,
+    createdAt: row.created_at,
+    completedAt: row.completed_at!,
+    quadrant: row.quadrant as QuadrantKey,
+  }));
+}
+
+// Complete a task (archive it)
+export function completeTask(id: string): boolean {
+  const result = db.prepare('UPDATE tasks SET completed_at = ? WHERE id = ? AND completed_at IS NULL').run(Date.now(), id);
+  return result.changes > 0;
+}
+
+// Delete an archived task permanently
+export function deleteArchivedTask(id: string): boolean {
+  const result = db.prepare('DELETE FROM tasks WHERE id = ? AND completed_at IS NOT NULL').run(id);
+  return result.changes > 0;
 }
 
 // Create a new task

@@ -26,6 +26,7 @@ interface QuadrantCardProps {
   tasks: Task[];
   onAddTask: (text: string) => void;
   onDeleteTask: (id: string) => void;
+  onCompleteTask: (id: string) => void;
 }
 
 export function QuadrantCard({
@@ -37,6 +38,7 @@ export function QuadrantCard({
   tasks,
   onAddTask,
   onDeleteTask,
+  onCompleteTask,
 }: QuadrantCardProps) {
   const [inputValue, setInputValue] = useState('');
   const [isAdding, setIsAdding] = useState(false);
@@ -86,6 +88,7 @@ export function QuadrantCard({
                 task={task}
                 quadrantKey={quadrantKey}
                 onDelete={onDeleteTask}
+                onComplete={onCompleteTask}
               />
             ))
           )}

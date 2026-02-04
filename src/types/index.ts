@@ -5,6 +5,7 @@ export type {
   QuadrantsState,
   CreateTaskRequest,
   UpdateTaskRequest,
+  ArchivedTask,
 } from '@shared/types';
 
 export { QUADRANT_KEYS } from '@shared/types';

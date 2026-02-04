@@ -20,9 +20,10 @@ interface TaskItemProps {
   task: Task;
   quadrantKey: string;
   onDelete: (id: string) => void;
+  onComplete: (id: string) => void;
 }
 
-export function TaskItem({ task, quadrantKey, onDelete }: TaskItemProps) {
+export function TaskItem({ task, quadrantKey, onDelete, onComplete }: TaskItemProps) {
   const [isCompleting, setIsCompleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { t } = useLanguage();
@@ -39,7 +40,7 @@ export function TaskItem({ task, quadrantKey, onDelete }: TaskItemProps) {
   const handleComplete = () => {
     setIsCompleting(true);
     setTimeout(() => {
-      onDelete(task.id);
+      onComplete(task.id);
     }, 300);
   };
 

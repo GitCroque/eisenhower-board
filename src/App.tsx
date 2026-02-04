@@ -1,12 +1,15 @@
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
+import { Archive } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/i18n';
 import { EisenhowerMatrix } from './components/EisenhowerMatrix';
+import { ArchivePage } from './components/ArchivePage';
 import { ThemeToggle } from './components/ThemeToggle';
 import { LanguageSelector } from './components/LanguageSelector';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './components/ui/toast';
 
-function AppContent() {
+function MatrixPage() {
   const { t } = useLanguage();
 
   return (
@@ -28,6 +31,13 @@ function AppContent() {
               </p>
             </div>
             <div className="absolute right-0 top-0 flex gap-2">
+              <Link
+                to="/archive"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:text-slate-900 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-slate-200"
+                aria-label={t.archive.openArchive}
+              >
+                <Archive className="h-4 w-4" />
+              </Link>
               <LanguageSelector />
               <ThemeToggle />
             </div>
@@ -39,16 +49,27 @@ function AppContent() {
   );
 }
 
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<MatrixPage />} />
+      <Route path="/archive" element={<ArchivePage />} />
+    </Routes>
+  );
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <LanguageProvider>
-          <ToastProvider>
-            <AppContent />
-          </ToastProvider>
-        </LanguageProvider>
-      </ThemeProvider>
+      <BrowserRouter>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <LanguageProvider>
+            <ToastProvider>
+              <AppRoutes />
+            </ToastProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </BrowserRouter>
     </ErrorBoundary>
   );
 }

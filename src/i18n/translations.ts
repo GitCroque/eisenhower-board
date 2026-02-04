@@ -63,6 +63,7 @@ export interface Translations {
     taskAdded: string;
     taskDeleted: string;
     taskMoved: string;
+    taskCompleted: string;
     error: string;
   };
 
@@ -70,6 +71,16 @@ export interface Translations {
   states: {
     loading: string;
     error: string;
+  };
+
+  // Archive
+  archive: {
+    title: string;
+    noTasks: string;
+    completedOn: string;
+    deleteForever: string;
+    backToMatrix: string;
+    openArchive: string;
   };
 }
 
@@ -130,12 +141,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: 'Task added',
       taskDeleted: 'Task deleted',
       taskMoved: 'Task moved',
+      taskCompleted: 'Task completed',
       error: 'An error occurred',
     },
 
     states: {
       loading: 'Loading...',
       error: 'Error',
+    },
+
+    archive: {
+      title: 'Archived Tasks',
+      noTasks: 'No archived tasks',
+      completedOn: 'Completed on',
+      deleteForever: 'Delete permanently',
+      backToMatrix: 'Back to matrix',
+      openArchive: 'Open archive',
     },
   },
 
@@ -195,12 +216,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: 'Tâche ajoutée',
       taskDeleted: 'Tâche supprimée',
       taskMoved: 'Tâche déplacée',
+      taskCompleted: 'Tâche terminée',
       error: 'Une erreur est survenue',
     },
 
     states: {
       loading: 'Chargement...',
       error: 'Erreur',
+    },
+
+    archive: {
+      title: 'Tâches archivées',
+      noTasks: 'Aucune tâche archivée',
+      completedOn: 'Terminée le',
+      deleteForever: 'Supprimer définitivement',
+      backToMatrix: 'Retour à la matrice',
+      openArchive: 'Ouvrir les archives',
     },
   },
 
@@ -260,12 +291,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: '任务已添加',
       taskDeleted: '任务已删除',
       taskMoved: '任务已移动',
+      taskCompleted: '任务已完成',
       error: '发生错误',
     },
 
     states: {
       loading: '加载中...',
       error: '错误',
+    },
+
+    archive: {
+      title: '已归档任务',
+      noTasks: '没有已归档的任务',
+      completedOn: '完成于',
+      deleteForever: '永久删除',
+      backToMatrix: '返回矩阵',
+      openArchive: '打开归档',
     },
   },
 
@@ -325,12 +366,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: 'कार्य जोड़ा गया',
       taskDeleted: 'कार्य हटाया गया',
       taskMoved: 'कार्य स्थानांतरित',
+      taskCompleted: 'कार्य पूर्ण',
       error: 'एक त्रुटि हुई',
     },
 
     states: {
       loading: 'लोड हो रहा है...',
       error: 'त्रुटि',
+    },
+
+    archive: {
+      title: 'संग्रहीत कार्य',
+      noTasks: 'कोई संग्रहीत कार्य नहीं',
+      completedOn: 'पूर्ण हुआ',
+      deleteForever: 'स्थायी रूप से हटाएं',
+      backToMatrix: 'मैट्रिक्स पर वापस जाएं',
+      openArchive: 'संग्रह खोलें',
     },
   },
 
@@ -390,12 +441,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: 'Tarea añadida',
       taskDeleted: 'Tarea eliminada',
       taskMoved: 'Tarea movida',
+      taskCompleted: 'Tarea completada',
       error: 'Ocurrió un error',
     },
 
     states: {
       loading: 'Cargando...',
       error: 'Error',
+    },
+
+    archive: {
+      title: 'Tareas archivadas',
+      noTasks: 'No hay tareas archivadas',
+      completedOn: 'Completada el',
+      deleteForever: 'Eliminar permanentemente',
+      backToMatrix: 'Volver a la matriz',
+      openArchive: 'Abrir archivo',
     },
   },
 
@@ -455,12 +516,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: 'تمت إضافة المهمة',
       taskDeleted: 'تم حذف المهمة',
       taskMoved: 'تم نقل المهمة',
+      taskCompleted: 'تم إكمال المهمة',
       error: 'حدث خطأ',
     },
 
     states: {
       loading: 'جارٍ التحميل...',
       error: 'خطأ',
+    },
+
+    archive: {
+      title: 'المهام المؤرشفة',
+      noTasks: 'لا توجد مهام مؤرشفة',
+      completedOn: 'اكتملت في',
+      deleteForever: 'حذف نهائياً',
+      backToMatrix: 'العودة إلى المصفوفة',
+      openArchive: 'فتح الأرشيف',
     },
   },
 
@@ -520,12 +591,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: 'কাজ যোগ হয়েছে',
       taskDeleted: 'কাজ মুছে ফেলা হয়েছে',
       taskMoved: 'কাজ সরানো হয়েছে',
+      taskCompleted: 'কাজ সম্পন্ন',
       error: 'একটি ত্রুটি ঘটেছে',
     },
 
     states: {
       loading: 'লোড হচ্ছে...',
       error: 'ত্রুটি',
+    },
+
+    archive: {
+      title: 'সংরক্ষিত কাজ',
+      noTasks: 'কোনো সংরক্ষিত কাজ নেই',
+      completedOn: 'সম্পন্ন হয়েছে',
+      deleteForever: 'স্থায়ীভাবে মুছুন',
+      backToMatrix: 'ম্যাট্রিক্সে ফিরে যান',
+      openArchive: 'সংরক্ষণাগার খুলুন',
     },
   },
 
@@ -585,12 +666,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: 'Aufgabe hinzugefügt',
       taskDeleted: 'Aufgabe gelöscht',
       taskMoved: 'Aufgabe verschoben',
+      taskCompleted: 'Aufgabe abgeschlossen',
       error: 'Ein Fehler ist aufgetreten',
     },
 
     states: {
       loading: 'Laden...',
       error: 'Fehler',
+    },
+
+    archive: {
+      title: 'Archivierte Aufgaben',
+      noTasks: 'Keine archivierten Aufgaben',
+      completedOn: 'Abgeschlossen am',
+      deleteForever: 'Endgültig löschen',
+      backToMatrix: 'Zurück zur Matrix',
+      openArchive: 'Archiv öffnen',
     },
   },
 
@@ -650,12 +741,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: 'Attività aggiunta',
       taskDeleted: 'Attività eliminata',
       taskMoved: 'Attività spostata',
+      taskCompleted: 'Attività completata',
       error: 'Si è verificato un errore',
     },
 
     states: {
       loading: 'Caricamento...',
       error: 'Errore',
+    },
+
+    archive: {
+      title: 'Attività archiviate',
+      noTasks: 'Nessuna attività archiviata',
+      completedOn: 'Completata il',
+      deleteForever: 'Elimina definitivamente',
+      backToMatrix: 'Torna alla matrice',
+      openArchive: 'Apri archivio',
     },
   },
 
@@ -715,12 +816,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: 'Tarefa adicionada',
       taskDeleted: 'Tarefa excluída',
       taskMoved: 'Tarefa movida',
+      taskCompleted: 'Tarefa concluída',
       error: 'Ocorreu um erro',
     },
 
     states: {
       loading: 'Carregando...',
       error: 'Erro',
+    },
+
+    archive: {
+      title: 'Tarefas arquivadas',
+      noTasks: 'Nenhuma tarefa arquivada',
+      completedOn: 'Concluída em',
+      deleteForever: 'Excluir permanentemente',
+      backToMatrix: 'Voltar à matriz',
+      openArchive: 'Abrir arquivo',
     },
   },
 
@@ -780,12 +891,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: 'Taak toegevoegd',
       taskDeleted: 'Taak verwijderd',
       taskMoved: 'Taak verplaatst',
+      taskCompleted: 'Taak voltooid',
       error: 'Er is een fout opgetreden',
     },
 
     states: {
       loading: 'Laden...',
       error: 'Fout',
+    },
+
+    archive: {
+      title: 'Gearchiveerde taken',
+      noTasks: 'Geen gearchiveerde taken',
+      completedOn: 'Voltooid op',
+      deleteForever: 'Permanent verwijderen',
+      backToMatrix: 'Terug naar matrix',
+      openArchive: 'Archief openen',
     },
   },
 
@@ -845,12 +966,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: 'Zadanie dodane',
       taskDeleted: 'Zadanie usunięte',
       taskMoved: 'Zadanie przeniesione',
+      taskCompleted: 'Zadanie ukończone',
       error: 'Wystąpił błąd',
     },
 
     states: {
       loading: 'Ładowanie...',
       error: 'Błąd',
+    },
+
+    archive: {
+      title: 'Zarchiwizowane zadania',
+      noTasks: 'Brak zarchiwizowanych zadań',
+      completedOn: 'Ukończono',
+      deleteForever: 'Usuń na stałe',
+      backToMatrix: 'Powrót do macierzy',
+      openArchive: 'Otwórz archiwum',
     },
   },
 
@@ -910,12 +1041,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: 'Задача добавлена',
       taskDeleted: 'Задача удалена',
       taskMoved: 'Задача перемещена',
+      taskCompleted: 'Задача завершена',
       error: 'Произошла ошибка',
     },
 
     states: {
       loading: 'Загрузка...',
       error: 'Ошибка',
+    },
+
+    archive: {
+      title: 'Архивированные задачи',
+      noTasks: 'Нет архивированных задач',
+      completedOn: 'Завершено',
+      deleteForever: 'Удалить навсегда',
+      backToMatrix: 'Вернуться к матрице',
+      openArchive: 'Открыть архив',
     },
   },
 
@@ -975,12 +1116,22 @@ export const translations: Record<Language, Translations> = {
       taskAdded: 'Завдання додано',
       taskDeleted: 'Завдання видалено',
       taskMoved: 'Завдання переміщено',
+      taskCompleted: 'Завдання завершено',
       error: 'Сталася помилка',
     },
 
     states: {
       loading: 'Завантаження...',
       error: 'Помилка',
+    },
+
+    archive: {
+      title: 'Архівовані завдання',
+      noTasks: 'Немає архівованих завдань',
+      completedOn: 'Завершено',
+      deleteForever: 'Видалити назавжди',
+      backToMatrix: 'Повернутися до матриці',
+      openArchive: 'Відкрити архів',
     },
   },
 };

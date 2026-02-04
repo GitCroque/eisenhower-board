@@ -6,6 +6,9 @@ import {
   updateTaskText,
   updateTaskQuadrant,
   deleteTask,
+  completeTask,
+  getArchivedTasks,
+  deleteArchivedTask,
 } from './db.js';
 import { sanitizeText, isValidTaskText } from '../shared/sanitize.js';
 import { QUADRANT_KEYS, QuadrantKey } from '../shared/types.js';
@@ -159,6 +162,53 @@ app.delete('/api/tasks/:id', validateCsrf, (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error deleting task:', error);
     res.status(500).json({ error: 'Failed to delete task' });
+  }
+});
+
+// POST /api/tasks/:id/complete - Complete (archive) a task
+app.post('/api/tasks/:id/complete', validateCsrf, (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const completed = completeTask(id);
+
+    if (!completed) {
+      res.status(404).json({ error: 'Task not found or already completed' });
+      return;
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error completing task:', error);
+    res.status(500).json({ error: 'Failed to complete task' });
+  }
+});
+
+// GET /api/archived-tasks - Get all archived tasks
+app.get('/api/archived-tasks', (_req: Request, res: Response) => {
+  try {
+    const tasks = getArchivedTasks();
+    res.json(tasks);
+  } catch (error) {
+    console.error('Error fetching archived tasks:', error);
+    res.status(500).json({ error: 'Failed to fetch archived tasks' });
+  }
+});
+
+// DELETE /api/archived-tasks/:id - Permanently delete an archived task
+app.delete('/api/archived-tasks/:id', validateCsrf, (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const deleted = deleteArchivedTask(id);
+
+    if (!deleted) {
+      res.status(404).json({ error: 'Archived task not found' });
+      return;
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting archived task:', error);
+    res.status(500).json({ error: 'Failed to delete archived task' });
   }
 });
 

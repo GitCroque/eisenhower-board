@@ -30,7 +30,7 @@ const QUADRANT_STYLES: Record<QuadrantKey, QuadrantStyle> = {
 };
 
 export function EisenhowerMatrix() {
-  const { quadrants, loading, error, addTask, deleteTask, moveTask } = useApi();
+  const { quadrants, loading, error, addTask, deleteTask, completeTask, moveTask } = useApi();
   const { t } = useLanguage();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
@@ -64,6 +64,7 @@ export function EisenhowerMatrix() {
       tasks={quadrants[key]}
       onAddTask={(text) => addTask(key, text)}
       onDeleteTask={(id) => deleteTask(key, id)}
+      onCompleteTask={(id) => completeTask(key, id)}
     />
   );
 
