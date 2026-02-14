@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { X, Check } from 'lucide-react';
@@ -23,7 +23,7 @@ interface TaskItemProps {
   onComplete: (id: string) => void;
 }
 
-export function TaskItem({ task, quadrantKey, onDelete, onComplete }: TaskItemProps) {
+export const TaskItem = memo(function TaskItem({ task, quadrantKey, onDelete, onComplete }: TaskItemProps) {
   const [isCompleting, setIsCompleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { t } = useLanguage();
@@ -101,4 +101,4 @@ export function TaskItem({ task, quadrantKey, onDelete, onComplete }: TaskItemPr
       </AlertDialog>
     </>
   );
-}
+});

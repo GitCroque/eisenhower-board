@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
 import { useLanguage } from '@/i18n';
@@ -29,7 +29,7 @@ interface QuadrantCardProps {
   onCompleteTask: (id: string) => void;
 }
 
-export function QuadrantCard({
+export const QuadrantCard = memo(function QuadrantCard({
   quadrantKey,
   title,
   description,
@@ -139,4 +139,4 @@ export function QuadrantCard({
       </CardContent>
     </Card>
   );
-}
+});
