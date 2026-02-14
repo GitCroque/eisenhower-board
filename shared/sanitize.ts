@@ -28,9 +28,9 @@ export function sanitizeText(input: string): string {
 }
 
 /**
- * Check if task text is valid (non-empty after sanitization)
+ * Check if task text is valid (non-empty and within length limit).
+ * Expects already-sanitized input.
  */
 export function isValidTaskText(text: string): boolean {
-  const sanitized = sanitizeText(text);
-  return sanitized.length > 0 && sanitized.length <= MAX_TEXT_LENGTH;
+  return text.length > 0 && text.length <= MAX_TEXT_LENGTH;
 }

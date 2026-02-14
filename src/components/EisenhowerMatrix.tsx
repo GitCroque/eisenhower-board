@@ -1,5 +1,5 @@
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, pointerWithin } from '@dnd-kit/core';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useApi } from '@/hooks/useApi';
 import { useLanguage } from '@/i18n';
 import { Task, QuadrantKey } from '@/types';
@@ -53,6 +53,20 @@ export function EisenhowerMatrix() {
     moveTask(active.id as string, sourceQuadrant, targetQuadrant);
   }, [moveTask]);
 
+  // Stable per-quadrant callbacks to avoid re-creating functions on every render
+  const quadrantCallbacks = useMemo(() => {
+    const result = {} as Record<QuadrantKey, { onAddTask: (text: string) => void; onDeleteTask: (id: string) => void; onCompleteTask: (id: string) => void }>;
+    const keys: QuadrantKey[] = ['urgentImportant', 'notUrgentImportant', 'urgentNotImportant', 'notUrgentNotImportant'];
+    for (const key of keys) {
+      result[key] = {
+        onAddTask: (text: string) => addTask(key, text),
+        onDeleteTask: (id: string) => deleteTask(key, id),
+        onCompleteTask: (id: string) => completeTask(key, id),
+      };
+    }
+    return result;
+  }, [addTask, deleteTask, completeTask]);
+
   const renderQuadrant = (key: QuadrantKey) => (
     <QuadrantCard
       key={key}
@@ -62,9 +76,9 @@ export function EisenhowerMatrix() {
       colorClass={QUADRANT_STYLES[key].colorClass}
       iconColor={QUADRANT_STYLES[key].iconColor}
       tasks={quadrants[key]}
-      onAddTask={(text) => addTask(key, text)}
-      onDeleteTask={(id) => deleteTask(key, id)}
-      onCompleteTask={(id) => completeTask(key, id)}
+      onAddTask={quadrantCallbacks[key].onAddTask}
+      onDeleteTask={quadrantCallbacks[key].onDeleteTask}
+      onCompleteTask={quadrantCallbacks[key].onCompleteTask}
     />
   );
 

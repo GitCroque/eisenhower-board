@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Task, QuadrantKey, QuadrantsState, ArchivedTask } from '@/types';
+import { useCsrfFetch } from './useCsrfFetch';
 
 const API_BASE = '/api';
 
@@ -34,47 +35,7 @@ export function useApi(): UseApiResult {
   const [quadrants, setQuadrants] = useState<QuadrantsState>(INITIAL_STATE);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const csrfTokenRef = useRef<string | null>(null);
-
-  // Fetch CSRF token
-  const fetchCsrfToken = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_BASE}/csrf-token`);
-      if (response.ok) {
-        const data = await response.json();
-        csrfTokenRef.current = data.token;
-      }
-    } catch {
-      console.error('Failed to fetch CSRF token');
-    }
-  }, []);
-
-  // Helper for mutating requests with CSRF token
-  const fetchWithCsrf = useCallback(async (url: string, options: RequestInit): Promise<Response> => {
-    // Ensure we have a CSRF token
-    if (!csrfTokenRef.current) {
-      await fetchCsrfToken();
-    }
-
-    const headers: HeadersInit = {
-      ...options.headers,
-      'X-CSRF-Token': csrfTokenRef.current || '',
-    };
-
-    const response = await fetch(url, { ...options, headers });
-
-    // If CSRF token is invalid, try once to refresh it
-    if (response.status === 403) {
-      await fetchCsrfToken();
-      const retryHeaders: HeadersInit = {
-        ...options.headers,
-        'X-CSRF-Token': csrfTokenRef.current || '',
-      };
-      return fetch(url, { ...options, headers: retryHeaders });
-    }
-
-    return response;
-  }, [fetchCsrfToken]);
+  const { fetchCsrfToken, fetchWithCsrf } = useCsrfFetch();
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -93,7 +54,6 @@ export function useApi(): UseApiResult {
   }, []);
 
   useEffect(() => {
-    // Fetch CSRF token and tasks on mount
     Promise.all([fetchCsrfToken(), fetchTasks()]);
   }, [fetchCsrfToken, fetchTasks]);
 
@@ -250,45 +210,7 @@ export function useArchivedTasks(): UseArchivedTasksResult {
   const [archivedTasks, setArchivedTasks] = useState<ArchivedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const csrfTokenRef = useRef<string | null>(null);
-
-  // Fetch CSRF token
-  const fetchCsrfToken = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_BASE}/csrf-token`);
-      if (response.ok) {
-        const data = await response.json();
-        csrfTokenRef.current = data.token;
-      }
-    } catch {
-      console.error('Failed to fetch CSRF token');
-    }
-  }, []);
-
-  // Helper for mutating requests with CSRF token
-  const fetchWithCsrf = useCallback(async (url: string, options: RequestInit): Promise<Response> => {
-    if (!csrfTokenRef.current) {
-      await fetchCsrfToken();
-    }
-
-    const headers: HeadersInit = {
-      ...options.headers,
-      'X-CSRF-Token': csrfTokenRef.current || '',
-    };
-
-    const response = await fetch(url, { ...options, headers });
-
-    if (response.status === 403) {
-      await fetchCsrfToken();
-      const retryHeaders: HeadersInit = {
-        ...options.headers,
-        'X-CSRF-Token': csrfTokenRef.current || '',
-      };
-      return fetch(url, { ...options, headers: retryHeaders });
-    }
-
-    return response;
-  }, [fetchCsrfToken]);
+  const { fetchCsrfToken, fetchWithCsrf } = useCsrfFetch();
 
   const fetchArchivedTasks = useCallback(async () => {
     try {

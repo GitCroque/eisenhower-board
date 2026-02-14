@@ -33,6 +33,19 @@ if (!hasCompletedAt) {
   db.exec('ALTER TABLE tasks ADD COLUMN completed_at INTEGER');
 }
 
+// Pre-compile prepared statements for better performance
+const stmts = {
+  getAllActive: db.prepare('SELECT * FROM tasks WHERE completed_at IS NULL ORDER BY created_at ASC'),
+  getArchived: db.prepare('SELECT * FROM tasks WHERE completed_at IS NOT NULL ORDER BY completed_at DESC'),
+  getById: db.prepare('SELECT * FROM tasks WHERE id = ?'),
+  insert: db.prepare('INSERT INTO tasks (id, text, quadrant, created_at) VALUES (?, ?, ?, ?)'),
+  updateText: db.prepare('UPDATE tasks SET text = ? WHERE id = ?'),
+  updateQuadrant: db.prepare('UPDATE tasks SET quadrant = ? WHERE id = ?'),
+  complete: db.prepare('UPDATE tasks SET completed_at = ? WHERE id = ? AND completed_at IS NULL'),
+  deleteById: db.prepare('DELETE FROM tasks WHERE id = ?'),
+  deleteArchived: db.prepare('DELETE FROM tasks WHERE id = ? AND completed_at IS NOT NULL'),
+} as const;
+
 export interface DbTask {
   id: string;
   text: string;
@@ -46,7 +59,7 @@ export type { Task, QuadrantKey, QuadrantsState, ArchivedTask };
 
 // Get all active tasks (not completed) grouped by quadrant
 export function getAllTasks(): QuadrantsState {
-  const rows = db.prepare('SELECT * FROM tasks WHERE completed_at IS NULL ORDER BY created_at ASC').all() as DbTask[];
+  const rows = stmts.getAllActive.all() as DbTask[];
 
   const result: QuadrantsState = {
     urgentImportant: [],
@@ -71,7 +84,7 @@ export function getAllTasks(): QuadrantsState {
 
 // Get all archived (completed) tasks
 export function getArchivedTasks(): ArchivedTask[] {
-  const rows = db.prepare('SELECT * FROM tasks WHERE completed_at IS NOT NULL ORDER BY completed_at DESC').all() as DbTask[];
+  const rows = stmts.getArchived.all() as DbTask[];
 
   return rows.map(row => ({
     id: row.id,
@@ -84,45 +97,43 @@ export function getArchivedTasks(): ArchivedTask[] {
 
 // Complete a task (archive it)
 export function completeTask(id: string): boolean {
-  const result = db.prepare('UPDATE tasks SET completed_at = ? WHERE id = ? AND completed_at IS NULL').run(Date.now(), id);
+  const result = stmts.complete.run(Date.now(), id);
   return result.changes > 0;
 }
 
 // Delete an archived task permanently
 export function deleteArchivedTask(id: string): boolean {
-  const result = db.prepare('DELETE FROM tasks WHERE id = ? AND completed_at IS NOT NULL').run(id);
+  const result = stmts.deleteArchived.run(id);
   return result.changes > 0;
 }
 
 // Create a new task
 export function createTask(id: string, text: string, quadrant: QuadrantKey, createdAt: number): Task {
-  db.prepare('INSERT INTO tasks (id, text, quadrant, created_at) VALUES (?, ?, ?, ?)')
-    .run(id, text, quadrant, createdAt);
-
+  stmts.insert.run(id, text, quadrant, createdAt);
   return { id, text, createdAt };
 }
 
 // Update task text
 export function updateTaskText(id: string, text: string): boolean {
-  const result = db.prepare('UPDATE tasks SET text = ? WHERE id = ?').run(text, id);
+  const result = stmts.updateText.run(text, id);
   return result.changes > 0;
 }
 
 // Update task quadrant (move task)
 export function updateTaskQuadrant(id: string, quadrant: QuadrantKey): boolean {
-  const result = db.prepare('UPDATE tasks SET quadrant = ? WHERE id = ?').run(quadrant, id);
+  const result = stmts.updateQuadrant.run(quadrant, id);
   return result.changes > 0;
 }
 
 // Delete a task
 export function deleteTask(id: string): boolean {
-  const result = db.prepare('DELETE FROM tasks WHERE id = ?').run(id);
+  const result = stmts.deleteById.run(id);
   return result.changes > 0;
 }
 
 // Get a single task
 export function getTask(id: string): DbTask | undefined {
-  return db.prepare('SELECT * FROM tasks WHERE id = ?').get(id) as DbTask | undefined;
+  return stmts.getById.get(id) as DbTask | undefined;
 }
 
 export default db;
