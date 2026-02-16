@@ -78,6 +78,7 @@ export interface Translations {
   states: {
     loading: string;
     error: string;
+    retry: string;
   };
 
   // Archive
@@ -167,6 +168,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'Loading...',
       error: 'Error',
+      retry: 'Retry',
     },
 
     archive: {
@@ -253,6 +255,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'Chargement...',
       error: 'Erreur',
+      retry: 'Réessayer',
     },
 
     archive: {
@@ -339,6 +342,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: '加载中...',
       error: '错误',
+      retry: '重试',
     },
 
     archive: {
@@ -425,6 +429,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'लोड हो रहा है...',
       error: 'त्रुटि',
+      retry: 'पुनः प्रयास करें',
     },
 
     archive: {
@@ -511,6 +516,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'Cargando...',
       error: 'Error',
+      retry: 'Reintentar',
     },
 
     archive: {
@@ -597,6 +603,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'جارٍ التحميل...',
       error: 'خطأ',
+      retry: 'إعادة المحاولة',
     },
 
     archive: {
@@ -683,6 +690,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'লোড হচ্ছে...',
       error: 'ত্রুটি',
+      retry: 'পুনরায় চেষ্টা করুন',
     },
 
     archive: {
@@ -769,6 +777,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'Laden...',
       error: 'Fehler',
+      retry: 'Erneut versuchen',
     },
 
     archive: {
@@ -855,6 +864,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'Caricamento...',
       error: 'Errore',
+      retry: 'Riprova',
     },
 
     archive: {
@@ -941,6 +951,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'Carregando...',
       error: 'Erro',
+      retry: 'Tentar novamente',
     },
 
     archive: {
@@ -1027,6 +1038,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'Laden...',
       error: 'Fout',
+      retry: 'Opnieuw proberen',
     },
 
     archive: {
@@ -1113,6 +1125,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'Ładowanie...',
       error: 'Błąd',
+      retry: 'Ponów',
     },
 
     archive: {
@@ -1199,6 +1212,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'Загрузка...',
       error: 'Ошибка',
+      retry: 'Повторить',
     },
 
     archive: {
@@ -1285,6 +1299,7 @@ export const translations: Record<Language, Translations> = {
     states: {
       loading: 'Завантаження...',
       error: 'Помилка',
+      retry: 'Повторити',
     },
 
     archive: {

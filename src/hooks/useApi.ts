@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Task, QuadrantKey, QuadrantsState, ArchivedTask } from '@/types';
 import { useCsrfFetch } from './useCsrfFetch';
 
@@ -36,17 +36,24 @@ export function useApi(): UseApiResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { fetchCsrfToken, fetchWithCsrf } = useCsrfFetch();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchTasks = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       setError(null);
-      const response = await fetch(`${API_BASE}/tasks`);
+      setLoading(true);
+      const response = await fetch(`${API_BASE}/tasks`, { signal: controller.signal });
       if (!response.ok) {
         throw new Error('Failed to fetch tasks');
       }
       const data = await response.json();
       setQuadrants(data);
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
@@ -55,6 +62,7 @@ export function useApi(): UseApiResult {
 
   useEffect(() => {
     Promise.all([fetchCsrfToken(), fetchTasks()]);
+    return () => abortControllerRef.current?.abort();
   }, [fetchCsrfToken, fetchTasks]);
 
   const addTask = useCallback(async (quadrantKey: QuadrantKey, text: string) => {
@@ -210,17 +218,24 @@ export function useArchivedTasks(): UseArchivedTasksResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { fetchCsrfToken, fetchWithCsrf } = useCsrfFetch();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchArchivedTasks = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       setError(null);
-      const response = await fetch(`${API_BASE}/archived-tasks`);
+      setLoading(true);
+      const response = await fetch(`${API_BASE}/archived-tasks`, { signal: controller.signal });
       if (!response.ok) {
         throw new Error('Failed to fetch archived tasks');
       }
       const data = await response.json();
       setArchivedTasks(data);
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
@@ -229,6 +244,7 @@ export function useArchivedTasks(): UseArchivedTasksResult {
 
   useEffect(() => {
     Promise.all([fetchCsrfToken(), fetchArchivedTasks()]);
+    return () => abortControllerRef.current?.abort();
   }, [fetchCsrfToken, fetchArchivedTasks]);
 
   const deleteArchivedTask = useCallback(async (taskId: string) => {

@@ -31,7 +31,7 @@ const QUADRANT_STYLES: Record<QuadrantKey, QuadrantStyle> = {
 };
 
 export function EisenhowerMatrix() {
-  const { quadrants, loading, error, addTask, deleteTask, editTask, completeTask, moveTask } = useApi();
+  const { quadrants, loading, error, addTask, deleteTask, editTask, completeTask, moveTask, refetch } = useApi();
   const { t } = useLanguage();
   const { showToast } = useToast();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -142,8 +142,14 @@ export function EisenhowerMatrix() {
 
   if (error) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
+      <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
         <div className="text-red-600 dark:text-red-400">{t.states.error}: {error}</div>
+        <button
+          onClick={() => void refetch()}
+          className="rounded-lg border border-white/60 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 backdrop-blur-md transition-all duration-200 hover:bg-white/90 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:bg-slate-800/90"
+        >
+          {t.states.retry}
+        </button>
       </div>
     );
   }

@@ -25,7 +25,7 @@ const quadrantColors: Record<QuadrantKey, string> = {
 
 export function ArchivePage() {
   const { t } = useLanguage();
-  const { archivedTasks, loading, error, deleteArchivedTask } = useArchivedTasks();
+  const { archivedTasks, loading, error, deleteArchivedTask, refetch } = useArchivedTasks();
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
 
   const formatDate = (timestamp: number) => {
@@ -59,8 +59,14 @@ export function ArchivePage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center gap-4 min-h-screen">
         <p className="text-red-600 dark:text-red-400">{t.states.error}: {error}</p>
+        <button
+          onClick={() => void refetch()}
+          className="rounded-lg border border-white/60 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 backdrop-blur-md transition-all duration-200 hover:bg-white/90 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:bg-slate-800/90"
+        >
+          {t.states.retry}
+        </button>
       </div>
     );
   }
