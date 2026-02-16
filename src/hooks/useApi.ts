@@ -131,6 +131,8 @@ export function useApi(): UseApiResult {
   const moveTask = useCallback(async (taskId: string, sourceQuadrant: QuadrantKey, targetQuadrant: QuadrantKey) => {
     if (sourceQuadrant === targetQuadrant) return;
 
+    // Snapshot for reliable rollback
+    const snapshot = { taskId, sourceQuadrant, targetQuadrant };
     let movedTask: Task | undefined;
 
     setQuadrants((prev) => {
@@ -155,15 +157,15 @@ export function useApi(): UseApiResult {
       });
 
       if (!response.ok) {
-        const taskToRestore = movedTask;
-        setQuadrants((prev) => ({
-          ...prev,
-          [sourceQuadrant]: [...prev[sourceQuadrant], taskToRestore],
-          [targetQuadrant]: prev[targetQuadrant].filter((t) => t.id !== taskId),
-        }));
         throw new Error('Failed to move task');
       }
     } catch (err) {
+      // Rollback optimistic update on any failure (network error or bad response)
+      setQuadrants((prev) => ({
+        ...prev,
+        [snapshot.sourceQuadrant]: [...prev[snapshot.sourceQuadrant], movedTask!],
+        [snapshot.targetQuadrant]: prev[snapshot.targetQuadrant].filter((t) => t.id !== snapshot.taskId),
+      }));
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
     }
