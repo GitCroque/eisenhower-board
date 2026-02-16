@@ -40,8 +40,12 @@ export function ArchivePage() {
 
   const handleDelete = async () => {
     if (deleteTaskId) {
-      await deleteArchivedTask(deleteTaskId);
-      setDeleteTaskId(null);
+      try {
+        await deleteArchivedTask(deleteTaskId);
+        setDeleteTaskId(null);
+      } catch {
+        // Keep the dialog open so the user can retry.
+      }
     }
   };
 
@@ -106,7 +110,7 @@ export function ArchivePage() {
                   </div>
                   <button
                     onClick={() => setDeleteTaskId(task.id)}
-                    className="text-slate-400 hover:text-red-600 hover:scale-110 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                    className="text-slate-400 hover:text-red-600 hover:scale-110 transition-all duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     aria-label={t.archive.deleteForever}
                   >
                     <Trash2 className="h-4 w-4" />

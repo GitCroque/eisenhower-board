@@ -7,14 +7,16 @@ export function sanitizeText(input: string): string {
   // Remove HTML tags
   let sanitized = input.replace(/<[^>]*>/g, '');
 
-  // Decode HTML entities
+  // Decode HTML entities (named + numeric decimal + numeric hex)
   sanitized = sanitized
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#x27;/g, "'")
-    .replace(/&#x2F;/g, '/');
+    .replace(/&#x2F;/g, '/')
+    .replace(/&#(\d+);/g, (_, dec: string) => String.fromCharCode(Number(dec)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)));
 
   // Trim whitespace and normalize multiple spaces
   sanitized = sanitized.trim().replace(/\s+/g, ' ');

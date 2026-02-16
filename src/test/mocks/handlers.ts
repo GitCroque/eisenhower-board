@@ -11,7 +11,11 @@ const mockTasks: QuadrantsState = {
   notUrgentNotImportant: [],
 };
 
-let csrfToken = 'test-csrf-token';
+const csrfToken = 'test-csrf-token';
+
+function validateCsrf(request: globalThis.Request): boolean {
+  return request.headers.get('X-CSRF-Token') === csrfToken;
+}
 
 export const handlers = [
   // CSRF Token
@@ -26,8 +30,7 @@ export const handlers = [
 
   // Create task
   http.post('/api/tasks', async ({ request }) => {
-    const token = request.headers.get('X-CSRF-Token');
-    if (token !== csrfToken) {
+    if (!validateCsrf(request)) {
       return HttpResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
     }
 
@@ -42,8 +45,7 @@ export const handlers = [
 
   // Update task
   http.patch('/api/tasks/:id', async ({ request }) => {
-    const token = request.headers.get('X-CSRF-Token');
-    if (token !== csrfToken) {
+    if (!validateCsrf(request)) {
       return HttpResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
     }
 
@@ -52,8 +54,38 @@ export const handlers = [
 
   // Delete task
   http.delete('/api/tasks/:id', async ({ request }) => {
-    const token = request.headers.get('X-CSRF-Token');
-    if (token !== csrfToken) {
+    if (!validateCsrf(request)) {
+      return HttpResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
+    }
+
+    return HttpResponse.json({ success: true });
+  }),
+
+  // Complete task
+  http.post('/api/tasks/:id/complete', async ({ request }) => {
+    if (!validateCsrf(request)) {
+      return HttpResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
+    }
+
+    return HttpResponse.json({ success: true });
+  }),
+
+  // Get archived tasks
+  http.get('/api/archived-tasks', () => {
+    return HttpResponse.json([
+      {
+        id: 'archived-1',
+        text: 'Archived task',
+        createdAt: Date.now() - 86400000,
+        completedAt: Date.now(),
+        quadrant: 'urgentImportant',
+      },
+    ]);
+  }),
+
+  // Delete archived task
+  http.delete('/api/archived-tasks/:id', async ({ request }) => {
+    if (!validateCsrf(request)) {
       return HttpResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
     }
 

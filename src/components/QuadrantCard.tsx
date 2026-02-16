@@ -24,9 +24,10 @@ interface QuadrantCardProps {
   colorClass: string;
   iconColor: string;
   tasks: Task[];
-  onAddTask: (text: string) => void;
-  onDeleteTask: (id: string) => void;
-  onCompleteTask: (id: string) => void;
+  onAddTask: (text: string) => Promise<void> | void;
+  onDeleteTask: (id: string) => Promise<void> | void;
+  onCompleteTask: (id: string) => Promise<void> | void;
+  onEditTask: (id: string, newText: string) => Promise<void> | void;
 }
 
 export const QuadrantCard = memo(function QuadrantCard({
@@ -39,6 +40,7 @@ export const QuadrantCard = memo(function QuadrantCard({
   onAddTask,
   onDeleteTask,
   onCompleteTask,
+  onEditTask,
 }: QuadrantCardProps) {
   const [inputValue, setInputValue] = useState('');
   const [isAdding, setIsAdding] = useState(false);
@@ -50,10 +52,15 @@ export const QuadrantCard = memo(function QuadrantCard({
 
   const Icon = QUADRANT_ICONS[quadrantKey];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim()) {
-      onAddTask(inputValue.trim());
+    const nextText = inputValue.trim();
+    if (nextText) {
+      try {
+        await onAddTask(nextText);
+      } catch {
+        return;
+      }
       setInputValue('');
       setIsAdding(false);
     }
@@ -89,6 +96,7 @@ export const QuadrantCard = memo(function QuadrantCard({
                 quadrantKey={quadrantKey}
                 onDelete={onDeleteTask}
                 onComplete={onCompleteTask}
+                onEdit={onEditTask}
               />
             ))
           )}

@@ -2,6 +2,7 @@ import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, pointerWithin } 
 import { useState, useCallback, useMemo } from 'react';
 import { useApi } from '@/hooks/useApi';
 import { useLanguage } from '@/i18n';
+import { useToast } from './ui/toast';
 import { Task, QuadrantKey } from '@/types';
 import { QuadrantCard } from './QuadrantCard';
 
@@ -30,8 +31,9 @@ const QUADRANT_STYLES: Record<QuadrantKey, QuadrantStyle> = {
 };
 
 export function EisenhowerMatrix() {
-  const { quadrants, loading, error, addTask, deleteTask, completeTask, moveTask } = useApi();
+  const { quadrants, loading, error, addTask, deleteTask, editTask, completeTask, moveTask } = useApi();
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -50,22 +52,69 @@ export function EisenhowerMatrix() {
 
     if (sourceQuadrant === targetQuadrant) return;
 
-    moveTask(active.id as string, sourceQuadrant, targetQuadrant);
-  }, [moveTask]);
+    void moveTask(active.id as string, sourceQuadrant, targetQuadrant)
+      .then(() => showToast(t.toasts.taskMoved, 'success'))
+      .catch(() => showToast(t.toasts.error, 'error'));
+  }, [moveTask, showToast, t.toasts]);
+
+  const handleAddTask = useCallback(async (key: QuadrantKey, text: string) => {
+    try {
+      await addTask(key, text);
+      showToast(t.toasts.taskAdded, 'success');
+    } catch (error) {
+      showToast(t.toasts.error, 'error');
+      throw error;
+    }
+  }, [addTask, showToast, t.toasts]);
+
+  const handleDeleteTask = useCallback(async (key: QuadrantKey, id: string) => {
+    try {
+      await deleteTask(key, id);
+      showToast(t.toasts.taskDeleted, 'success');
+    } catch (error) {
+      showToast(t.toasts.error, 'error');
+      throw error;
+    }
+  }, [deleteTask, showToast, t.toasts]);
+
+  const handleCompleteTask = useCallback(async (key: QuadrantKey, id: string) => {
+    try {
+      await completeTask(key, id);
+      showToast(t.toasts.taskCompleted, 'success');
+    } catch (error) {
+      showToast(t.toasts.error, 'error');
+      throw error;
+    }
+  }, [completeTask, showToast, t.toasts]);
+
+  const handleEditTask = useCallback(async (key: QuadrantKey, id: string, newText: string) => {
+    try {
+      await editTask(key, id, newText);
+    } catch (error) {
+      showToast(t.toasts.error, 'error');
+      throw error;
+    }
+  }, [editTask, showToast, t.toasts]);
 
   // Stable per-quadrant callbacks to avoid re-creating functions on every render
   const quadrantCallbacks = useMemo(() => {
-    const result = {} as Record<QuadrantKey, { onAddTask: (text: string) => void; onDeleteTask: (id: string) => void; onCompleteTask: (id: string) => void }>;
+    const result = {} as Record<QuadrantKey, {
+      onAddTask: (text: string) => Promise<void>;
+      onDeleteTask: (id: string) => Promise<void>;
+      onCompleteTask: (id: string) => Promise<void>;
+      onEditTask: (id: string, newText: string) => Promise<void>;
+    }>;
     const keys: QuadrantKey[] = ['urgentImportant', 'notUrgentImportant', 'urgentNotImportant', 'notUrgentNotImportant'];
     for (const key of keys) {
       result[key] = {
-        onAddTask: (text: string) => addTask(key, text),
-        onDeleteTask: (id: string) => deleteTask(key, id),
-        onCompleteTask: (id: string) => completeTask(key, id),
+        onAddTask: (text: string) => handleAddTask(key, text),
+        onDeleteTask: (id: string) => handleDeleteTask(key, id),
+        onCompleteTask: (id: string) => handleCompleteTask(key, id),
+        onEditTask: (id: string, newText: string) => handleEditTask(key, id, newText),
       };
     }
     return result;
-  }, [addTask, deleteTask, completeTask]);
+  }, [handleAddTask, handleDeleteTask, handleCompleteTask, handleEditTask]);
 
   const renderQuadrant = (key: QuadrantKey) => (
     <QuadrantCard
@@ -79,6 +128,7 @@ export function EisenhowerMatrix() {
       onAddTask={quadrantCallbacks[key].onAddTask}
       onDeleteTask={quadrantCallbacks[key].onDeleteTask}
       onCompleteTask={quadrantCallbacks[key].onCompleteTask}
+      onEditTask={quadrantCallbacks[key].onEditTask}
     />
   );
 

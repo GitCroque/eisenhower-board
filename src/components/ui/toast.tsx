@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { X } from 'lucide-react';
+import { useLanguage } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 type ToastType = 'success' | 'error' | 'info';
@@ -47,7 +48,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2" aria-live="polite" role="status">
         {toasts.map((toast) => (
           <ToastItem
             key={toast.id}
@@ -66,6 +67,8 @@ interface ToastItemProps {
 }
 
 function ToastItem({ toast, onDismiss }: ToastItemProps) {
+  const { t } = useLanguage();
+
   const typeStyles: Record<ToastType, string> = {
     success: 'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200',
     error: 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200',
@@ -85,7 +88,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
       <button
         onClick={onDismiss}
         className="text-current opacity-50 hover:opacity-100 transition-opacity"
-        aria-label="Dismiss"
+        aria-label={t.accessibility.dismissNotification}
       >
         <X className="h-4 w-4" />
       </button>

@@ -131,10 +131,8 @@ export function useApi(): UseApiResult {
   const moveTask = useCallback(async (taskId: string, sourceQuadrant: QuadrantKey, targetQuadrant: QuadrantKey) => {
     if (sourceQuadrant === targetQuadrant) return;
 
-    // Store task reference for rollback
     let movedTask: Task | undefined;
 
-    // Optimistic update - use functional update to avoid quadrants dependency
     setQuadrants((prev) => {
       movedTask = prev[sourceQuadrant].find((t) => t.id === taskId);
       if (!movedTask) return prev;
@@ -157,7 +155,6 @@ export function useApi(): UseApiResult {
       });
 
       if (!response.ok) {
-        // Rollback on failure
         const taskToRestore = movedTask;
         setQuadrants((prev) => ({
           ...prev,

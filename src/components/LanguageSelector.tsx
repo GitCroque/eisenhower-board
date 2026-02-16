@@ -20,7 +20,7 @@ const LANGUAGES: { code: Language; label: string; flag: string }[] = [
 ];
 
 export function LanguageSelector() {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -53,14 +53,14 @@ export function LanguageSelector() {
         aria-haspopup="listbox"
       >
         <span className="text-base">{currentLanguage?.flag}</span>
-        <span className="sr-only">Select language</span>
+        <span className="sr-only">{t.accessibility.selectLanguage}</span>
       </Button>
 
       {isOpen && (
         <div
           className="absolute right-0 top-full z-50 mt-2 min-w-[140px] overflow-hidden rounded-lg border border-white/60 bg-white/90 shadow-lg backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/90"
           role="listbox"
-          aria-label="Select language"
+          aria-label={t.accessibility.selectLanguage}
         >
           {LANGUAGES.map((lang) => (
             <button

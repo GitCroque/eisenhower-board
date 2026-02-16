@@ -3,7 +3,10 @@ import path from 'path';
 import fs from 'fs';
 import type { Task, QuadrantKey, QuadrantsState, ArchivedTask } from '../shared/types.js';
 
-const DATA_DIR = process.env.DATA_DIR || '/app/data';
+const DEFAULT_DATA_DIR = process.env.NODE_ENV === 'production'
+  ? '/app/data'
+  : path.join(process.cwd(), 'data');
+const DATA_DIR = process.env.DATA_DIR || DEFAULT_DATA_DIR;
 const DB_PATH = path.join(DATA_DIR, 'tasks.db');
 
 // Ensure data directory exists
@@ -33,16 +36,19 @@ if (!hasCompletedAt) {
   db.exec('ALTER TABLE tasks ADD COLUMN completed_at INTEGER');
 }
 
+// Index for faster archived tasks queries
+db.exec('CREATE INDEX IF NOT EXISTS idx_tasks_completed_at ON tasks(completed_at)');
+
 // Pre-compile prepared statements for better performance
 const stmts = {
   getAllActive: db.prepare('SELECT * FROM tasks WHERE completed_at IS NULL ORDER BY created_at ASC'),
   getArchived: db.prepare('SELECT * FROM tasks WHERE completed_at IS NOT NULL ORDER BY completed_at DESC'),
   getById: db.prepare('SELECT * FROM tasks WHERE id = ?'),
   insert: db.prepare('INSERT INTO tasks (id, text, quadrant, created_at) VALUES (?, ?, ?, ?)'),
-  updateText: db.prepare('UPDATE tasks SET text = ? WHERE id = ?'),
-  updateQuadrant: db.prepare('UPDATE tasks SET quadrant = ? WHERE id = ?'),
+  updateText: db.prepare('UPDATE tasks SET text = ? WHERE id = ? AND completed_at IS NULL'),
+  updateQuadrant: db.prepare('UPDATE tasks SET quadrant = ? WHERE id = ? AND completed_at IS NULL'),
   complete: db.prepare('UPDATE tasks SET completed_at = ? WHERE id = ? AND completed_at IS NULL'),
-  deleteById: db.prepare('DELETE FROM tasks WHERE id = ?'),
+  deleteById: db.prepare('DELETE FROM tasks WHERE id = ? AND completed_at IS NULL'),
   deleteArchived: db.prepare('DELETE FROM tasks WHERE id = ? AND completed_at IS NOT NULL'),
 } as const;
 

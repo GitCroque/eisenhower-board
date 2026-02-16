@@ -67,6 +67,13 @@ export interface Translations {
     error: string;
   };
 
+  // Error Boundary
+  errorBoundary: {
+    title: string;
+    description: string;
+    retry: string;
+  };
+
   // States
   states: {
     loading: string;
@@ -81,6 +88,12 @@ export interface Translations {
     deleteForever: string;
     backToMatrix: string;
     openArchive: string;
+  };
+
+  // Accessibility
+  accessibility: {
+    selectLanguage: string;
+    dismissNotification: string;
   };
 }
 
@@ -145,6 +158,12 @@ export const translations: Record<Language, Translations> = {
       error: 'An error occurred',
     },
 
+    errorBoundary: {
+      title: 'Something went wrong',
+      description: 'An unexpected error occurred',
+      retry: 'Try again',
+    },
+
     states: {
       loading: 'Loading...',
       error: 'Error',
@@ -157,6 +176,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'Delete permanently',
       backToMatrix: 'Back to matrix',
       openArchive: 'Open archive',
+    },
+
+    accessibility: {
+      selectLanguage: 'Select language',
+      dismissNotification: 'Dismiss notification',
     },
   },
 
@@ -220,6 +244,12 @@ export const translations: Record<Language, Translations> = {
       error: 'Une erreur est survenue',
     },
 
+    errorBoundary: {
+      title: 'Une erreur est survenue',
+      description: 'Une erreur inattendue s\'est produite',
+      retry: 'Réessayer',
+    },
+
     states: {
       loading: 'Chargement...',
       error: 'Erreur',
@@ -232,6 +262,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'Supprimer définitivement',
       backToMatrix: 'Retour à la matrice',
       openArchive: 'Ouvrir les archives',
+    },
+
+    accessibility: {
+      selectLanguage: 'Sélectionner la langue',
+      dismissNotification: 'Fermer la notification',
     },
   },
 
@@ -295,6 +330,12 @@ export const translations: Record<Language, Translations> = {
       error: '发生错误',
     },
 
+    errorBoundary: {
+      title: '出错了',
+      description: '发生了意外错误',
+      retry: '重试',
+    },
+
     states: {
       loading: '加载中...',
       error: '错误',
@@ -307,6 +348,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: '永久删除',
       backToMatrix: '返回矩阵',
       openArchive: '打开归档',
+    },
+
+    accessibility: {
+      selectLanguage: '选择语言',
+      dismissNotification: '关闭通知',
     },
   },
 
@@ -370,6 +416,12 @@ export const translations: Record<Language, Translations> = {
       error: 'एक त्रुटि हुई',
     },
 
+    errorBoundary: {
+      title: 'कुछ गलत हो गया',
+      description: 'एक अनपेक्षित त्रुटि हुई',
+      retry: 'पुनः प्रयास करें',
+    },
+
     states: {
       loading: 'लोड हो रहा है...',
       error: 'त्रुटि',
@@ -382,6 +434,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'स्थायी रूप से हटाएं',
       backToMatrix: 'मैट्रिक्स पर वापस जाएं',
       openArchive: 'संग्रह खोलें',
+    },
+
+    accessibility: {
+      selectLanguage: 'भाषा चुनें',
+      dismissNotification: 'सूचना बंद करें',
     },
   },
 
@@ -445,6 +502,12 @@ export const translations: Record<Language, Translations> = {
       error: 'Ocurrió un error',
     },
 
+    errorBoundary: {
+      title: 'Algo salió mal',
+      description: 'Ocurrió un error inesperado',
+      retry: 'Intentar de nuevo',
+    },
+
     states: {
       loading: 'Cargando...',
       error: 'Error',
@@ -457,6 +520,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'Eliminar permanentemente',
       backToMatrix: 'Volver a la matriz',
       openArchive: 'Abrir archivo',
+    },
+
+    accessibility: {
+      selectLanguage: 'Seleccionar idioma',
+      dismissNotification: 'Cerrar notificación',
     },
   },
 
@@ -520,6 +588,12 @@ export const translations: Record<Language, Translations> = {
       error: 'حدث خطأ',
     },
 
+    errorBoundary: {
+      title: 'حدث خطأ ما',
+      description: 'حدث خطأ غير متوقع',
+      retry: 'حاول مرة أخرى',
+    },
+
     states: {
       loading: 'جارٍ التحميل...',
       error: 'خطأ',
@@ -532,6 +606,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'حذف نهائياً',
       backToMatrix: 'العودة إلى المصفوفة',
       openArchive: 'فتح الأرشيف',
+    },
+
+    accessibility: {
+      selectLanguage: 'اختر اللغة',
+      dismissNotification: 'إغلاق الإشعار',
     },
   },
 
@@ -595,6 +674,12 @@ export const translations: Record<Language, Translations> = {
       error: 'একটি ত্রুটি ঘটেছে',
     },
 
+    errorBoundary: {
+      title: 'কিছু ভুল হয়েছে',
+      description: 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে',
+      retry: 'আবার চেষ্টা করুন',
+    },
+
     states: {
       loading: 'লোড হচ্ছে...',
       error: 'ত্রুটি',
@@ -607,6 +692,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'স্থায়ীভাবে মুছুন',
       backToMatrix: 'ম্যাট্রিক্সে ফিরে যান',
       openArchive: 'সংরক্ষণাগার খুলুন',
+    },
+
+    accessibility: {
+      selectLanguage: 'ভাষা নির্বাচন করুন',
+      dismissNotification: 'বিজ্ঞপ্তি বন্ধ করুন',
     },
   },
 
@@ -670,6 +760,12 @@ export const translations: Record<Language, Translations> = {
       error: 'Ein Fehler ist aufgetreten',
     },
 
+    errorBoundary: {
+      title: 'Etwas ist schiefgelaufen',
+      description: 'Ein unerwarteter Fehler ist aufgetreten',
+      retry: 'Erneut versuchen',
+    },
+
     states: {
       loading: 'Laden...',
       error: 'Fehler',
@@ -682,6 +778,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'Endgültig löschen',
       backToMatrix: 'Zurück zur Matrix',
       openArchive: 'Archiv öffnen',
+    },
+
+    accessibility: {
+      selectLanguage: 'Sprache auswählen',
+      dismissNotification: 'Benachrichtigung schließen',
     },
   },
 
@@ -745,6 +846,12 @@ export const translations: Record<Language, Translations> = {
       error: 'Si è verificato un errore',
     },
 
+    errorBoundary: {
+      title: 'Qualcosa è andato storto',
+      description: 'Si è verificato un errore imprevisto',
+      retry: 'Riprova',
+    },
+
     states: {
       loading: 'Caricamento...',
       error: 'Errore',
@@ -757,6 +864,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'Elimina definitivamente',
       backToMatrix: 'Torna alla matrice',
       openArchive: 'Apri archivio',
+    },
+
+    accessibility: {
+      selectLanguage: 'Seleziona lingua',
+      dismissNotification: 'Chiudi notifica',
     },
   },
 
@@ -820,6 +932,12 @@ export const translations: Record<Language, Translations> = {
       error: 'Ocorreu um erro',
     },
 
+    errorBoundary: {
+      title: 'Algo deu errado',
+      description: 'Ocorreu um erro inesperado',
+      retry: 'Tentar novamente',
+    },
+
     states: {
       loading: 'Carregando...',
       error: 'Erro',
@@ -832,6 +950,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'Excluir permanentemente',
       backToMatrix: 'Voltar à matriz',
       openArchive: 'Abrir arquivo',
+    },
+
+    accessibility: {
+      selectLanguage: 'Selecionar idioma',
+      dismissNotification: 'Fechar notificação',
     },
   },
 
@@ -895,6 +1018,12 @@ export const translations: Record<Language, Translations> = {
       error: 'Er is een fout opgetreden',
     },
 
+    errorBoundary: {
+      title: 'Er ging iets mis',
+      description: 'Er is een onverwachte fout opgetreden',
+      retry: 'Opnieuw proberen',
+    },
+
     states: {
       loading: 'Laden...',
       error: 'Fout',
@@ -907,6 +1036,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'Permanent verwijderen',
       backToMatrix: 'Terug naar matrix',
       openArchive: 'Archief openen',
+    },
+
+    accessibility: {
+      selectLanguage: 'Taal selecteren',
+      dismissNotification: 'Melding sluiten',
     },
   },
 
@@ -970,6 +1104,12 @@ export const translations: Record<Language, Translations> = {
       error: 'Wystąpił błąd',
     },
 
+    errorBoundary: {
+      title: 'Coś poszło nie tak',
+      description: 'Wystąpił nieoczekiwany błąd',
+      retry: 'Spróbuj ponownie',
+    },
+
     states: {
       loading: 'Ładowanie...',
       error: 'Błąd',
@@ -982,6 +1122,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'Usuń na stałe',
       backToMatrix: 'Powrót do macierzy',
       openArchive: 'Otwórz archiwum',
+    },
+
+    accessibility: {
+      selectLanguage: 'Wybierz język',
+      dismissNotification: 'Zamknij powiadomienie',
     },
   },
 
@@ -1045,6 +1190,12 @@ export const translations: Record<Language, Translations> = {
       error: 'Произошла ошибка',
     },
 
+    errorBoundary: {
+      title: 'Что-то пошло не так',
+      description: 'Произошла непредвиденная ошибка',
+      retry: 'Попробовать снова',
+    },
+
     states: {
       loading: 'Загрузка...',
       error: 'Ошибка',
@@ -1057,6 +1208,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'Удалить навсегда',
       backToMatrix: 'Вернуться к матрице',
       openArchive: 'Открыть архив',
+    },
+
+    accessibility: {
+      selectLanguage: 'Выбрать язык',
+      dismissNotification: 'Закрыть уведомление',
     },
   },
 
@@ -1120,6 +1276,12 @@ export const translations: Record<Language, Translations> = {
       error: 'Сталася помилка',
     },
 
+    errorBoundary: {
+      title: 'Щось пішло не так',
+      description: 'Сталася неочікувана помилка',
+      retry: 'Спробувати знову',
+    },
+
     states: {
       loading: 'Завантаження...',
       error: 'Помилка',
@@ -1132,6 +1294,11 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'Видалити назавжди',
       backToMatrix: 'Повернутися до матриці',
       openArchive: 'Відкрити архів',
+    },
+
+    accessibility: {
+      selectLanguage: 'Вибрати мову',
+      dismissNotification: 'Закрити сповіщення',
     },
   },
 };

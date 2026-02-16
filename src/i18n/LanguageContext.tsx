@@ -32,8 +32,10 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   }, [setLanguageState]);
 
   useEffect(() => {
-    // Update html lang attribute
+    // Update html lang attribute and text direction
     document.documentElement.lang = language;
+    const rtlLanguages: Language[] = ['ar'];
+    document.documentElement.dir = rtlLanguages.includes(language) ? 'rtl' : 'ltr';
   }, [language]);
 
   const value = useMemo<LanguageContextType>(() => ({

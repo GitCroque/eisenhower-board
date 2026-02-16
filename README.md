@@ -14,10 +14,10 @@ A web application to organize your tasks using the Eisenhower Matrix - a product
 ## Features
 
 - Drag & drop tasks between quadrants
-- Edit tasks (double-click or pencil icon)
-- Data persistence with SQLite (Docker) or localStorage (dev)
+- Edit tasks (pencil icon)
+- Data persistence with SQLite backend
 - Dark / light mode
-- Multi-language support (English, French)
+- Multi-language support (14 languages)
 - Responsive design
 - Beautiful glass-morphism UI
 
@@ -31,11 +31,15 @@ cd eisenhower-board
 # Install dependencies
 npm install
 
-# Start the development server (frontend only)
+# Start backend API (terminal 1)
+npm run dev:server
+
+# Start frontend (terminal 2)
 npm run dev
 ```
 
-The application will be available at [http://localhost:3000](http://localhost:3000)
+Frontend: [http://localhost:3000](http://localhost:3000)  
+Backend API: [http://localhost:3080](http://localhost:3080)
 
 ## Docker (Recommended for production)
 
@@ -57,12 +61,15 @@ Data is stored in a Docker volume (`eisenhower-data`) and persists between resta
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start Vite development server |
+| `npm run dev` | Start Vite frontend dev server |
+| `npm run dev:server` | Start Express backend dev server |
 | `npm run build` | Create production frontend build |
 | `npm run build:server` | Compile server TypeScript |
 | `npm run build:all` | Full build (frontend + backend) |
 | `npm run start` | Start Express production server |
 | `npm run preview` | Preview frontend build |
+| `npm run test` | Run tests |
+| `npm run test:coverage` | Run tests with coverage |
 
 ## Architecture
 

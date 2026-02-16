@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
+import { rateLimit } from 'express-rate-limit';
 import {
   getAllTasks,
   createTask,
@@ -10,8 +11,8 @@ import {
   getArchivedTasks,
   deleteArchivedTask,
 } from './db.js';
-import { sanitizeText, isValidTaskText } from '../shared/sanitize.js';
-import { QUADRANT_KEYS, QuadrantKey } from '../shared/types.js';
+import { sanitizeText } from '../shared/sanitize.js';
+import { CreateTaskRequestSchema, UpdateTaskRequestSchema } from '../shared/validation.js';
 
 const app = express();
 const PORT = process.env.PORT || 3080;
@@ -19,6 +20,8 @@ const PORT = process.env.PORT || 3080;
 // CSRF Token store with automatic cleanup
 const csrfTokens = new Map<string, number>();
 const CSRF_TOKEN_EXPIRY = 60 * 60 * 1000; // 1 hour
+const CSRF_MAX_USES = 50;
+const csrfUseCounts = new Map<string, number>();
 
 // Cleanup expired tokens every 15 minutes
 setInterval(() => {
@@ -26,6 +29,7 @@ setInterval(() => {
   for (const [token, timestamp] of csrfTokens.entries()) {
     if (now - timestamp > CSRF_TOKEN_EXPIRY) {
       csrfTokens.delete(token);
+      csrfUseCounts.delete(token);
     }
   }
 }, 15 * 60 * 1000);
@@ -33,18 +37,55 @@ setInterval(() => {
 // Middleware
 app.use(express.json({ limit: '10kb' }));
 
+// Rate limiting for mutating endpoints
+const mutationLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later' },
+});
+
+// Rate limiting for read endpoints
+const readLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later' },
+});
+
+// Rate limiting for CSRF token endpoint (prevents memory growth via token spam)
+const csrfLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later' },
+});
+
 // Serve static files from the dist directory
 const distPath = path.join(process.cwd(), 'dist');
 app.use(express.static(distPath));
 
 // CSRF Token endpoint
-app.get('/api/csrf-token', (_req: Request, res: Response) => {
+app.get('/api/csrf-token', csrfLimiter, (_req: Request, res: Response) => {
+  // Cap total tokens to prevent unbounded memory growth
+  if (csrfTokens.size >= 1000) {
+    const entries = [...csrfTokens.entries()].sort((a, b) => a[1] - b[1]);
+    for (const [oldToken] of entries.slice(0, 100)) {
+      csrfTokens.delete(oldToken);
+      csrfUseCounts.delete(oldToken);
+    }
+  }
+
   const token = crypto.randomUUID();
   csrfTokens.set(token, Date.now());
+  csrfUseCounts.set(token, 0);
   res.json({ token });
 });
 
-// CSRF validation middleware for mutating requests
+// CSRF validation middleware
 function validateCsrf(req: Request, res: Response, next: NextFunction): void {
   const token = req.headers['x-csrf-token'] as string;
 
@@ -53,70 +94,70 @@ function validateCsrf(req: Request, res: Response, next: NextFunction): void {
     return;
   }
 
-  // Token is valid, refresh its timestamp
+  const uses = (csrfUseCounts.get(token) || 0) + 1;
+  if (uses > CSRF_MAX_USES) {
+    csrfTokens.delete(token);
+    csrfUseCounts.delete(token);
+    res.status(403).json({ error: 'CSRF token expired, please refresh' });
+    return;
+  }
+
+  csrfUseCounts.set(token, uses);
   csrfTokens.set(token, Date.now());
   next();
 }
 
 // API Routes
 
-// GET /api/tasks - Get all tasks grouped by quadrant
-app.get('/api/tasks', (_req: Request, res: Response) => {
+app.get('/api/tasks', readLimiter, (_req: Request, res: Response) => {
   try {
     const tasks = getAllTasks();
     res.json(tasks);
-  } catch (error) {
-    console.error('Error fetching tasks:', error);
+  } catch (err) {
+    console.error('GET /api/tasks error:', err);
     res.status(500).json({ error: 'Failed to fetch tasks' });
   }
 });
 
-// POST /api/tasks - Create a new task
-app.post('/api/tasks', validateCsrf, (req: Request, res: Response) => {
+app.post('/api/tasks', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
   try {
-    const { text, quadrant } = req.body;
-
-    if (!text || typeof text !== 'string') {
-      res.status(400).json({ error: 'Text is required' });
+    const parsed = CreateTaskRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.issues[0].message });
       return;
     }
 
-    const sanitizedText = sanitizeText(text);
-    if (!isValidTaskText(sanitizedText)) {
+    const sanitizedText = sanitizeText(parsed.data.text);
+    if (sanitizedText.length === 0) {
       res.status(400).json({ error: 'Invalid task text' });
-      return;
-    }
-
-    if (!quadrant || !isValidQuadrant(quadrant)) {
-      res.status(400).json({ error: 'Valid quadrant is required' });
       return;
     }
 
     const id = crypto.randomUUID();
     const createdAt = Date.now();
-    const task = createTask(id, sanitizedText, quadrant, createdAt);
+    const task = createTask(id, sanitizedText, parsed.data.quadrant, createdAt);
 
     res.status(201).json(task);
-  } catch (error) {
-    console.error('Error creating task:', error);
+  } catch (err) {
+    console.error('POST /api/tasks error:', err);
     res.status(500).json({ error: 'Failed to create task' });
   }
 });
 
-// PATCH /api/tasks/:id - Update a task (text or quadrant)
-app.patch('/api/tasks/:id', validateCsrf, (req: Request, res: Response) => {
+app.patch('/api/tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const { text, quadrant } = req.body;
+    const parsed = UpdateTaskRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.issues[0].message });
+      return;
+    }
+
+    const { text, quadrant } = parsed.data;
 
     if (text !== undefined) {
-      if (typeof text !== 'string') {
-        res.status(400).json({ error: 'Text must be a string' });
-        return;
-      }
-
       const sanitizedText = sanitizeText(text);
-      if (!isValidTaskText(sanitizedText)) {
+      if (sanitizedText.length === 0) {
         res.status(400).json({ error: 'Invalid task text' });
         return;
       }
@@ -129,10 +170,6 @@ app.patch('/api/tasks/:id', validateCsrf, (req: Request, res: Response) => {
     }
 
     if (quadrant !== undefined) {
-      if (!isValidQuadrant(quadrant)) {
-        res.status(400).json({ error: 'Invalid quadrant' });
-        return;
-      }
       const updated = updateTaskQuadrant(id, quadrant);
       if (!updated) {
         res.status(404).json({ error: 'Task not found' });
@@ -141,14 +178,13 @@ app.patch('/api/tasks/:id', validateCsrf, (req: Request, res: Response) => {
     }
 
     res.json({ success: true });
-  } catch (error) {
-    console.error('Error updating task:', error);
+  } catch (err) {
+    console.error('PATCH /api/tasks error:', err);
     res.status(500).json({ error: 'Failed to update task' });
   }
 });
 
-// DELETE /api/tasks/:id - Delete a task
-app.delete('/api/tasks/:id', validateCsrf, (req: Request, res: Response) => {
+app.delete('/api/tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
     const deleted = deleteTask(id);
@@ -159,14 +195,13 @@ app.delete('/api/tasks/:id', validateCsrf, (req: Request, res: Response) => {
     }
 
     res.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting task:', error);
+  } catch (err) {
+    console.error('DELETE /api/tasks error:', err);
     res.status(500).json({ error: 'Failed to delete task' });
   }
 });
 
-// POST /api/tasks/:id/complete - Complete (archive) a task
-app.post('/api/tasks/:id/complete', validateCsrf, (req: Request, res: Response) => {
+app.post('/api/tasks/:id/complete', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
     const completed = completeTask(id);
@@ -177,25 +212,23 @@ app.post('/api/tasks/:id/complete', validateCsrf, (req: Request, res: Response) 
     }
 
     res.json({ success: true });
-  } catch (error) {
-    console.error('Error completing task:', error);
+  } catch (err) {
+    console.error('POST /api/tasks/:id/complete error:', err);
     res.status(500).json({ error: 'Failed to complete task' });
   }
 });
 
-// GET /api/archived-tasks - Get all archived tasks
-app.get('/api/archived-tasks', (_req: Request, res: Response) => {
+app.get('/api/archived-tasks', readLimiter, (_req: Request, res: Response) => {
   try {
     const tasks = getArchivedTasks();
     res.json(tasks);
-  } catch (error) {
-    console.error('Error fetching archived tasks:', error);
+  } catch (err) {
+    console.error('GET /api/archived-tasks error:', err);
     res.status(500).json({ error: 'Failed to fetch archived tasks' });
   }
 });
 
-// DELETE /api/archived-tasks/:id - Permanently delete an archived task
-app.delete('/api/archived-tasks/:id', validateCsrf, (req: Request, res: Response) => {
+app.delete('/api/archived-tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
     const deleted = deleteArchivedTask(id);
@@ -206,21 +239,21 @@ app.delete('/api/archived-tasks/:id', validateCsrf, (req: Request, res: Response
     }
 
     res.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting archived task:', error);
+  } catch (err) {
+    console.error('DELETE /api/archived-tasks error:', err);
     res.status(500).json({ error: 'Failed to delete archived task' });
   }
+});
+
+// Return 404 JSON for unknown API routes (prevent SPA fallback serving HTML)
+app.use('/api', (_req: Request, res: Response) => {
+  res.status(404).json({ error: 'Not found' });
 });
 
 // Fallback: serve index.html for SPA routing
 app.get('/{*splat}', (_req: Request, res: Response) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
-
-// Helper function to validate quadrant
-function isValidQuadrant(quadrant: string): quadrant is QuadrantKey {
-  return QUADRANT_KEYS.includes(quadrant as QuadrantKey);
-}
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
