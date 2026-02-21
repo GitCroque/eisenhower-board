@@ -35,6 +35,9 @@ build/
 dist-server/
 tsconfig.tsbuildinfo
 
+# Coverage
+coverage/
+
 # Claude Code
 CLAUDE.md
 CLAUDE.local.md
