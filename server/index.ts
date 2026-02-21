@@ -12,7 +12,7 @@ import {
   deleteArchivedTask,
 } from './db.js';
 import { sanitizeText } from '../shared/sanitize.js';
-import { CreateTaskRequestSchema, UpdateTaskRequestSchema } from '../shared/validation.js';
+import { CreateTaskRequestSchema, UpdateTaskRequestSchema, TaskIdSchema } from '../shared/validation.js';
 
 const app = express();
 app.disable('x-powered-by');
@@ -147,7 +147,12 @@ app.post('/api/tasks', mutationLimiter, validateCsrf, (req: Request, res: Respon
 
 app.patch('/api/tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
+    const idResult = TaskIdSchema.safeParse(req.params.id);
+    if (!idResult.success) {
+      res.status(400).json({ error: 'Invalid task ID' });
+      return;
+    }
+    const id = idResult.data;
     const parsed = UpdateTaskRequestSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: parsed.error.issues[0].message });
@@ -187,7 +192,12 @@ app.patch('/api/tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: R
 
 app.delete('/api/tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
+    const idResult = TaskIdSchema.safeParse(req.params.id);
+    if (!idResult.success) {
+      res.status(400).json({ error: 'Invalid task ID' });
+      return;
+    }
+    const id = idResult.data;
     const deleted = deleteTask(id);
 
     if (!deleted) {
@@ -204,7 +214,12 @@ app.delete('/api/tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: 
 
 app.post('/api/tasks/:id/complete', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
+    const idResult = TaskIdSchema.safeParse(req.params.id);
+    if (!idResult.success) {
+      res.status(400).json({ error: 'Invalid task ID' });
+      return;
+    }
+    const id = idResult.data;
     const completed = completeTask(id);
 
     if (!completed) {
@@ -231,7 +246,12 @@ app.get('/api/archived-tasks', readLimiter, (_req: Request, res: Response) => {
 
 app.delete('/api/archived-tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
+    const idResult = TaskIdSchema.safeParse(req.params.id);
+    if (!idResult.success) {
+      res.status(400).json({ error: 'Invalid task ID' });
+      return;
+    }
+    const id = idResult.data;
     const deleted = deleteArchivedTask(id);
 
     if (!deleted) {
