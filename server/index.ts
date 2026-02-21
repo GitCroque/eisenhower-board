@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
+import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import {
   getAllTasks,
@@ -15,8 +16,20 @@ import { sanitizeText } from '../shared/sanitize.js';
 import { CreateTaskRequestSchema, UpdateTaskRequestSchema, TaskIdSchema } from '../shared/validation.js';
 
 const app = express();
-app.disable('x-powered-by');
 const PORT = process.env.PORT || 3080;
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+    },
+  },
+}));
 
 // CSRF Token store with automatic cleanup
 const csrfTokens = new Map<string, number>();

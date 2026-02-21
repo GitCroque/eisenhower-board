@@ -4,6 +4,10 @@ import { useCsrfFetch } from './useCsrfFetch';
 
 const API_BASE = '/api';
 
+const tasksChannel = typeof BroadcastChannel !== 'undefined'
+  ? new BroadcastChannel('eisenhower-tasks')
+  : null;
+
 const INITIAL_STATE: QuadrantsState = {
   urgentImportant: [],
   notUrgentImportant: [],
@@ -65,6 +69,14 @@ export function useApi(): UseApiResult {
     return () => abortControllerRef.current?.abort();
   }, [fetchCsrfToken, fetchTasks]);
 
+  // Sync across tabs via BroadcastChannel
+  useEffect(() => {
+    if (!tasksChannel) return;
+    const handler = () => { void fetchTasks(); };
+    tasksChannel.addEventListener('message', handler);
+    return () => tasksChannel.removeEventListener('message', handler);
+  }, [fetchTasks]);
+
   const addTask = useCallback(async (quadrantKey: QuadrantKey, text: string) => {
     try {
       setError(null);
@@ -84,6 +96,7 @@ export function useApi(): UseApiResult {
         ...prev,
         [quadrantKey]: [...prev[quadrantKey], newTask],
       }));
+      tasksChannel?.postMessage('sync');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
@@ -105,6 +118,7 @@ export function useApi(): UseApiResult {
         ...prev,
         [quadrantKey]: prev[quadrantKey].filter((t) => t.id !== taskId),
       }));
+      tasksChannel?.postMessage('sync');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
@@ -130,6 +144,7 @@ export function useApi(): UseApiResult {
           t.id === taskId ? { ...t, text: newText } : t
         ),
       }));
+      tasksChannel?.postMessage('sync');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
@@ -167,6 +182,7 @@ export function useApi(): UseApiResult {
       if (!response.ok) {
         throw new Error('Failed to move task');
       }
+      tasksChannel?.postMessage('sync');
     } catch (err) {
       // Rollback optimistic update on any failure (network error or bad response)
       setQuadrants((prev) => ({
@@ -194,6 +210,7 @@ export function useApi(): UseApiResult {
         ...prev,
         [quadrantKey]: prev[quadrantKey].filter((t) => t.id !== taskId),
       }));
+      tasksChannel?.postMessage('sync');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
