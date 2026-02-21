@@ -3,7 +3,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { X, Check, Pencil } from 'lucide-react';
 import { useLanguage } from '@/i18n';
-import { Task } from '@/types';
+import { Task, QuadrantKey } from '@/types';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -18,7 +18,7 @@ import {
 
 interface TaskItemProps {
   task: Task;
-  quadrantKey: string;
+  quadrantKey: QuadrantKey;
   onDelete: (id: string) => Promise<void> | void;
   onComplete: (id: string) => Promise<void> | void;
   onEdit: (id: string, newText: string) => Promise<void> | void;
@@ -133,7 +133,7 @@ export const TaskItem = memo(function TaskItem({ task, quadrantKey, onDelete, on
             maxLength={500}
           />
         ) : (
-          <p className="flex-1 text-slate-700 dark:text-slate-200">{task.text}</p>
+          <p className="min-w-0 flex-1 text-slate-700 [overflow-wrap:anywhere] dark:text-slate-200">{task.text}</p>
         )}
         {!isEditing && (
           <div className="flex items-center gap-2 opacity-100 transition-all duration-200 md:opacity-0 md:group-hover:opacity-100">

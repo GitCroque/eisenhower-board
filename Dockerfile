@@ -35,8 +35,8 @@ RUN apk add --no-cache --virtual .build-deps python3 make g++ \
     && npm ci --omit=dev \
     && apk del .build-deps
 
-# Create data directory for SQLite
-RUN mkdir -p /app/data
+# Create data directory for SQLite and set ownership
+RUN mkdir -p /app/data && chown -R node:node /app/data
 
 # Environment variables
 ENV NODE_ENV=production
@@ -46,6 +46,8 @@ ENV DATA_DIR=/app/data
 EXPOSE 3080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3080/api/tasks || exit 1
+  CMD node -e "require('http').get('http://localhost:3080/api/tasks', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
+
+USER node
 
 CMD ["node", "dist-server/server/index.js"]

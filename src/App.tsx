@@ -25,26 +25,26 @@ function MatrixPage() {
 
       <div className="relative z-10 p-4 md:p-8">
         <div className="mx-auto max-w-7xl">
-          <header className="relative mb-8">
-            <div className="text-center">
-              <h1 className="mb-2 text-3xl font-bold text-slate-800 drop-shadow-sm dark:text-white md:text-4xl">
+          <header className="mb-8">
+            <div className="flex items-center justify-between gap-4 mb-2">
+              <h1 className="min-w-0 truncate text-2xl font-bold text-slate-800 drop-shadow-sm dark:text-white sm:text-3xl md:text-4xl">
                 {t.title}
               </h1>
-              <p className="text-slate-600 dark:text-slate-400">
-                {t.subtitle}
-              </p>
+              <div className="flex shrink-0 gap-2">
+                <Link
+                  to="/archive"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:text-slate-900 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-slate-200"
+                  aria-label={t.archive.openArchive}
+                >
+                  <Archive className="h-4 w-4" />
+                </Link>
+                <LanguageSelector />
+                <ThemeToggle />
+              </div>
             </div>
-            <div className="absolute right-0 top-0 flex gap-2">
-              <Link
-                to="/archive"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:text-slate-900 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-slate-200"
-                aria-label={t.archive.openArchive}
-              >
-                <Archive className="h-4 w-4" />
-              </Link>
-              <LanguageSelector />
-              <ThemeToggle />
-            </div>
+            <p className="text-center text-slate-600 dark:text-slate-400">
+              {t.subtitle}
+            </p>
           </header>
           <EisenhowerMatrix />
         </div>

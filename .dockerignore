@@ -1,4 +1,17 @@
 node_modules
 dist
+dist-server
 .git
+.github
 *.md
+.env*
+.vscode
+.idea
+*.log
+npm-debug.log*
+tsconfig.tsbuildinfo
+.DS_Store
+docker-compose*.yml
+.claude/
+.cowork/
+.cowork.yml

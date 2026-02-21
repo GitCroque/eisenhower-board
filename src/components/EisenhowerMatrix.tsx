@@ -202,7 +202,7 @@ export function EisenhowerMatrix() {
       <DragOverlay>
         {activeTask ? (
           <div className="rounded-xl border border-white/60 bg-white/90 p-3 shadow-lg backdrop-blur-md dark:border-slate-700 dark:bg-slate-800/90">
-            <p className="text-slate-700 dark:text-slate-200">{activeTask.text}</p>
+            <p className="break-words text-slate-700 dark:text-slate-200">{activeTask.text}</p>
           </div>
         ) : null}
       </DragOverlay>

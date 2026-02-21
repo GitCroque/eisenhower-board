@@ -15,6 +15,7 @@ import { sanitizeText } from '../shared/sanitize.js';
 import { CreateTaskRequestSchema, UpdateTaskRequestSchema } from '../shared/validation.js';
 
 const app = express();
+app.disable('x-powered-by');
 const PORT = process.env.PORT || 3080;
 
 // CSRF Token store with automatic cleanup
