@@ -18,6 +18,14 @@ function validateCsrf(request: globalThis.Request): boolean {
 }
 
 export const handlers = [
+  // Auth bootstrap
+  http.get('/api/auth/me', () => {
+    return HttpResponse.json({
+      authenticated: true,
+      user: { email: 'test@example.com' },
+    });
+  }),
+
   // CSRF Token
   http.get('/api/csrf-token', () => {
     return HttpResponse.json({ token: csrfToken });

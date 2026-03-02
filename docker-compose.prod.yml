@@ -5,6 +5,17 @@ services:
       - "3080:3080"
     volumes:
       - eisenhower-data:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3080
+      - DATA_DIR=/app/data
+      - APP_BASE_URL=${APP_BASE_URL}
+      - SMTP_HOST=${SMTP_HOST:-smtp.fastmail.com}
+      - SMTP_PORT=${SMTP_PORT:-465}
+      - SMTP_SECURE=${SMTP_SECURE:-true}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - MAIL_FROM=${MAIL_FROM}
     restart: unless-stopped
 
 volumes:

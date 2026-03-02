@@ -33,6 +33,10 @@ export const UpdateTaskRequestSchema = z.object({
   { message: 'At least one field must be provided' }
 );
 
+export const MagicLinkRequestSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Invalid email'),
+});
+
 export type QuadrantKey = z.infer<typeof QuadrantKeySchema>;
 export type Task = z.infer<typeof TaskSchema>;
 export type QuadrantsState = z.infer<typeof QuadrantsStateSchema>;
@@ -40,3 +44,4 @@ export const TaskIdSchema = z.string().uuid('Invalid task ID');
 
 export type CreateTaskRequest = z.infer<typeof CreateTaskRequestSchema>;
 export type UpdateTaskRequest = z.infer<typeof UpdateTaskRequestSchema>;
+export type MagicLinkRequest = z.infer<typeof MagicLinkRequestSchema>;

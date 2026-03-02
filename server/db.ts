@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
+import { randomUUID } from 'crypto';
 import type { Task, QuadrantKey, QuadrantsState, ArchivedTask } from '../shared/types.js';
 
 const DEFAULT_DATA_DIR = process.env.NODE_ENV === 'production'
@@ -16,56 +17,346 @@ if (!fs.existsSync(DATA_DIR)) {
 
 const db = new Database(DB_PATH);
 
-// Enable WAL mode for better performance
+// Enable WAL mode for better performance and enforce foreign keys
 db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
 
-// Initialize schema
-db.exec(`
-  CREATE TABLE IF NOT EXISTS tasks (
-    id TEXT PRIMARY KEY,
-    text TEXT NOT NULL,
-    quadrant TEXT NOT NULL,
-    created_at INTEGER NOT NULL
-  )
-`);
-
-// Migration: add completed_at column if it doesn't exist
-const columns = db.prepare("PRAGMA table_info(tasks)").all() as { name: string }[];
-const hasCompletedAt = columns.some(col => col.name === 'completed_at');
-if (!hasCompletedAt) {
-  db.exec('ALTER TABLE tasks ADD COLUMN completed_at INTEGER');
+function tableExists(name: string): boolean {
+  const row = db.prepare(
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?"
+  ).get(name) as { name: string } | undefined;
+  return !!row;
 }
 
-// Index for faster archived tasks queries
-db.exec('CREATE INDEX IF NOT EXISTS idx_tasks_completed_at ON tasks(completed_at)');
+function tableHasColumns(name: string, expected: string[]): boolean {
+  if (!tableExists(name)) {
+    return false;
+  }
+  const columns = db.prepare(`PRAGMA table_info(${name})`).all() as { name: string }[];
+  const existing = new Set(columns.map(col => col.name));
+  return expected.every(col => existing.has(col));
+}
+
+export function initializeSchema(): void {
+  // Reset old single-user tasks table (no user_id) to align with new auth model.
+  if (tableExists('tasks') && !tableHasColumns('tasks', [
+    'id',
+    'user_id',
+    'text',
+    'quadrant',
+    'created_at',
+    'completed_at',
+  ])) {
+    db.exec('DROP TABLE IF EXISTS tasks');
+  }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      created_at INTEGER NOT NULL,
+      last_login_at INTEGER
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      session_hash TEXT NOT NULL UNIQUE,
+      expires_at INTEGER NOT NULL,
+      created_at INTEGER NOT NULL,
+      last_seen_at INTEGER NOT NULL,
+      ip TEXT,
+      user_agent TEXT,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS magic_links (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at INTEGER NOT NULL,
+      used_at INTEGER,
+      created_at INTEGER NOT NULL,
+      created_ip TEXT,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS tasks (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      text TEXT NOT NULL,
+      quadrant TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      completed_at INTEGER,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_tasks_user_active ON tasks(user_id, completed_at, created_at);
+    CREATE INDEX IF NOT EXISTS idx_tasks_user_archived ON tasks(user_id, completed_at);
+    CREATE INDEX IF NOT EXISTS idx_sessions_hash ON sessions(session_hash);
+    CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_magic_links_hash ON magic_links(token_hash);
+    CREATE INDEX IF NOT EXISTS idx_magic_links_expires ON magic_links(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+  `);
+}
+
+export function resetDatabaseSchema(): void {
+  db.exec(`
+    DROP TABLE IF EXISTS tasks;
+    DROP TABLE IF EXISTS sessions;
+    DROP TABLE IF EXISTS magic_links;
+    DROP TABLE IF EXISTS users;
+  `);
+  initializeSchema();
+}
+
+initializeSchema();
 
 // Pre-compile prepared statements for better performance
 const stmts = {
-  getAllActive: db.prepare('SELECT * FROM tasks WHERE completed_at IS NULL ORDER BY created_at ASC'),
-  getArchived: db.prepare('SELECT * FROM tasks WHERE completed_at IS NOT NULL ORDER BY completed_at DESC'),
-  getById: db.prepare('SELECT * FROM tasks WHERE id = ?'),
-  insert: db.prepare('INSERT INTO tasks (id, text, quadrant, created_at) VALUES (?, ?, ?, ?)'),
-  updateText: db.prepare('UPDATE tasks SET text = ? WHERE id = ? AND completed_at IS NULL'),
-  updateQuadrant: db.prepare('UPDATE tasks SET quadrant = ? WHERE id = ? AND completed_at IS NULL'),
-  complete: db.prepare('UPDATE tasks SET completed_at = ? WHERE id = ? AND completed_at IS NULL'),
-  deleteById: db.prepare('DELETE FROM tasks WHERE id = ? AND completed_at IS NULL'),
-  deleteArchived: db.prepare('DELETE FROM tasks WHERE id = ? AND completed_at IS NOT NULL'),
+  // Tasks
+  getAllActive: db.prepare(
+    'SELECT * FROM tasks WHERE user_id = ? AND completed_at IS NULL ORDER BY created_at ASC'
+  ),
+  getArchived: db.prepare(
+    'SELECT * FROM tasks WHERE user_id = ? AND completed_at IS NOT NULL ORDER BY completed_at DESC'
+  ),
+  getById: db.prepare('SELECT * FROM tasks WHERE user_id = ? AND id = ?'),
+  insert: db.prepare(
+    'INSERT INTO tasks (id, user_id, text, quadrant, created_at) VALUES (?, ?, ?, ?, ?)'
+  ),
+  updateText: db.prepare(
+    'UPDATE tasks SET text = ? WHERE user_id = ? AND id = ? AND completed_at IS NULL'
+  ),
+  updateQuadrant: db.prepare(
+    'UPDATE tasks SET quadrant = ? WHERE user_id = ? AND id = ? AND completed_at IS NULL'
+  ),
+  complete: db.prepare(
+    'UPDATE tasks SET completed_at = ? WHERE user_id = ? AND id = ? AND completed_at IS NULL'
+  ),
+  deleteById: db.prepare(
+    'DELETE FROM tasks WHERE user_id = ? AND id = ? AND completed_at IS NULL'
+  ),
+  deleteArchived: db.prepare(
+    'DELETE FROM tasks WHERE user_id = ? AND id = ? AND completed_at IS NOT NULL'
+  ),
+
+  // Users
+  getUserByEmail: db.prepare('SELECT * FROM users WHERE email = ?'),
+  insertUser: db.prepare(
+    'INSERT INTO users (id, email, created_at, last_login_at) VALUES (?, ?, ?, ?)'
+  ),
+  updateUserLastLogin: db.prepare('UPDATE users SET last_login_at = ? WHERE id = ?'),
+
+  // Magic links
+  insertMagicLink: db.prepare(
+    'INSERT INTO magic_links (id, user_id, token_hash, expires_at, used_at, created_at, created_ip) VALUES (?, ?, ?, ?, NULL, ?, ?)'
+  ),
+  getValidMagicLinkByHash: db.prepare(`
+    SELECT ml.id, ml.user_id, u.email
+    FROM magic_links ml
+    JOIN users u ON u.id = ml.user_id
+    WHERE ml.token_hash = ?
+      AND ml.used_at IS NULL
+      AND ml.expires_at > ?
+  `),
+  markMagicLinkUsed: db.prepare(
+    'UPDATE magic_links SET used_at = ? WHERE id = ? AND used_at IS NULL'
+  ),
+  deleteExpiredMagicLinks: db.prepare(
+    'DELETE FROM magic_links WHERE expires_at <= ? OR used_at IS NOT NULL'
+  ),
+
+  // Sessions
+  insertSession: db.prepare(
+    'INSERT INTO sessions (id, user_id, session_hash, expires_at, created_at, last_seen_at, ip, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  ),
+  getActiveSessionByHash: db.prepare(`
+    SELECT s.id AS session_id, s.user_id, s.expires_at, u.email
+    FROM sessions s
+    JOIN users u ON u.id = s.user_id
+    WHERE s.session_hash = ?
+      AND s.expires_at > ?
+  `),
+  touchSession: db.prepare(
+    'UPDATE sessions SET last_seen_at = ?, expires_at = ? WHERE id = ?'
+  ),
+  deleteSessionById: db.prepare('DELETE FROM sessions WHERE id = ?'),
+  deleteSessionByHash: db.prepare('DELETE FROM sessions WHERE session_hash = ?'),
+  deleteExpiredSessions: db.prepare('DELETE FROM sessions WHERE expires_at <= ?'),
 } as const;
 
 export interface DbTask {
   id: string;
+  user_id: string;
   text: string;
   quadrant: string;
   created_at: number;
   completed_at: number | null;
 }
 
+interface DbUser {
+  id: string;
+  email: string;
+  created_at: number;
+  last_login_at: number | null;
+}
+
+interface ValidMagicLinkRow {
+  id: string;
+  user_id: string;
+  email: string;
+}
+
+export interface SessionUser {
+  sessionId: string;
+  userId: string;
+  email: string;
+  expiresAt: number;
+}
+
+export interface CleanupResult {
+  deletedMagicLinks: number;
+  deletedSessions: number;
+}
+
+export interface CreateSessionParams {
+  sessionId: string;
+  userId: string;
+  sessionHash: string;
+  expiresAt: number;
+  createdAt: number;
+  ip: string | null;
+  userAgent: string | null;
+}
+
+export interface CreateMagicLinkParams {
+  id: string;
+  userId: string;
+  tokenHash: string;
+  expiresAt: number;
+  createdAt: number;
+  createdIp: string | null;
+}
+
+export interface ConsumedMagicLink {
+  userId: string;
+  email: string;
+}
+
+const consumeMagicLinkTx = db.transaction((tokenHash: string, now: number): ConsumedMagicLink | null => {
+  const magicLink = stmts.getValidMagicLinkByHash.get(tokenHash, now) as ValidMagicLinkRow | undefined;
+  if (!magicLink) {
+    return null;
+  }
+
+  const updateResult = stmts.markMagicLinkUsed.run(now, magicLink.id);
+  if (updateResult.changes === 0) {
+    return null;
+  }
+
+  stmts.updateUserLastLogin.run(now, magicLink.user_id);
+  return {
+    userId: magicLink.user_id,
+    email: magicLink.email,
+  };
+});
+
 // Re-export types for convenience
 export type { Task, QuadrantKey, QuadrantsState, ArchivedTask };
 
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+export function findOrCreateUserByEmail(email: string, now: number): { id: string; email: string } {
+  const normalized = normalizeEmail(email);
+  const existing = stmts.getUserByEmail.get(normalized) as DbUser | undefined;
+  if (existing) {
+    return { id: existing.id, email: existing.email };
+  }
+
+  const id = randomUUID();
+  stmts.insertUser.run(id, normalized, now, null);
+  const created = stmts.getUserByEmail.get(normalized) as DbUser | undefined;
+  if (!created) {
+    throw new Error('Failed to create user');
+  }
+  return { id: created.id, email: created.email };
+}
+
+export function createMagicLink(params: CreateMagicLinkParams): void {
+  stmts.insertMagicLink.run(
+    params.id,
+    params.userId,
+    params.tokenHash,
+    params.expiresAt,
+    params.createdAt,
+    params.createdIp
+  );
+}
+
+export function consumeMagicLink(tokenHash: string, now: number): ConsumedMagicLink | null {
+  return consumeMagicLinkTx(tokenHash, now);
+}
+
+export function createSession(params: CreateSessionParams): void {
+  stmts.insertSession.run(
+    params.sessionId,
+    params.userId,
+    params.sessionHash,
+    params.expiresAt,
+    params.createdAt,
+    params.createdAt,
+    params.ip,
+    params.userAgent
+  );
+}
+
+export function getSessionByHash(sessionHash: string, now: number): SessionUser | null {
+  const row = stmts.getActiveSessionByHash.get(sessionHash, now) as {
+    session_id: string;
+    user_id: string;
+    email: string;
+    expires_at: number;
+  } | undefined;
+
+  if (!row) {
+    return null;
+  }
+
+  return {
+    sessionId: row.session_id,
+    userId: row.user_id,
+    email: row.email,
+    expiresAt: row.expires_at,
+  };
+}
+
+export function touchSession(sessionId: string, lastSeenAt: number, expiresAt: number): void {
+  stmts.touchSession.run(lastSeenAt, expiresAt, sessionId);
+}
+
+export function deleteSessionById(sessionId: string): void {
+  stmts.deleteSessionById.run(sessionId);
+}
+
+export function deleteSessionByHash(sessionHash: string): void {
+  stmts.deleteSessionByHash.run(sessionHash);
+}
+
+export function cleanupExpiredAuth(now: number): CleanupResult {
+  const deletedMagicLinks = stmts.deleteExpiredMagicLinks.run(now).changes;
+  const deletedSessions = stmts.deleteExpiredSessions.run(now).changes;
+  return { deletedMagicLinks, deletedSessions };
+}
+
 // Get all active tasks (not completed) grouped by quadrant
-export function getAllTasks(): QuadrantsState {
-  const rows = stmts.getAllActive.all() as DbTask[];
+export function getAllTasks(userId: string): QuadrantsState {
+  const rows = stmts.getAllActive.all(userId) as DbTask[];
 
   const result: QuadrantsState = {
     urgentImportant: [],
@@ -89,8 +380,8 @@ export function getAllTasks(): QuadrantsState {
 }
 
 // Get all archived (completed) tasks
-export function getArchivedTasks(): ArchivedTask[] {
-  const rows = stmts.getArchived.all() as DbTask[];
+export function getArchivedTasks(userId: string): ArchivedTask[] {
+  const rows = stmts.getArchived.all(userId) as DbTask[];
 
   return rows.map(row => ({
     id: row.id,
@@ -102,44 +393,44 @@ export function getArchivedTasks(): ArchivedTask[] {
 }
 
 // Complete a task (archive it)
-export function completeTask(id: string): boolean {
-  const result = stmts.complete.run(Date.now(), id);
+export function completeTask(userId: string, id: string): boolean {
+  const result = stmts.complete.run(Date.now(), userId, id);
   return result.changes > 0;
 }
 
 // Delete an archived task permanently
-export function deleteArchivedTask(id: string): boolean {
-  const result = stmts.deleteArchived.run(id);
+export function deleteArchivedTask(userId: string, id: string): boolean {
+  const result = stmts.deleteArchived.run(userId, id);
   return result.changes > 0;
 }
 
 // Create a new task
-export function createTask(id: string, text: string, quadrant: QuadrantKey, createdAt: number): Task {
-  stmts.insert.run(id, text, quadrant, createdAt);
+export function createTask(userId: string, id: string, text: string, quadrant: QuadrantKey, createdAt: number): Task {
+  stmts.insert.run(id, userId, text, quadrant, createdAt);
   return { id, text, createdAt };
 }
 
 // Update task text
-export function updateTaskText(id: string, text: string): boolean {
-  const result = stmts.updateText.run(text, id);
+export function updateTaskText(userId: string, id: string, text: string): boolean {
+  const result = stmts.updateText.run(text, userId, id);
   return result.changes > 0;
 }
 
 // Update task quadrant (move task)
-export function updateTaskQuadrant(id: string, quadrant: QuadrantKey): boolean {
-  const result = stmts.updateQuadrant.run(quadrant, id);
+export function updateTaskQuadrant(userId: string, id: string, quadrant: QuadrantKey): boolean {
+  const result = stmts.updateQuadrant.run(quadrant, userId, id);
   return result.changes > 0;
 }
 
 // Delete a task
-export function deleteTask(id: string): boolean {
-  const result = stmts.deleteById.run(id);
+export function deleteTask(userId: string, id: string): boolean {
+  const result = stmts.deleteById.run(userId, id);
   return result.changes > 0;
 }
 
 // Get a single task
-export function getTask(id: string): DbTask | undefined {
-  return stmts.getById.get(id) as DbTask | undefined;
+export function getTask(userId: string, id: string): DbTask | undefined {
+  return stmts.getById.get(userId, id) as DbTask | undefined;
 }
 
 export default db;

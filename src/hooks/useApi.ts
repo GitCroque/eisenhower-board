@@ -15,6 +15,13 @@ const INITIAL_STATE: QuadrantsState = {
   notUrgentNotImportant: [],
 };
 
+function handleUnauthorized(response: Response): void {
+  if (response.status === 401) {
+    window.location.reload();
+    throw new Error('Unauthorized');
+  }
+}
+
 interface UseApiResult {
   quadrants: QuadrantsState;
   loading: boolean;
@@ -50,7 +57,11 @@ export function useApi(): UseApiResult {
     try {
       setError(null);
       setLoading(true);
-      const response = await fetch(`${API_BASE}/tasks`, { signal: controller.signal });
+      const response = await fetch(`${API_BASE}/tasks`, {
+        signal: controller.signal,
+        credentials: 'same-origin',
+      });
+      handleUnauthorized(response);
       if (!response.ok) {
         throw new Error('Failed to fetch tasks');
       }
@@ -86,6 +97,7 @@ export function useApi(): UseApiResult {
         body: JSON.stringify({ text, quadrant: quadrantKey }),
       });
 
+      handleUnauthorized(response);
       if (!response.ok) {
         throw new Error('Failed to create task');
       }
@@ -110,6 +122,7 @@ export function useApi(): UseApiResult {
         method: 'DELETE',
       });
 
+      handleUnauthorized(response);
       if (!response.ok) {
         throw new Error('Failed to delete task');
       }
@@ -134,6 +147,7 @@ export function useApi(): UseApiResult {
         body: JSON.stringify({ text: newText }),
       });
 
+      handleUnauthorized(response);
       if (!response.ok) {
         throw new Error('Failed to update task');
       }
@@ -179,6 +193,7 @@ export function useApi(): UseApiResult {
         body: JSON.stringify({ quadrant: targetQuadrant }),
       });
 
+      handleUnauthorized(response);
       if (!response.ok) {
         throw new Error('Failed to move task');
       }
@@ -202,6 +217,7 @@ export function useApi(): UseApiResult {
         method: 'POST',
       });
 
+      handleUnauthorized(response);
       if (!response.ok) {
         throw new Error('Failed to complete task');
       }
@@ -245,7 +261,11 @@ export function useArchivedTasks(): UseArchivedTasksResult {
     try {
       setError(null);
       setLoading(true);
-      const response = await fetch(`${API_BASE}/archived-tasks`, { signal: controller.signal });
+      const response = await fetch(`${API_BASE}/archived-tasks`, {
+        signal: controller.signal,
+        credentials: 'same-origin',
+      });
+      handleUnauthorized(response);
       if (!response.ok) {
         throw new Error('Failed to fetch archived tasks');
       }
@@ -271,6 +291,7 @@ export function useArchivedTasks(): UseArchivedTasksResult {
         method: 'DELETE',
       });
 
+      handleUnauthorized(response);
       if (!response.ok) {
         throw new Error('Failed to delete archived task');
       }

@@ -7,10 +7,14 @@ export function useCsrfFetch() {
 
   const fetchCsrfToken = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE}/csrf-token`);
+      const response = await fetch(`${API_BASE}/csrf-token`, {
+        credentials: 'same-origin',
+      });
       if (response.ok) {
         const data = await response.json();
         csrfTokenRef.current = data.token;
+      } else if (response.status === 401) {
+        csrfTokenRef.current = null;
       }
     } catch {
       console.error('Failed to fetch CSRF token');
@@ -27,7 +31,11 @@ export function useCsrfFetch() {
       'X-CSRF-Token': csrfTokenRef.current || '',
     };
 
-    const response = await fetch(url, { ...options, headers });
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      credentials: 'same-origin',
+    });
 
     if (response.status === 403) {
       await fetchCsrfToken();
@@ -35,7 +43,11 @@ export function useCsrfFetch() {
         ...options.headers,
         'X-CSRF-Token': csrfTokenRef.current || '',
       };
-      return fetch(url, { ...options, headers: retryHeaders });
+      return fetch(url, {
+        ...options,
+        headers: retryHeaders,
+        credentials: 'same-origin',
+      });
     }
 
     return response;

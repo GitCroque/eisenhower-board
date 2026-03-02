@@ -15,6 +15,8 @@ A web application to organize your tasks using the Eisenhower Matrix - a product
 
 - Drag & drop tasks between quadrants
 - Edit tasks (pencil icon)
+- Magic-link authentication (email)
+- Multi-user task isolation
 - Data persistence with SQLite backend
 - Dark / light mode
 - Multi-language support (14 languages)
@@ -40,6 +42,20 @@ npm run dev
 
 Frontend: [http://localhost:3000](http://localhost:3000)  
 Backend API: [http://localhost:3080](http://localhost:3080)
+
+## Authentication Environment Variables
+
+Magic-link delivery requires SMTP configuration (Fastmail-compatible):
+
+```bash
+SMTP_HOST=smtp.fastmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=your-fastmail-user
+SMTP_PASS=your-fastmail-app-password
+MAIL_FROM=you@your-domain.com
+APP_BASE_URL=http://localhost:3080
+```
 
 ## Docker (Recommended for production)
 
@@ -67,6 +83,7 @@ Data is stored in a Docker volume (`eisenhower-data`) and persists between resta
 | `npm run build:server` | Compile server TypeScript |
 | `npm run build:all` | Full build (frontend + backend) |
 | `npm run start` | Start Express production server |
+| `npm run migrate:auth-reset` | Reset DB schema for auth-enabled multi-user mode |
 | `npm run preview` | Preview frontend build |
 | `npm run test` | Run tests |
 | `npm run test:coverage` | Run tests with coverage |
@@ -91,10 +108,14 @@ eisenhower-board/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /api/tasks | Get all tasks |
-| POST | /api/tasks | Create a task |
-| PATCH | /api/tasks/:id | Update a task |
-| DELETE | /api/tasks/:id | Delete a task |
+| POST | /api/auth/magic-link | Request sign-in link |
+| GET | /api/auth/verify?token=... | Verify link and create session |
+| GET | /api/auth/me | Get auth state |
+| POST | /api/auth/logout | Destroy current session |
+| GET | /api/tasks | Get current user tasks |
+| POST | /api/tasks | Create a task for current user |
+| PATCH | /api/tasks/:id | Update a current user task |
+| DELETE | /api/tasks/:id | Delete a current user task |
 
 ## Tech Stack
 

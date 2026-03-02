@@ -1,14 +1,16 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
-import { Archive } from 'lucide-react';
+import { Archive, LogOut } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/i18n';
+import { AuthProvider, useAuth } from '@/auth/AuthContext';
 import { EisenhowerMatrix } from './components/EisenhowerMatrix';
 import { ThemeToggle } from './components/ThemeToggle';
 import { LanguageSelector } from './components/LanguageSelector';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './components/ui/toast';
 import { Layout } from './components/Layout';
+import { LoginPage } from './components/LoginPage';
 
 const ArchivePage = lazy(() =>
   import('./components/ArchivePage').then((m) => ({ default: m.ArchivePage }))
@@ -16,11 +18,12 @@ const ArchivePage = lazy(() =>
 
 function MatrixPage() {
   const { t } = useLanguage();
+  const { user, logout } = useAuth();
 
   return (
     <Layout>
       <header className="mb-8">
-        <div className="flex items-center justify-between gap-4 mb-2">
+        <div className="mb-2 flex items-center justify-between gap-4">
           <h1 className="min-w-0 truncate text-2xl font-bold text-slate-800 drop-shadow-sm dark:text-white sm:text-3xl md:text-4xl">
             {t.title}
           </h1>
@@ -34,10 +37,21 @@ function MatrixPage() {
             </Link>
             <LanguageSelector />
             <ThemeToggle />
+            <button
+              onClick={() => void logout()}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:text-slate-900 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-slate-200"
+              aria-label="Sign out"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
         <p className="text-center text-slate-600 dark:text-slate-400">
           {t.subtitle}
+        </p>
+        <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">
+          Signed in as {user?.email}
         </p>
       </header>
       <EisenhowerMatrix />
@@ -80,6 +94,26 @@ function AppRoutes() {
   );
 }
 
+function AuthGate() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex min-h-[400px] items-center justify-center">
+          <div className="text-slate-600 dark:text-slate-400">Loading...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  return <AppRoutes />;
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -87,7 +121,9 @@ export default function App() {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <LanguageProvider>
             <ToastProvider>
-              <AppRoutes />
+              <AuthProvider>
+                <AuthGate />
+              </AuthProvider>
             </ToastProvider>
           </LanguageProvider>
         </ThemeProvider>

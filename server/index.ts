@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import helmet from 'helmet';
+import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'crypto';
 import { rateLimit } from 'express-rate-limit';
 import {
   getAllTasks,
@@ -11,12 +12,162 @@ import {
   completeTask,
   getArchivedTasks,
   deleteArchivedTask,
+  findOrCreateUserByEmail,
+  createMagicLink,
+  consumeMagicLink,
+  createSession,
+  getSessionByHash,
+  touchSession,
+  deleteSessionByHash,
+  deleteSessionById,
+  cleanupExpiredAuth,
+  normalizeEmail,
 } from './db.js';
+import { sendMagicLinkEmail, isMailerConfigured } from './mailer.js';
 import { sanitizeText } from '../shared/sanitize.js';
-import { CreateTaskRequestSchema, UpdateTaskRequestSchema, TaskIdSchema } from '../shared/validation.js';
+import {
+  CreateTaskRequestSchema,
+  UpdateTaskRequestSchema,
+  TaskIdSchema,
+  MagicLinkRequestSchema,
+} from '../shared/validation.js';
 
 const app = express();
 const PORT = process.env.PORT || 3080;
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+const MAGIC_LINK_TTL_MS = 15 * 60 * 1000; // 15 minutes
+const SESSION_COOKIE_NAME = 'eisenhower_session';
+const CSRF_COOKIE_NAME = 'eisenhower_csrf';
+const isProduction = process.env.NODE_ENV === 'production';
+
+if (isProduction) {
+  app.set('trust proxy', 1);
+}
+
+interface AuthContext {
+  sessionId: string;
+  userId: string;
+  email: string;
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      auth?: AuthContext;
+    }
+  }
+}
+
+function parseCookies(cookieHeader?: string): Record<string, string> {
+  if (!cookieHeader) {
+    return {};
+  }
+
+  return cookieHeader.split(';').reduce<Record<string, string>>((acc, part) => {
+    const [key, ...valueParts] = part.trim().split('=');
+    if (!key || valueParts.length === 0) {
+      return acc;
+    }
+    const rawValue = valueParts.join('=');
+    try {
+      acc[key] = decodeURIComponent(rawValue);
+    } catch {
+      acc[key] = rawValue;
+    }
+    return acc;
+  }, {});
+}
+
+function hashToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+function safeTokenEquals(left: string, right: string): boolean {
+  const leftBuf = Buffer.from(left);
+  const rightBuf = Buffer.from(right);
+  if (leftBuf.length !== rightBuf.length) {
+    return false;
+  }
+  return timingSafeEqual(leftBuf, rightBuf);
+}
+
+function clearAuthCookies(res: Response): void {
+  res.clearCookie(SESSION_COOKIE_NAME, {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: isProduction,
+  });
+  res.clearCookie(CSRF_COOKIE_NAME, {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: isProduction,
+  });
+}
+
+function getAppBaseUrl(req: Request): string {
+  const configuredBaseUrl = process.env.APP_BASE_URL?.trim();
+  if (configuredBaseUrl) {
+    return configuredBaseUrl.replace(/\/+$/, '');
+  }
+
+  const forwardedProto = req.headers['x-forwarded-proto'];
+  const protocol = typeof forwardedProto === 'string'
+    ? forwardedProto.split(',')[0]
+    : req.protocol;
+  return `${protocol}://${req.get('host')}`;
+}
+
+function authenticateSession(req: Request, res: Response, next: NextFunction): void {
+  const cookies = parseCookies(req.headers.cookie);
+  const rawSessionToken = cookies[SESSION_COOKIE_NAME];
+  if (!rawSessionToken) {
+    next();
+    return;
+  }
+
+  const sessionHash = hashToken(rawSessionToken);
+  const now = Date.now();
+  const session = getSessionByHash(sessionHash, now);
+  if (!session) {
+    deleteSessionByHash(sessionHash);
+    clearAuthCookies(res);
+    next();
+    return;
+  }
+
+  const refreshedExpiry = now + SESSION_TTL_MS;
+  touchSession(session.sessionId, now, refreshedExpiry);
+  req.auth = {
+    sessionId: session.sessionId,
+    userId: session.userId,
+    email: session.email,
+  };
+  next();
+}
+
+function requireAuth(req: Request, res: Response, next: NextFunction): void {
+  if (!req.auth) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  next();
+}
+
+function validateCsrf(req: Request, res: Response, next: NextFunction): void {
+  const header = req.headers['x-csrf-token'];
+  const csrfHeader = Array.isArray(header) ? header[0] : header;
+  const cookies = parseCookies(req.headers.cookie);
+  const csrfCookie = cookies[CSRF_COOKIE_NAME];
+
+  if (!csrfHeader || !csrfCookie || !safeTokenEquals(csrfHeader, csrfCookie)) {
+    res.status(403).json({ error: 'Invalid or missing CSRF token' });
+    return;
+  }
+
+  next();
+}
 
 // Security headers
 app.use(helmet({
@@ -25,31 +176,20 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:"],
+      imgSrc: ["'self'", 'data:'],
       connectSrc: ["'self'"],
     },
   },
 }));
 
-// CSRF Token store with automatic cleanup
-const csrfTokens = new Map<string, number>();
-const CSRF_TOKEN_EXPIRY = 60 * 60 * 1000; // 1 hour
-const CSRF_MAX_USES = 50;
-const csrfUseCounts = new Map<string, number>();
-
-// Cleanup expired tokens every 15 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [token, timestamp] of csrfTokens.entries()) {
-    if (now - timestamp > CSRF_TOKEN_EXPIRY) {
-      csrfTokens.delete(token);
-      csrfUseCounts.delete(token);
-    }
-  }
-}, 15 * 60 * 1000);
-
 // Middleware
 app.use(express.json({ limit: '10kb' }));
+app.use('/api', authenticateSession);
+
+// Cleanup expired auth artifacts every 15 minutes
+setInterval(() => {
+  cleanupExpiredAuth(Date.now());
+}, 15 * 60 * 1000).unref();
 
 // Rate limiting for mutating endpoints
 const mutationLimiter = rateLimit({
@@ -69,8 +209,35 @@ const readLimiter = rateLimit({
   message: { error: 'Too many requests, please try again later' },
 });
 
-// Rate limiting for CSRF token endpoint (prevents memory growth via token spam)
 const csrfLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later' },
+});
+
+const magicLinkIpLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later' },
+});
+
+const magicLinkEmailLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const email = typeof req.body?.email === 'string' ? normalizeEmail(req.body.email) : '';
+    return `${req.ip}:${email || 'unknown'}`;
+  },
+  message: { error: 'Too many requests, please try again later' },
+});
+
+const verifyLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 10,
   standardHeaders: true,
@@ -82,50 +249,149 @@ const csrfLimiter = rateLimit({
 const distPath = path.join(process.cwd(), 'dist');
 app.use(express.static(distPath));
 
-// CSRF Token endpoint
-app.get('/api/csrf-token', csrfLimiter, (_req: Request, res: Response) => {
-  // Cap total tokens to prevent unbounded memory growth
-  if (csrfTokens.size >= 1000) {
-    const entries = [...csrfTokens.entries()].sort((a, b) => a[1] - b[1]);
-    for (const [oldToken] of entries.slice(0, 100)) {
-      csrfTokens.delete(oldToken);
-      csrfUseCounts.delete(oldToken);
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({ status: 'ok' });
+});
+
+app.post('/api/auth/magic-link', magicLinkIpLimiter, magicLinkEmailLimiter, async (req: Request, res: Response) => {
+  try {
+    const parsed = MagicLinkRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.issues[0].message });
+      return;
     }
+
+    if (!isMailerConfigured()) {
+      res.status(500).json({ error: 'Email provider is not configured' });
+      return;
+    }
+
+    const now = Date.now();
+    const user = findOrCreateUserByEmail(parsed.data.email, now);
+    const rawToken = randomBytes(32).toString('base64url');
+    const tokenHash = hashToken(rawToken);
+    const expiresAt = now + MAGIC_LINK_TTL_MS;
+
+    createMagicLink({
+      id: randomUUID(),
+      userId: user.id,
+      tokenHash,
+      expiresAt,
+      createdAt: now,
+      createdIp: req.ip || null,
+    });
+
+    const verifyUrl = `${getAppBaseUrl(req)}/api/auth/verify?token=${encodeURIComponent(rawToken)}`;
+    await sendMagicLinkEmail({
+      to: user.email,
+      link: verifyUrl,
+      expiresInMinutes: Math.floor(MAGIC_LINK_TTL_MS / 60000),
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('POST /api/auth/magic-link error:', err);
+    res.status(500).json({ error: 'Failed to send magic link' });
+  }
+});
+
+app.get('/api/auth/verify', verifyLimiter, (req: Request, res: Response) => {
+  try {
+    const token = typeof req.query.token === 'string' ? req.query.token : '';
+    if (!token) {
+      res.redirect('/?auth=invalid');
+      return;
+    }
+
+    const now = Date.now();
+    const consumed = consumeMagicLink(hashToken(token), now);
+    if (!consumed) {
+      res.redirect('/?auth=invalid');
+      return;
+    }
+
+    const rawSessionToken = randomBytes(32).toString('base64url');
+    const sessionHash = hashToken(rawSessionToken);
+    const sessionExpiresAt = now + SESSION_TTL_MS;
+
+    createSession({
+      sessionId: randomUUID(),
+      userId: consumed.userId,
+      sessionHash,
+      expiresAt: sessionExpiresAt,
+      createdAt: now,
+      ip: req.ip || null,
+      userAgent: req.get('user-agent') || null,
+    });
+
+    res.cookie(SESSION_COOKIE_NAME, rawSessionToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: SESSION_TTL_MS,
+    });
+
+    const csrfToken = randomBytes(32).toString('base64url');
+    res.cookie(CSRF_COOKIE_NAME, csrfToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: SESSION_TTL_MS,
+    });
+
+    res.redirect('/');
+  } catch (err) {
+    console.error('GET /api/auth/verify error:', err);
+    res.redirect('/?auth=invalid');
+  }
+});
+
+app.get('/api/auth/me', readLimiter, (req: Request, res: Response) => {
+  if (!req.auth) {
+    res.json({ authenticated: false });
+    return;
   }
 
-  const token = crypto.randomUUID();
-  csrfTokens.set(token, Date.now());
-  csrfUseCounts.set(token, 0);
+  res.json({
+    authenticated: true,
+    user: {
+      email: req.auth.email,
+    },
+  });
+});
+
+app.post('/api/auth/logout', mutationLimiter, (req: Request, res: Response) => {
+  try {
+    if (req.auth) {
+      deleteSessionById(req.auth.sessionId);
+    }
+    clearAuthCookies(res);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('POST /api/auth/logout error:', err);
+    res.status(500).json({ error: 'Failed to log out' });
+  }
+});
+
+// CSRF Token endpoint for authenticated users
+app.get('/api/csrf-token', csrfLimiter, requireAuth, (_req: Request, res: Response) => {
+  const token = randomBytes(32).toString('base64url');
+  res.cookie(CSRF_COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: SESSION_TTL_MS,
+  });
   res.json({ token });
 });
 
-// CSRF validation middleware
-function validateCsrf(req: Request, res: Response, next: NextFunction): void {
-  const token = req.headers['x-csrf-token'] as string;
-
-  if (!token || !csrfTokens.has(token)) {
-    res.status(403).json({ error: 'Invalid or missing CSRF token' });
-    return;
-  }
-
-  const uses = (csrfUseCounts.get(token) || 0) + 1;
-  if (uses > CSRF_MAX_USES) {
-    csrfTokens.delete(token);
-    csrfUseCounts.delete(token);
-    res.status(403).json({ error: 'CSRF token expired, please refresh' });
-    return;
-  }
-
-  csrfUseCounts.set(token, uses);
-  csrfTokens.set(token, Date.now());
-  next();
-}
-
 // API Routes
-
-app.get('/api/tasks', readLimiter, (_req: Request, res: Response) => {
+app.get('/api/tasks', readLimiter, requireAuth, (req: Request, res: Response) => {
   try {
-    const tasks = getAllTasks();
+    const tasks = getAllTasks(req.auth!.userId);
     res.json(tasks);
   } catch (err) {
     console.error('GET /api/tasks error:', err);
@@ -133,7 +399,7 @@ app.get('/api/tasks', readLimiter, (_req: Request, res: Response) => {
   }
 });
 
-app.post('/api/tasks', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
+app.post('/api/tasks', mutationLimiter, requireAuth, validateCsrf, (req: Request, res: Response) => {
   try {
     const parsed = CreateTaskRequestSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -147,9 +413,9 @@ app.post('/api/tasks', mutationLimiter, validateCsrf, (req: Request, res: Respon
       return;
     }
 
-    const id = crypto.randomUUID();
+    const id = randomUUID();
     const createdAt = Date.now();
-    const task = createTask(id, sanitizedText, parsed.data.quadrant, createdAt);
+    const task = createTask(req.auth!.userId, id, sanitizedText, parsed.data.quadrant, createdAt);
 
     res.status(201).json(task);
   } catch (err) {
@@ -158,7 +424,7 @@ app.post('/api/tasks', mutationLimiter, validateCsrf, (req: Request, res: Respon
   }
 });
 
-app.patch('/api/tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
+app.patch('/api/tasks/:id', mutationLimiter, requireAuth, validateCsrf, (req: Request, res: Response) => {
   try {
     const idResult = TaskIdSchema.safeParse(req.params.id);
     if (!idResult.success) {
@@ -181,7 +447,7 @@ app.patch('/api/tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: R
         return;
       }
 
-      const updated = updateTaskText(id, sanitizedText);
+      const updated = updateTaskText(req.auth!.userId, id, sanitizedText);
       if (!updated) {
         res.status(404).json({ error: 'Task not found' });
         return;
@@ -189,7 +455,7 @@ app.patch('/api/tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: R
     }
 
     if (quadrant !== undefined) {
-      const updated = updateTaskQuadrant(id, quadrant);
+      const updated = updateTaskQuadrant(req.auth!.userId, id, quadrant);
       if (!updated) {
         res.status(404).json({ error: 'Task not found' });
         return;
@@ -203,7 +469,7 @@ app.patch('/api/tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: R
   }
 });
 
-app.delete('/api/tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
+app.delete('/api/tasks/:id', mutationLimiter, requireAuth, validateCsrf, (req: Request, res: Response) => {
   try {
     const idResult = TaskIdSchema.safeParse(req.params.id);
     if (!idResult.success) {
@@ -211,7 +477,7 @@ app.delete('/api/tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: 
       return;
     }
     const id = idResult.data;
-    const deleted = deleteTask(id);
+    const deleted = deleteTask(req.auth!.userId, id);
 
     if (!deleted) {
       res.status(404).json({ error: 'Task not found' });
@@ -225,7 +491,7 @@ app.delete('/api/tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: 
   }
 });
 
-app.post('/api/tasks/:id/complete', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
+app.post('/api/tasks/:id/complete', mutationLimiter, requireAuth, validateCsrf, (req: Request, res: Response) => {
   try {
     const idResult = TaskIdSchema.safeParse(req.params.id);
     if (!idResult.success) {
@@ -233,7 +499,7 @@ app.post('/api/tasks/:id/complete', mutationLimiter, validateCsrf, (req: Request
       return;
     }
     const id = idResult.data;
-    const completed = completeTask(id);
+    const completed = completeTask(req.auth!.userId, id);
 
     if (!completed) {
       res.status(404).json({ error: 'Task not found or already completed' });
@@ -247,9 +513,9 @@ app.post('/api/tasks/:id/complete', mutationLimiter, validateCsrf, (req: Request
   }
 });
 
-app.get('/api/archived-tasks', readLimiter, (_req: Request, res: Response) => {
+app.get('/api/archived-tasks', readLimiter, requireAuth, (req: Request, res: Response) => {
   try {
-    const tasks = getArchivedTasks();
+    const tasks = getArchivedTasks(req.auth!.userId);
     res.json(tasks);
   } catch (err) {
     console.error('GET /api/archived-tasks error:', err);
@@ -257,7 +523,7 @@ app.get('/api/archived-tasks', readLimiter, (_req: Request, res: Response) => {
   }
 });
 
-app.delete('/api/archived-tasks/:id', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
+app.delete('/api/archived-tasks/:id', mutationLimiter, requireAuth, validateCsrf, (req: Request, res: Response) => {
   try {
     const idResult = TaskIdSchema.safeParse(req.params.id);
     if (!idResult.success) {
@@ -265,7 +531,7 @@ app.delete('/api/archived-tasks/:id', mutationLimiter, validateCsrf, (req: Reque
       return;
     }
     const id = idResult.data;
-    const deleted = deleteArchivedTask(id);
+    const deleted = deleteArchivedTask(req.auth!.userId, id);
 
     if (!deleted) {
       res.status(404).json({ error: 'Archived task not found' });
