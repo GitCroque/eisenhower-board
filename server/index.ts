@@ -4,7 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'crypto';
-import { rateLimit } from 'express-rate-limit';
+import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
 import db, {
   getAllTasks,
   createTask,
@@ -229,8 +229,9 @@ const magicLinkEmailLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => {
+    const ip = ipKeyGenerator(req.ip ?? '');
     const email = typeof req.body?.email === 'string' ? normalizeEmail(req.body.email) : '';
-    return `${req.ip}:${email || 'unknown'}`;
+    return `${ip}:${email || 'unknown'}`;
   },
   message: { error: 'Too many requests, please try again later' },
 });
