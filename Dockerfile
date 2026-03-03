@@ -31,12 +31,18 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/dist-server ./dist-server
 
 # Install production dependencies with build tools in a single layer, then remove
+# Also install su-exec for privilege dropping in entrypoint
 RUN apk add --no-cache --virtual .build-deps python3 make g++ \
     && npm ci --omit=dev \
-    && apk del .build-deps
+    && apk del .build-deps \
+    && apk add --no-cache su-exec
 
 # Create data directory for SQLite and set ownership
 RUN mkdir -p /app/data && chown -R node:node /app/data
+
+# Copy entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Environment variables
 ENV NODE_ENV=production
@@ -48,6 +54,5 @@ EXPOSE 3080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3080/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
 
-USER node
-
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "dist-server/server/index.js"]
