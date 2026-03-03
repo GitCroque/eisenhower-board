@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { memo, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 interface LayoutProps {
@@ -6,7 +6,7 @@ interface LayoutProps {
   maxWidth?: string;
 }
 
-export function Layout({ children, maxWidth = 'max-w-7xl' }: LayoutProps) {
+export const Layout = memo(function Layout({ children, maxWidth = 'max-w-7xl' }: LayoutProps) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* Decorative blurred shapes */}
@@ -21,4 +21,4 @@ export function Layout({ children, maxWidth = 'max-w-7xl' }: LayoutProps) {
       </div>
     </div>
   );
-}
+});

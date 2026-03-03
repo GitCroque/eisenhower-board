@@ -1,9 +1,10 @@
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import helmet from 'helmet';
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'crypto';
 import { rateLimit } from 'express-rate-limit';
-import {
+import db, {
   getAllTasks,
   createTask,
   updateTaskText,
@@ -106,17 +107,12 @@ function clearAuthCookies(res: Response): void {
   });
 }
 
-function getAppBaseUrl(req: Request): string {
+function getAppBaseUrl(): string {
   const configuredBaseUrl = process.env.APP_BASE_URL?.trim();
-  if (configuredBaseUrl) {
-    return configuredBaseUrl.replace(/\/+$/, '');
+  if (!configuredBaseUrl) {
+    throw new Error('APP_BASE_URL environment variable is required');
   }
-
-  const forwardedProto = req.headers['x-forwarded-proto'];
-  const protocol = typeof forwardedProto === 'string'
-    ? forwardedProto.split(',')[0]
-    : req.protocol;
-  return `${protocol}://${req.get('host')}`;
+  return configuredBaseUrl.replace(/\/+$/, '');
 }
 
 function authenticateSession(req: Request, res: Response, next: NextFunction): void {
@@ -246,10 +242,12 @@ const verifyLimiter = rateLimit({
 });
 
 // Serve static files from the dist directory
-const distPath = path.join(process.cwd(), 'dist');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.join(__dirname, '..', '..', 'dist');
 app.use(express.static(distPath));
 
-app.get('/api/health', (_req: Request, res: Response) => {
+app.get('/api/health', readLimiter, (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
@@ -281,7 +279,7 @@ app.post('/api/auth/magic-link', magicLinkIpLimiter, magicLinkEmailLimiter, asyn
       createdIp: req.ip || null,
     });
 
-    const verifyUrl = `${getAppBaseUrl(req)}/api/auth/verify?token=${encodeURIComponent(rawToken)}`;
+    const verifyUrl = `${getAppBaseUrl()}/api/auth/verify?token=${encodeURIComponent(rawToken)}`;
     await sendMagicLinkEmail({
       to: user.email,
       link: verifyUrl,
@@ -362,7 +360,7 @@ app.get('/api/auth/me', readLimiter, (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/auth/logout', mutationLimiter, (req: Request, res: Response) => {
+app.post('/api/auth/logout', mutationLimiter, validateCsrf, (req: Request, res: Response) => {
   try {
     if (req.auth) {
       deleteSessionById(req.auth.sessionId);
@@ -440,26 +438,32 @@ app.patch('/api/tasks/:id', mutationLimiter, requireAuth, validateCsrf, (req: Re
 
     const { text, quadrant } = parsed.data;
 
-    if (text !== undefined) {
-      const sanitizedText = sanitizeText(text);
-      if (sanitizedText.length === 0) {
-        res.status(400).json({ error: 'Invalid task text' });
-        return;
+    const updateTask = db.transaction(() => {
+      if (text !== undefined) {
+        const sanitizedText = sanitizeText(text);
+        if (sanitizedText.length === 0) {
+          return { error: 'Invalid task text', status: 400 };
+        }
+        const updated = updateTaskText(req.auth!.userId, id, sanitizedText);
+        if (!updated) {
+          return { error: 'Task not found', status: 404 };
+        }
       }
 
-      const updated = updateTaskText(req.auth!.userId, id, sanitizedText);
-      if (!updated) {
-        res.status(404).json({ error: 'Task not found' });
-        return;
+      if (quadrant !== undefined) {
+        const updated = updateTaskQuadrant(req.auth!.userId, id, quadrant);
+        if (!updated) {
+          return { error: 'Task not found', status: 404 };
+        }
       }
-    }
 
-    if (quadrant !== undefined) {
-      const updated = updateTaskQuadrant(req.auth!.userId, id, quadrant);
-      if (!updated) {
-        res.status(404).json({ error: 'Task not found' });
-        return;
-      }
+      return null;
+    });
+
+    const result = updateTask();
+    if (result) {
+      res.status(result.status).json({ error: result.error });
+      return;
     }
 
     res.json({ success: true });

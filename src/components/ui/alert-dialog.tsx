@@ -44,6 +44,8 @@ interface AlertDialogCancelProps extends React.ButtonHTMLAttributes<HTMLButtonEl
 const AlertDialogContext = React.createContext<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  titleId: string;
+  descriptionId: string;
 } | null>(null);
 
 function useAlertDialog() {
@@ -55,25 +57,86 @@ function useAlertDialog() {
 }
 
 export function AlertDialog({ open, onOpenChange, children }: AlertDialogProps) {
+  const idBase = React.useId();
+  const titleId = `${idBase}-title`;
+  const descriptionId = `${idBase}-desc`;
+
   return (
-    <AlertDialogContext.Provider value={{ open, onOpenChange }}>
+    <AlertDialogContext.Provider value={{ open, onOpenChange, titleId, descriptionId }}>
       {children}
     </AlertDialogContext.Provider>
   );
 }
 
 export function AlertDialogContent({ children, className }: AlertDialogContentProps) {
-  const { open, onOpenChange } = useAlertDialog();
+  const { open, onOpenChange, titleId, descriptionId } = useAlertDialog();
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  const previousFocusRef = React.useRef<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    if (open) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      // Focus first focusable element after render
+      requestAnimationFrame(() => {
+        const focusable = contentRef.current?.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable && focusable.length > 0) {
+          // Focus the last button (cancel) by default, or first focusable
+          const cancelBtn = contentRef.current?.querySelector<HTMLElement>('[data-alert-dialog-cancel]');
+          (cancelBtn || focusable[0]).focus();
+        }
+      });
+    } else if (previousFocusRef.current) {
+      previousFocusRef.current.focus();
+      previousFocusRef.current = null;
+    }
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onOpenChange(false);
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        const focusable = contentRef.current?.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusable || focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onOpenChange]);
 
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={() => onOpenChange(false)}
-      />
-      <div
+        ref={contentRef}
         className={cn(
           'relative z-50 mx-4 w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-800',
           'animate-in fade-in-0 zoom-in-95',
@@ -81,6 +144,8 @@ export function AlertDialogContent({ children, className }: AlertDialogContentPr
         )}
         role="alertdialog"
         aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
       >
         {children}
       </div>
@@ -105,16 +170,18 @@ export function AlertDialogFooter({ children, className }: AlertDialogFooterProp
 }
 
 export function AlertDialogTitle({ children, className }: AlertDialogTitleProps) {
+  const { titleId } = useAlertDialog();
   return (
-    <h2 className={cn('text-lg font-semibold text-slate-900 dark:text-white', className)}>
+    <h2 id={titleId} className={cn('text-lg font-semibold text-slate-900 dark:text-white', className)}>
       {children}
     </h2>
   );
 }
 
 export function AlertDialogDescription({ children, className }: AlertDialogDescriptionProps) {
+  const { descriptionId } = useAlertDialog();
   return (
-    <p className={cn('text-sm text-slate-600 dark:text-slate-400', className)}>
+    <p id={descriptionId} className={cn('text-sm text-slate-600 dark:text-slate-400', className)}>
       {children}
     </p>
   );
@@ -136,6 +203,7 @@ export function AlertDialogCancel({ children, className, ...props }: AlertDialog
       variant="outline"
       className={className}
       onClick={() => onOpenChange(false)}
+      data-alert-dialog-cancel
       {...props}
     >
       {children}

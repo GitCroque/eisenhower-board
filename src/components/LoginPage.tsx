@@ -1,6 +1,7 @@
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { MailCheck } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
+import { useLanguage } from '@/i18n';
 import { LanguageSelector } from './LanguageSelector';
 import { ThemeToggle } from './ThemeToggle';
 import { Layout } from './Layout';
@@ -11,12 +12,13 @@ function isValidEmail(email: string): boolean {
 
 export function LoginPage() {
   const { requestMagicLink } = useAuth();
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canSubmit = useMemo(() => isValidEmail(email.trim()) && !loading, [email, loading]);
+  const canSubmit = isValidEmail(email.trim()) && !loading;
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -46,16 +48,16 @@ export function LoginPage() {
 
       <div className="rounded-2xl border border-white/60 bg-white/70 p-8 backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/70">
         <h1 className="mb-2 text-3xl font-bold text-slate-800 dark:text-white">
-          Sign in to Eisenhower Board
+          {t.auth.signInTitle}
         </h1>
         <p className="mb-6 text-slate-600 dark:text-slate-400">
-          Enter your email and we&apos;ll send you a secure one-time sign-in link.
+          {t.auth.signInSubtitle}
         </p>
 
         <form className="space-y-4" onSubmit={onSubmit}>
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Email
+              {t.auth.emailLabel}
             </span>
             <input
               type="email"
@@ -73,7 +75,7 @@ export function LoginPage() {
             disabled={!canSubmit}
             className="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
           >
-            {loading ? 'Sending link...' : 'Send magic link'}
+            {loading ? t.auth.sendingLink : t.auth.sendMagicLink}
           </button>
         </form>
 
@@ -81,10 +83,10 @@ export function LoginPage() {
           <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
             <div className="mb-1 flex items-center gap-2 font-medium">
               <MailCheck className="h-4 w-4" />
-              Check your inbox
+              {t.auth.checkInbox}
             </div>
             <p className="text-sm">
-              We sent a sign-in link to <strong>{submittedEmail}</strong>. The link expires in 15 minutes.
+              {t.auth.checkInboxDescription} <strong>{submittedEmail}</strong>. {t.auth.linkExpiresIn}
             </p>
           </div>
         )}

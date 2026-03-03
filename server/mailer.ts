@@ -30,21 +30,38 @@ function getMailConfig(): MailConfig {
   return { host, port, secure, user, pass, from };
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+let cachedTransporter: nodemailer.Transporter | null = null;
+
+function getTransporter(): nodemailer.Transporter {
+  if (!cachedTransporter) {
+    const config = getMailConfig();
+    cachedTransporter = nodemailer.createTransport({
+      host: config.host,
+      port: config.port,
+      secure: config.secure,
+      auth: { user: config.user, pass: config.pass },
+      pool: true,
+      maxConnections: 3,
+    });
+  }
+  return cachedTransporter;
+}
+
 export function isMailerConfigured(): boolean {
-  return Boolean(process.env.SMTP_USER && process.env.SMTP_PASS);
+  return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
 }
 
 export async function sendMagicLinkEmail(params: SendMagicLinkParams): Promise<void> {
   const config = getMailConfig();
-  const transporter = nodemailer.createTransport({
-    host: config.host,
-    port: config.port,
-    secure: config.secure,
-    auth: {
-      user: config.user,
-      pass: config.pass,
-    },
-  });
+  const transporter = getTransporter();
 
   await transporter.sendMail({
     from: config.from,
@@ -58,7 +75,7 @@ export async function sendMagicLinkEmail(params: SendMagicLinkParams): Promise<v
     ].join('\n'),
     html: [
       '<p>Click the link below to sign in to Eisenhower Board:</p>',
-      `<p><a href="${params.link}">${params.link}</a></p>`,
+      `<p><a href="${escapeHtml(params.link)}">${escapeHtml(params.link)}</a></p>`,
       `<p>This link expires in ${params.expiresInMinutes} minutes and can only be used once.</p>`,
     ].join(''),
   });

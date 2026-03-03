@@ -8,13 +8,13 @@ describe('sanitizeText', () => {
     expect(sanitizeText('Hello <img src="x" onerror="alert(1)"> World')).toBe('Hello World');
   });
 
-  it('decodes HTML entities', () => {
-    expect(sanitizeText('&amp;')).toBe('&');
-    expect(sanitizeText('&lt;')).toBe('<');
-    expect(sanitizeText('&gt;')).toBe('>');
-    expect(sanitizeText('&quot;')).toBe('"');
-    expect(sanitizeText('&#x27;')).toBe("'");
-    expect(sanitizeText('&#x2F;')).toBe('/');
+  it('preserves HTML entities (no decoding to prevent XSS)', () => {
+    expect(sanitizeText('&amp;')).toBe('&amp;');
+    expect(sanitizeText('&lt;')).toBe('&lt;');
+    expect(sanitizeText('&gt;')).toBe('&gt;');
+    expect(sanitizeText('&quot;')).toBe('&quot;');
+    expect(sanitizeText('&#x27;')).toBe('&#x27;');
+    expect(sanitizeText('&#x2F;')).toBe('&#x2F;');
   });
 
   it('trims and normalizes whitespace', () => {

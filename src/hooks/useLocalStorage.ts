@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((prev: T) => T)) => void] {
   const [storedValue, setStoredValue] = useState<T>(() => {
@@ -17,6 +17,21 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
       console.error('Failed to save to localStorage');
     }
   }, [key, storedValue]);
+
+  const handleStorageChange = useCallback((e: StorageEvent) => {
+    if (e.key === key && e.newValue !== null) {
+      try {
+        setStoredValue(JSON.parse(e.newValue));
+      } catch {
+        // Ignore parse errors from other tabs
+      }
+    }
+  }, [key]);
+
+  useEffect(() => {
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [handleStorageChange]);
 
   return [storedValue, setStoredValue];
 }

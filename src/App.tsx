@@ -40,8 +40,8 @@ function MatrixPage() {
             <button
               onClick={() => void logout()}
               className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:text-slate-900 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-slate-200"
-              aria-label="Sign out"
-              title="Sign out"
+              aria-label={t.auth.signOut}
+              title={t.auth.signOut}
             >
               <LogOut className="h-4 w-4" />
             </button>
@@ -51,7 +51,7 @@ function MatrixPage() {
           {t.subtitle}
         </p>
         <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">
-          Signed in as {user?.email}
+          {t.auth.signedInAs} {user?.email}
         </p>
       </header>
       <EisenhowerMatrix />

@@ -44,6 +44,9 @@ interface UseArchivedTasksResult {
 
 export function useApi(): UseApiResult {
   const [quadrants, setQuadrants] = useState<QuadrantsState>(INITIAL_STATE);
+  const quadrantsRef = useRef<QuadrantsState>(INITIAL_STATE);
+  // Keep ref in sync
+  useEffect(() => { quadrantsRef.current = quadrants; }, [quadrants]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { fetchCsrfToken, fetchWithCsrf } = useCsrfFetch();
@@ -76,7 +79,7 @@ export function useApi(): UseApiResult {
   }, []);
 
   useEffect(() => {
-    Promise.all([fetchCsrfToken(), fetchTasks()]);
+    void Promise.all([fetchCsrfToken(), fetchTasks()]);
     return () => abortControllerRef.current?.abort();
   }, [fetchCsrfToken, fetchTasks]);
 
@@ -168,22 +171,15 @@ export function useApi(): UseApiResult {
   const moveTask = useCallback(async (taskId: string, sourceQuadrant: QuadrantKey, targetQuadrant: QuadrantKey) => {
     if (sourceQuadrant === targetQuadrant) return;
 
-    // Snapshot for reliable rollback
-    const snapshot = { taskId, sourceQuadrant, targetQuadrant };
-    let movedTask: Task | undefined;
-
-    setQuadrants((prev) => {
-      movedTask = prev[sourceQuadrant].find((t) => t.id === taskId);
-      if (!movedTask) return prev;
-
-      return {
-        ...prev,
-        [sourceQuadrant]: prev[sourceQuadrant].filter((t) => t.id !== taskId),
-        [targetQuadrant]: [...prev[targetQuadrant], movedTask],
-      };
-    });
-
+    const currentQuadrants = quadrantsRef.current;
+    const movedTask = currentQuadrants[sourceQuadrant].find((t) => t.id === taskId);
     if (!movedTask) return;
+
+    setQuadrants((prev) => ({
+      ...prev,
+      [sourceQuadrant]: prev[sourceQuadrant].filter((t) => t.id !== taskId),
+      [targetQuadrant]: [...prev[targetQuadrant], movedTask],
+    }));
 
     try {
       setError(null);
@@ -199,11 +195,11 @@ export function useApi(): UseApiResult {
       }
       tasksChannel?.postMessage('sync');
     } catch (err) {
-      // Rollback optimistic update on any failure (network error or bad response)
+      // Rollback optimistic update
       setQuadrants((prev) => ({
         ...prev,
-        [snapshot.sourceQuadrant]: [...prev[snapshot.sourceQuadrant], movedTask!],
-        [snapshot.targetQuadrant]: prev[snapshot.targetQuadrant].filter((t) => t.id !== snapshot.taskId),
+        [sourceQuadrant]: [...prev[sourceQuadrant], movedTask],
+        [targetQuadrant]: prev[targetQuadrant].filter((t) => t.id !== taskId),
       }));
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
@@ -280,7 +276,7 @@ export function useArchivedTasks(): UseArchivedTasksResult {
   }, []);
 
   useEffect(() => {
-    Promise.all([fetchCsrfToken(), fetchArchivedTasks()]);
+    void Promise.all([fetchCsrfToken(), fetchArchivedTasks()]);
     return () => abortControllerRef.current?.abort();
   }, [fetchCsrfToken, fetchArchivedTasks]);
 

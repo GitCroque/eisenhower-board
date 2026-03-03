@@ -96,6 +96,20 @@ export interface Translations {
     selectLanguage: string;
     dismissNotification: string;
   };
+
+  // Auth / Login
+  auth: {
+    signInTitle: string;
+    signInSubtitle: string;
+    emailLabel: string;
+    sendMagicLink: string;
+    sendingLink: string;
+    checkInbox: string;
+    checkInboxDescription: string;
+    linkExpiresIn: string;
+    signOut: string;
+    signedInAs: string;
+  };
 }
 
 export const translations: Record<Language, Translations> = {
@@ -184,6 +198,19 @@ export const translations: Record<Language, Translations> = {
       selectLanguage: 'Select language',
       dismissNotification: 'Dismiss notification',
     },
+
+    auth: {
+      signInTitle: 'Sign in to Eisenhower Board',
+      signInSubtitle: "Enter your email and we'll send you a secure one-time sign-in link.",
+      emailLabel: 'Email',
+      sendMagicLink: 'Send magic link',
+      sendingLink: 'Sending link...',
+      checkInbox: 'Check your inbox',
+      checkInboxDescription: 'We sent a sign-in link to',
+      linkExpiresIn: 'The link expires in 15 minutes.',
+      signOut: 'Sign out',
+      signedInAs: 'Signed in as',
+    },
   },
 
   fr: {
@@ -270,6 +297,19 @@ export const translations: Record<Language, Translations> = {
     accessibility: {
       selectLanguage: 'Sélectionner la langue',
       dismissNotification: 'Fermer la notification',
+    },
+
+    auth: {
+      signInTitle: 'Connexion à Eisenhower Board',
+      signInSubtitle: 'Entrez votre email et nous vous enverrons un lien de connexion sécurisé.',
+      emailLabel: 'Email',
+      sendMagicLink: 'Envoyer le lien magique',
+      sendingLink: 'Envoi en cours...',
+      checkInbox: 'Vérifiez votre boîte mail',
+      checkInboxDescription: 'Nous avons envoyé un lien de connexion à',
+      linkExpiresIn: 'Le lien expire dans 15 minutes.',
+      signOut: 'Se déconnecter',
+      signedInAs: 'Connecté en tant que',
     },
   },
 
@@ -358,6 +398,19 @@ export const translations: Record<Language, Translations> = {
       selectLanguage: '选择语言',
       dismissNotification: '关闭通知',
     },
+
+    auth: {
+      signInTitle: '登录 Eisenhower Board',
+      signInSubtitle: '输入您的邮箱，我们将发送一个安全的一次性登录链接。',
+      emailLabel: '邮箱',
+      sendMagicLink: '发送魔术链接',
+      sendingLink: '正在发送链接...',
+      checkInbox: '请查收邮件',
+      checkInboxDescription: '我们已向以下邮箱发送了登录链接：',
+      linkExpiresIn: '链接将在15分钟后过期。',
+      signOut: '退出登录',
+      signedInAs: '已登录为',
+    },
   },
 
   hi: {
@@ -444,6 +497,19 @@ export const translations: Record<Language, Translations> = {
     accessibility: {
       selectLanguage: 'भाषा चुनें',
       dismissNotification: 'सूचना बंद करें',
+    },
+
+    auth: {
+      signInTitle: 'Eisenhower Board में साइन इन करें',
+      signInSubtitle: 'अपना ईमेल दर्ज करें और हम आपको एक सुरक्षित साइन-इन लिंक भेजेंगे।',
+      emailLabel: 'ईमेल',
+      sendMagicLink: 'मैजिक लिंक भेजें',
+      sendingLink: 'लिंक भेजा जा रहा है...',
+      checkInbox: 'अपना इनबॉक्स जांचें',
+      checkInboxDescription: 'हमने साइन-इन लिंक भेजा है',
+      linkExpiresIn: 'लिंक 15 मिनट में समाप्त हो जाएगा।',
+      signOut: 'साइन आउट',
+      signedInAs: 'लॉग इन',
     },
   },
 
@@ -532,6 +598,19 @@ export const translations: Record<Language, Translations> = {
       selectLanguage: 'Seleccionar idioma',
       dismissNotification: 'Cerrar notificación',
     },
+
+    auth: {
+      signInTitle: 'Iniciar sesión en Eisenhower Board',
+      signInSubtitle: 'Ingresa tu email y te enviaremos un enlace seguro de inicio de sesión.',
+      emailLabel: 'Email',
+      sendMagicLink: 'Enviar enlace mágico',
+      sendingLink: 'Enviando enlace...',
+      checkInbox: 'Revisa tu bandeja de entrada',
+      checkInboxDescription: 'Enviamos un enlace de inicio de sesión a',
+      linkExpiresIn: 'El enlace expira en 15 minutos.',
+      signOut: 'Cerrar sesión',
+      signedInAs: 'Conectado como',
+    },
   },
 
   ar: {
@@ -618,6 +697,19 @@ export const translations: Record<Language, Translations> = {
     accessibility: {
       selectLanguage: 'اختر اللغة',
       dismissNotification: 'إغلاق الإشعار',
+    },
+
+    auth: {
+      signInTitle: 'تسجيل الدخول إلى Eisenhower Board',
+      signInSubtitle: 'أدخل بريدك الإلكتروني وسنرسل لك رابط تسجيل دخول آمن.',
+      emailLabel: 'البريد الإلكتروني',
+      sendMagicLink: 'إرسال الرابط السحري',
+      sendingLink: 'جارٍ إرسال الرابط...',
+      checkInbox: 'تحقق من صندوق الوارد',
+      checkInboxDescription: 'أرسلنا رابط تسجيل الدخول إلى',
+      linkExpiresIn: 'تنتهي صلاحية الرابط خلال 15 دقيقة.',
+      signOut: 'تسجيل الخروج',
+      signedInAs: 'مسجل الدخول باسم',
     },
   },
 
@@ -706,6 +798,19 @@ export const translations: Record<Language, Translations> = {
       selectLanguage: 'ভাষা নির্বাচন করুন',
       dismissNotification: 'বিজ্ঞপ্তি বন্ধ করুন',
     },
+
+    auth: {
+      signInTitle: 'Eisenhower Board-এ সাইন ইন করুন',
+      signInSubtitle: 'আপনার ইমেল দিন এবং আমরা আপনাকে একটি নিরাপদ সাইন-ইন লিংক পাঠাব।',
+      emailLabel: 'ইমেল',
+      sendMagicLink: 'ম্যাজিক লিংক পাঠান',
+      sendingLink: 'লিংক পাঠানো হচ্ছে...',
+      checkInbox: 'আপনার ইনবক্স দেখুন',
+      checkInboxDescription: 'আমরা সাইন-ইন লিংক পাঠিয়েছি',
+      linkExpiresIn: 'লিংকটি ১৫ মিনিটে মেয়াদ শেষ হবে।',
+      signOut: 'সাইন আউট',
+      signedInAs: 'লগ ইন হয়েছে',
+    },
   },
 
   de: {
@@ -792,6 +897,19 @@ export const translations: Record<Language, Translations> = {
     accessibility: {
       selectLanguage: 'Sprache auswählen',
       dismissNotification: 'Benachrichtigung schließen',
+    },
+
+    auth: {
+      signInTitle: 'Bei Eisenhower Board anmelden',
+      signInSubtitle: 'Gib deine E-Mail ein und wir senden dir einen sicheren Anmeldelink.',
+      emailLabel: 'E-Mail',
+      sendMagicLink: 'Magic Link senden',
+      sendingLink: 'Link wird gesendet...',
+      checkInbox: 'Prüfe dein Postfach',
+      checkInboxDescription: 'Wir haben einen Anmeldelink gesendet an',
+      linkExpiresIn: 'Der Link läuft in 15 Minuten ab.',
+      signOut: 'Abmelden',
+      signedInAs: 'Angemeldet als',
     },
   },
 
@@ -880,6 +998,19 @@ export const translations: Record<Language, Translations> = {
       selectLanguage: 'Seleziona lingua',
       dismissNotification: 'Chiudi notifica',
     },
+
+    auth: {
+      signInTitle: 'Accedi a Eisenhower Board',
+      signInSubtitle: 'Inserisci la tua email e ti invieremo un link di accesso sicuro.',
+      emailLabel: 'Email',
+      sendMagicLink: 'Invia magic link',
+      sendingLink: 'Invio in corso...',
+      checkInbox: 'Controlla la posta',
+      checkInboxDescription: 'Abbiamo inviato un link di accesso a',
+      linkExpiresIn: 'Il link scade tra 15 minuti.',
+      signOut: 'Esci',
+      signedInAs: 'Connesso come',
+    },
   },
 
   pt: {
@@ -966,6 +1097,19 @@ export const translations: Record<Language, Translations> = {
     accessibility: {
       selectLanguage: 'Selecionar idioma',
       dismissNotification: 'Fechar notificação',
+    },
+
+    auth: {
+      signInTitle: 'Entrar no Eisenhower Board',
+      signInSubtitle: 'Digite seu email e enviaremos um link seguro de login.',
+      emailLabel: 'Email',
+      sendMagicLink: 'Enviar link mágico',
+      sendingLink: 'Enviando link...',
+      checkInbox: 'Verifique sua caixa de entrada',
+      checkInboxDescription: 'Enviamos um link de login para',
+      linkExpiresIn: 'O link expira em 15 minutos.',
+      signOut: 'Sair',
+      signedInAs: 'Conectado como',
     },
   },
 
@@ -1054,6 +1198,19 @@ export const translations: Record<Language, Translations> = {
       selectLanguage: 'Taal selecteren',
       dismissNotification: 'Melding sluiten',
     },
+
+    auth: {
+      signInTitle: 'Inloggen bij Eisenhower Board',
+      signInSubtitle: 'Voer je e-mail in en we sturen je een veilige inloglink.',
+      emailLabel: 'E-mail',
+      sendMagicLink: 'Magic link verzenden',
+      sendingLink: 'Link verzenden...',
+      checkInbox: 'Controleer je inbox',
+      checkInboxDescription: 'We hebben een inloglink gestuurd naar',
+      linkExpiresIn: 'De link verloopt over 15 minuten.',
+      signOut: 'Uitloggen',
+      signedInAs: 'Ingelogd als',
+    },
   },
 
   pl: {
@@ -1135,6 +1292,19 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'Usuń na stałe',
       backToMatrix: 'Powrót do macierzy',
       openArchive: 'Otwórz archiwum',
+    },
+
+    auth: {
+      signInTitle: 'Zaloguj się do Eisenhower Board',
+      signInSubtitle: 'Podaj swój e-mail, a wyślemy Ci bezpieczny link do logowania.',
+      emailLabel: 'E-mail',
+      sendMagicLink: 'Wyślij link',
+      sendingLink: 'Wysyłanie linku...',
+      checkInbox: 'Sprawdź skrzynkę',
+      checkInboxDescription: 'Wysłaliśmy link do logowania na adres',
+      linkExpiresIn: 'Link wygasa za 15 minut.',
+      signOut: 'Wyloguj się',
+      signedInAs: 'Zalogowano jako',
     },
 
     accessibility: {
@@ -1224,6 +1394,19 @@ export const translations: Record<Language, Translations> = {
       openArchive: 'Открыть архив',
     },
 
+    auth: {
+      signInTitle: 'Войти в Eisenhower Board',
+      signInSubtitle: 'Введите email, и мы отправим вам безопасную ссылку для входа.',
+      emailLabel: 'Email',
+      sendMagicLink: 'Отправить ссылку',
+      sendingLink: 'Отправка ссылки...',
+      checkInbox: 'Проверьте почту',
+      checkInboxDescription: 'Мы отправили ссылку для входа на',
+      linkExpiresIn: 'Ссылка действительна 15 минут.',
+      signOut: 'Выйти',
+      signedInAs: 'Вы вошли как',
+    },
+
     accessibility: {
       selectLanguage: 'Выбрать язык',
       dismissNotification: 'Закрыть уведомление',
@@ -1309,6 +1492,19 @@ export const translations: Record<Language, Translations> = {
       deleteForever: 'Видалити назавжди',
       backToMatrix: 'Повернутися до матриці',
       openArchive: 'Відкрити архів',
+    },
+
+    auth: {
+      signInTitle: 'Увійти в Eisenhower Board',
+      signInSubtitle: 'Введіть email, і ми надішлемо вам безпечне посилання для входу.',
+      emailLabel: 'Email',
+      sendMagicLink: 'Надіслати посилання',
+      sendingLink: 'Надсилання посилання...',
+      checkInbox: 'Перевірте пошту',
+      checkInboxDescription: 'Ми надіслали посилання для входу на',
+      linkExpiresIn: 'Посилання дійсне 15 хвилин.',
+      signOut: 'Вийти',
+      signedInAs: 'Ви увійшли як',
     },
 
     accessibility: {

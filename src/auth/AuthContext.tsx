@@ -80,11 +80,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const logout = useCallback(async () => {
-    await fetch(`${API_BASE}/auth/logout`, {
-      method: 'POST',
-      credentials: 'same-origin',
-    });
-    setUser(null);
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        credentials: 'same-origin',
+      });
+    } catch {
+      // Local logout is more important than server logout
+    } finally {
+      setUser(null);
+    }
   }, []);
 
   const value = useMemo<AuthContextType>(() => ({

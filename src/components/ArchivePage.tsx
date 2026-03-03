@@ -24,20 +24,20 @@ const quadrantColors: Record<QuadrantKey, string> = {
   notUrgentNotImportant: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
 };
 
+function formatDate(timestamp: number): string {
+  return new Date(timestamp).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export function ArchivePage() {
   const { t } = useLanguage();
   const { archivedTasks, loading, error, deleteArchivedTask, refetch } = useArchivedTasks();
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
-
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   const handleDelete = async () => {
     if (deleteTaskId) {
@@ -52,23 +52,27 @@ export function ArchivePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-slate-600 dark:text-slate-400">{t.states.loading}</p>
-      </div>
+      <Layout maxWidth="max-w-4xl">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <p className="text-slate-600 dark:text-slate-400">{t.states.loading}</p>
+        </div>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 min-h-screen">
-        <p className="text-red-600 dark:text-red-400">{t.states.error}: {error}</p>
-        <button
-          onClick={() => void refetch()}
-          className="rounded-lg border border-white/60 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 backdrop-blur-md transition-all duration-200 hover:bg-white/90 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:bg-slate-800/90"
-        >
-          {t.states.retry}
-        </button>
-      </div>
+      <Layout maxWidth="max-w-4xl">
+        <div className="flex flex-col items-center justify-center gap-4 min-h-[400px]">
+          <p className="text-red-600 dark:text-red-400">{t.states.error}: {error}</p>
+          <button
+            onClick={() => void refetch()}
+            className="rounded-lg border border-white/60 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 backdrop-blur-md transition-all duration-200 hover:bg-white/90 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:bg-slate-800/90"
+          >
+            {t.states.retry}
+          </button>
+        </div>
+      </Layout>
     );
   }
 

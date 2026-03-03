@@ -32,6 +32,9 @@ function tableHasColumns(name: string, expected: string[]): boolean {
   if (!tableExists(name)) {
     return false;
   }
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+    throw new Error(`Invalid table name: ${name}`);
+  }
   const columns = db.prepare(`PRAGMA table_info(${name})`).all() as { name: string }[];
   const existing = new Set(columns.map(col => col.name));
   return expected.every(col => existing.has(col));
@@ -94,7 +97,6 @@ export function initializeSchema(): void {
 
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_tasks_user_active ON tasks(user_id, completed_at, created_at);
-    CREATE INDEX IF NOT EXISTS idx_tasks_user_archived ON tasks(user_id, completed_at);
     CREATE INDEX IF NOT EXISTS idx_sessions_hash ON sessions(session_hash);
     CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_magic_links_hash ON magic_links(token_hash);
@@ -119,12 +121,12 @@ initializeSchema();
 const stmts = {
   // Tasks
   getAllActive: db.prepare(
-    'SELECT * FROM tasks WHERE user_id = ? AND completed_at IS NULL ORDER BY created_at ASC'
+    'SELECT id, text, quadrant, created_at FROM tasks WHERE user_id = ? AND completed_at IS NULL ORDER BY created_at ASC'
   ),
   getArchived: db.prepare(
-    'SELECT * FROM tasks WHERE user_id = ? AND completed_at IS NOT NULL ORDER BY completed_at DESC'
+    'SELECT id, text, quadrant, created_at, completed_at FROM tasks WHERE user_id = ? AND completed_at IS NOT NULL ORDER BY completed_at DESC'
   ),
-  getById: db.prepare('SELECT * FROM tasks WHERE user_id = ? AND id = ?'),
+  getById: db.prepare('SELECT id, user_id, text, quadrant, created_at, completed_at FROM tasks WHERE user_id = ? AND id = ?'),
   insert: db.prepare(
     'INSERT INTO tasks (id, user_id, text, quadrant, created_at) VALUES (?, ?, ?, ?, ?)'
   ),
@@ -145,7 +147,7 @@ const stmts = {
   ),
 
   // Users
-  getUserByEmail: db.prepare('SELECT * FROM users WHERE email = ?'),
+  getUserByEmail: db.prepare('SELECT id, email, created_at, last_login_at FROM users WHERE email = ?'),
   insertUser: db.prepare(
     'INSERT INTO users (id, email, created_at, last_login_at) VALUES (?, ?, ?, ?)'
   ),
@@ -272,7 +274,7 @@ export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-export function findOrCreateUserByEmail(email: string, now: number): { id: string; email: string } {
+const findOrCreateUserTx = db.transaction((email: string, now: number): { id: string; email: string } => {
   const normalized = normalizeEmail(email);
   const existing = stmts.getUserByEmail.get(normalized) as DbUser | undefined;
   if (existing) {
@@ -280,12 +282,16 @@ export function findOrCreateUserByEmail(email: string, now: number): { id: strin
   }
 
   const id = randomUUID();
-  stmts.insertUser.run(id, normalized, now, null);
+  db.prepare('INSERT OR IGNORE INTO users (id, email, created_at, last_login_at) VALUES (?, ?, ?, ?)').run(id, normalized, now, null);
   const created = stmts.getUserByEmail.get(normalized) as DbUser | undefined;
   if (!created) {
     throw new Error('Failed to create user');
   }
   return { id: created.id, email: created.email };
+});
+
+export function findOrCreateUserByEmail(email: string, now: number): { id: string; email: string } {
+  return findOrCreateUserTx(email, now);
 }
 
 export function createMagicLink(params: CreateMagicLinkParams): void {

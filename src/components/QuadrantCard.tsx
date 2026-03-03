@@ -1,6 +1,6 @@
 import { memo, useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { Plus } from 'lucide-react';
+import { Plus, AlertCircle, Calendar, Clock, Trash2 } from 'lucide-react';
 import { useLanguage } from '@/i18n';
 import { Task, QuadrantKey } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -8,7 +8,6 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { TaskItem } from './TaskItem';
 import { cn } from '@/lib/utils';
-import { AlertCircle, Calendar, Clock, Trash2 } from 'lucide-react';
 
 const QUADRANT_ICONS = {
   urgentImportant: AlertCircle,
