@@ -110,6 +110,12 @@ export interface Translations {
     signOut: string;
     signedInAs: string;
   };
+
+  // Landing page
+  landing: {
+    description: string;
+    quadrantsTitle: string;
+  };
 }
 
 export const translations: Record<Language, Translations> = {
@@ -211,6 +217,11 @@ export const translations: Record<Language, Translations> = {
       signOut: 'Sign out',
       signedInAs: 'Signed in as',
     },
+
+    landing: {
+      description: 'The Eisenhower Matrix is a productivity method that helps you organize and prioritize tasks by sorting them into four quadrants based on their urgency and importance. Focus on what truly matters and stop wasting time on distractions.',
+      quadrantsTitle: 'Four quadrants to organize your priorities',
+    },
   },
 
   fr: {
@@ -310,6 +321,11 @@ export const translations: Record<Language, Translations> = {
       linkExpiresIn: 'Le lien expire dans 15 minutes.',
       signOut: 'Se déconnecter',
       signedInAs: 'Connecté en tant que',
+    },
+
+    landing: {
+      description: "La matrice d'Eisenhower est une méthode de productivité qui vous aide à organiser et prioriser vos tâches en les classant dans quatre quadrants selon leur urgence et leur importance. Concentrez-vous sur ce qui compte vraiment et cessez de perdre du temps sur les distractions.",
+      quadrantsTitle: 'Quatre quadrants pour organiser vos priorités',
     },
   },
 
@@ -411,6 +427,11 @@ export const translations: Record<Language, Translations> = {
       signOut: '退出登录',
       signedInAs: '已登录为',
     },
+
+    landing: {
+      description: '艾森豪威尔矩阵是一种生产力方法，通过将任务按紧急程度和重要程度分为四个象限，帮助您组织和优先处理任务。专注于真正重要的事情，不再在干扰上浪费时间。',
+      quadrantsTitle: '四个象限组织您的优先事项',
+    },
   },
 
   hi: {
@@ -510,6 +531,11 @@ export const translations: Record<Language, Translations> = {
       linkExpiresIn: 'लिंक 15 मिनट में समाप्त हो जाएगा।',
       signOut: 'साइन आउट',
       signedInAs: 'लॉग इन',
+    },
+
+    landing: {
+      description: 'आइज़नहावर मैट्रिक्स एक उत्पादकता विधि है जो आपके कार्यों को उनकी तात्कालिकता और महत्व के आधार पर चार भागों में वर्गीकृत करके उन्हें व्यवस्थित और प्राथमिकता देने में मदद करती है। जो वास्तव में मायने रखता है उस पर ध्यान दें।',
+      quadrantsTitle: 'अपनी प्राथमिकताओं को व्यवस्थित करने के लिए चार भाग',
     },
   },
 
@@ -611,6 +637,11 @@ export const translations: Record<Language, Translations> = {
       signOut: 'Cerrar sesión',
       signedInAs: 'Conectado como',
     },
+
+    landing: {
+      description: 'La Matriz de Eisenhower es un método de productividad que te ayuda a organizar y priorizar tareas clasificándolas en cuatro cuadrantes según su urgencia e importancia. Concéntrate en lo que realmente importa y deja de perder tiempo en distracciones.',
+      quadrantsTitle: 'Cuatro cuadrantes para organizar tus prioridades',
+    },
   },
 
   ar: {
@@ -710,6 +741,11 @@ export const translations: Record<Language, Translations> = {
       linkExpiresIn: 'تنتهي صلاحية الرابط خلال 15 دقيقة.',
       signOut: 'تسجيل الخروج',
       signedInAs: 'مسجل الدخول باسم',
+    },
+
+    landing: {
+      description: 'مصفوفة أيزنهاور هي أداة إنتاجية تساعدك على تنظيم مهامك وترتيب أولوياتها عن طريق تصنيفها في أربعة أرباع حسب الإلحاح والأهمية. ركّز على ما يهم حقاً وتوقف عن إضاعة الوقت في المشتتات.',
+      quadrantsTitle: 'أربعة أرباع لتنظيم أولوياتك',
     },
   },
 
@@ -811,6 +847,11 @@ export const translations: Record<Language, Translations> = {
       signOut: 'সাইন আউট',
       signedInAs: 'লগ ইন হয়েছে',
     },
+
+    landing: {
+      description: 'আইজেনহাওয়ার ম্যাট্রিক্স একটি উৎপাদনশীলতা পদ্ধতি যা আপনার কাজগুলিকে জরুরিতা এবং গুরুত্বের ভিত্তিতে চারটি ভাগে ভাগ করে সংগঠিত এবং অগ্রাধিকার দিতে সাহায্য করে। যা সত্যিই গুরুত্বপূর্ণ তার উপর মনোযোগ দিন।',
+      quadrantsTitle: 'আপনার অগ্রাধিকার সংগঠিত করতে চারটি ভাগ',
+    },
   },
 
   de: {
@@ -910,6 +951,11 @@ export const translations: Record<Language, Translations> = {
       linkExpiresIn: 'Der Link läuft in 15 Minuten ab.',
       signOut: 'Abmelden',
       signedInAs: 'Angemeldet als',
+    },
+
+    landing: {
+      description: 'Die Eisenhower-Matrix ist eine Produktivitätsmethode, die dir hilft, Aufgaben nach Dringlichkeit und Wichtigkeit in vier Quadranten einzuteilen und zu priorisieren. Konzentriere dich auf das, was wirklich zählt, und verschwende keine Zeit mit Ablenkungen.',
+      quadrantsTitle: 'Vier Quadranten für deine Prioritäten',
     },
   },
 
@@ -1011,6 +1057,11 @@ export const translations: Record<Language, Translations> = {
       signOut: 'Esci',
       signedInAs: 'Connesso come',
     },
+
+    landing: {
+      description: 'La Matrice di Eisenhower è un metodo di produttività che ti aiuta a organizzare e dare priorità alle attività classificandole in quattro quadranti in base alla loro urgenza e importanza. Concentrati su ciò che conta davvero e smetti di perdere tempo con le distrazioni.',
+      quadrantsTitle: 'Quattro quadranti per organizzare le tue priorità',
+    },
   },
 
   pt: {
@@ -1110,6 +1161,11 @@ export const translations: Record<Language, Translations> = {
       linkExpiresIn: 'O link expira em 15 minutos.',
       signOut: 'Sair',
       signedInAs: 'Conectado como',
+    },
+
+    landing: {
+      description: 'A Matriz de Eisenhower é um método de produtividade que ajuda você a organizar e priorizar tarefas classificando-as em quatro quadrantes com base na urgência e importância. Foque no que realmente importa e pare de perder tempo com distrações.',
+      quadrantsTitle: 'Quatro quadrantes para organizar suas prioridades',
     },
   },
 
@@ -1211,6 +1267,11 @@ export const translations: Record<Language, Translations> = {
       signOut: 'Uitloggen',
       signedInAs: 'Ingelogd als',
     },
+
+    landing: {
+      description: 'De Eisenhower-matrix is een productiviteitsmethode die je helpt taken te organiseren en prioriteren door ze in vier kwadranten in te delen op basis van urgentie en belang. Focus op wat echt belangrijk is en verspil geen tijd aan afleidingen.',
+      quadrantsTitle: 'Vier kwadranten om je prioriteiten te organiseren',
+    },
   },
 
   pl: {
@@ -1310,6 +1371,11 @@ export const translations: Record<Language, Translations> = {
     accessibility: {
       selectLanguage: 'Wybierz język',
       dismissNotification: 'Zamknij powiadomienie',
+    },
+
+    landing: {
+      description: 'Macierz Eisenhowera to metoda produktywności, która pomaga organizować i priorytetyzować zadania, dzieląc je na cztery ćwiartki na podstawie pilności i ważności. Skup się na tym, co naprawdę ważne i przestań tracić czas na rozpraszacze.',
+      quadrantsTitle: 'Cztery ćwiartki do organizacji priorytetów',
     },
   },
 
@@ -1411,6 +1477,11 @@ export const translations: Record<Language, Translations> = {
       selectLanguage: 'Выбрать язык',
       dismissNotification: 'Закрыть уведомление',
     },
+
+    landing: {
+      description: 'Матрица Эйзенхауэра — это метод продуктивности, который помогает организовать и приоритизировать задачи, распределяя их по четырём квадрантам на основе срочности и важности. Сосредоточьтесь на том, что действительно важно, и перестаньте тратить время на отвлечения.',
+      quadrantsTitle: 'Четыре квадранта для организации приоритетов',
+    },
   },
 
   uk: {
@@ -1510,6 +1581,11 @@ export const translations: Record<Language, Translations> = {
     accessibility: {
       selectLanguage: 'Вибрати мову',
       dismissNotification: 'Закрити сповіщення',
+    },
+
+    landing: {
+      description: 'Матриця Ейзенхауера — це метод продуктивності, який допомагає організувати та пріоритизувати завдання, розподіляючи їх на чотири квадранти за терміновістю та важливістю. Зосередьтеся на тому, що справді важливо, і перестаньте витрачати час на відволікання.',
+      quadrantsTitle: 'Чотири квадранти для організації пріоритетів',
     },
   },
 };
