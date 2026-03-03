@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LanguageProvider } from '@/i18n';
+import { CsrfProvider } from '@/hooks/CsrfContext';
 import { ToastProvider } from './ui/toast';
 import { EisenhowerMatrix } from './EisenhowerMatrix';
 
@@ -60,23 +61,25 @@ function renderMatrix() {
   return render(
     <LanguageProvider>
       <ToastProvider>
-        <EisenhowerMatrix />
+        <CsrfProvider>
+          <EisenhowerMatrix />
+        </CsrfProvider>
       </ToastProvider>
     </LanguageProvider>,
   );
 }
 
 describe('EisenhowerMatrix', () => {
-  it('shows loading state initially', () => {
-    renderMatrix();
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+  it('shows loading skeleton initially', () => {
+    const { container } = renderMatrix();
+    expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
   });
 
   it('renders four quadrants with tasks', async () => {
     renderMatrix();
 
     await waitFor(() => {
-      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+      expect(screen.getByText('Urgent task')).toBeInTheDocument();
     });
 
     expect(screen.getByText('Urgent task')).toBeInTheDocument();
@@ -148,14 +151,15 @@ describe('EisenhowerMatrix', () => {
     renderMatrix();
 
     await waitFor(() => {
-      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+      expect(screen.getAllByRole('button', { name: /add a task/i })).toHaveLength(4);
     });
 
     const addButtons = screen.getAllByRole('button', { name: /add a task/i });
     await user.click(addButtons[0]);
 
     const input = screen.getByPlaceholderText(/enter/i);
-    await user.type(input, 'Brand new task{Enter}');
+    await user.type(input, 'Brand new task');
+    await user.keyboard('{Enter}');
 
     await waitFor(() => {
       expect(screen.getByText('Brand new task')).toBeInTheDocument();
@@ -181,11 +185,7 @@ describe('EisenhowerMatrix', () => {
     renderMatrix();
 
     await waitFor(() => {
-      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+      expect(screen.getAllByText('No tasks')).toHaveLength(4);
     });
-
-    // Should show "No tasks" messages (4 quadrants)
-    const emptyMessages = screen.getAllByText('No tasks');
-    expect(emptyMessages).toHaveLength(4);
   });
 });

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCsrf } from '@/hooks/CsrfContext';
 
 interface AuthUser {
   email: string;
@@ -40,6 +41,7 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const { fetchWithCsrf } = useCsrf();
 
   const refresh = useCallback(async () => {
     try {
@@ -81,16 +83,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = useCallback(async () => {
     try {
-      await fetch(`${API_BASE}/auth/logout`, {
+      await fetchWithCsrf(`${API_BASE}/auth/logout`, {
         method: 'POST',
-        credentials: 'same-origin',
       });
     } catch {
       // Local logout is more important than server logout
     } finally {
       setUser(null);
     }
-  }, []);
+  }, [fetchWithCsrf]);
 
   const value = useMemo<AuthContextType>(() => ({
     user,

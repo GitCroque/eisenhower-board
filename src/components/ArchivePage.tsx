@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/i18n';
 import { useArchivedTasks } from '@/hooks/useApi';
 import { QuadrantKey } from '@/types';
@@ -36,8 +36,9 @@ function formatDate(timestamp: number): string {
 
 export function ArchivePage() {
   const { t } = useLanguage();
-  const { archivedTasks, loading, error, deleteArchivedTask, refetch } = useArchivedTasks();
+  const { archivedTasks, total, page, pageSize, loading, error, deleteArchivedTask, setPage, refetch } = useArchivedTasks();
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const handleDelete = async () => {
     if (deleteTaskId) {
@@ -78,18 +79,18 @@ export function ArchivePage() {
 
   return (
     <Layout maxWidth="max-w-4xl">
-          <header className="mb-8">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 transition-colors mb-4"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {t.archive.backToMatrix}
-            </Link>
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-white">
-              {t.archive.title}
-            </h1>
-          </header>
+      <header className="mb-8">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 transition-colors mb-4"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t.archive.backToMatrix}
+        </Link>
+        <h1 className="text-3xl font-bold text-slate-800 dark:text-white">
+          {t.archive.title}
+        </h1>
+      </header>
 
           {archivedTasks.length === 0 ? (
             <div className="rounded-xl border border-white/60 bg-white/70 p-8 backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/70 text-center">
@@ -124,6 +125,30 @@ export function ArchivePage() {
               ))}
             </div>
           )}
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <button
+            onClick={() => setPage(page - 1)}
+            disabled={page <= 1}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90"
+            aria-label="Previous page"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span className="text-sm text-slate-600 dark:text-slate-400">
+            {page} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(page + 1)}
+            disabled={page >= totalPages}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90"
+            aria-label="Next page"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       <AlertDialog open={deleteTaskId !== null} onOpenChange={() => setDeleteTaskId(null)}>
         <AlertDialogContent>

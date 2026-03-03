@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useCallback, useMemo, useState, ReactNode } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { Language, Translations, translations } from './translations';
+import { Language, Translations, en, loadTranslation } from './translations';
 
 interface LanguageContextType {
   language: Language;
@@ -26,24 +26,28 @@ interface LanguageProviderProps {
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguageState] = useLocalStorage<Language>(STORAGE_KEY, getBrowserLanguage());
+  const [translations, setTranslations] = useState<Translations>(en);
+
+  useEffect(() => {
+    void loadTranslation(language).then(setTranslations);
+  }, [language]);
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
   }, [setLanguageState]);
 
   useEffect(() => {
-    // Update html lang attribute, text direction, and document title
     document.documentElement.lang = language;
     const rtlLanguages: Language[] = ['ar'];
     document.documentElement.dir = rtlLanguages.includes(language) ? 'rtl' : 'ltr';
-    document.title = translations[language].title;
-  }, [language]);
+    document.title = translations.title;
+  }, [language, translations]);
 
   const value = useMemo<LanguageContextType>(() => ({
     language,
     setLanguage,
-    t: translations[language],
-  }), [language, setLanguage]);
+    t: translations,
+  }), [language, setLanguage, translations]);
 
   return (
     <LanguageContext.Provider value={value}>

@@ -101,7 +101,6 @@ export function initializeSchema(): void {
     CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_magic_links_hash ON magic_links(token_hash);
     CREATE INDEX IF NOT EXISTS idx_magic_links_expires ON magic_links(expires_at);
-    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
   `);
 }
 
@@ -125,6 +124,12 @@ const stmts = {
   ),
   getArchived: db.prepare(
     'SELECT id, text, quadrant, created_at, completed_at FROM tasks WHERE user_id = ? AND completed_at IS NOT NULL ORDER BY completed_at DESC'
+  ),
+  getArchivedPaginated: db.prepare(
+    'SELECT id, text, quadrant, created_at, completed_at FROM tasks WHERE user_id = ? AND completed_at IS NOT NULL ORDER BY completed_at DESC LIMIT ? OFFSET ?'
+  ),
+  countArchived: db.prepare(
+    'SELECT COUNT(*) as total FROM tasks WHERE user_id = ? AND completed_at IS NOT NULL'
   ),
   getById: db.prepare('SELECT id, user_id, text, quadrant, created_at, completed_at FROM tasks WHERE user_id = ? AND id = ?'),
   insert: db.prepare(
@@ -189,6 +194,9 @@ const stmts = {
   deleteSessionById: db.prepare('DELETE FROM sessions WHERE id = ?'),
   deleteSessionByHash: db.prepare('DELETE FROM sessions WHERE session_hash = ?'),
   deleteExpiredSessions: db.prepare('DELETE FROM sessions WHERE expires_at <= ?'),
+  insertUserIgnore: db.prepare(
+    'INSERT OR IGNORE INTO users (id, email, created_at, last_login_at) VALUES (?, ?, ?, ?)'
+  ),
 } as const;
 
 export interface DbTask {
@@ -282,7 +290,7 @@ const findOrCreateUserTx = db.transaction((email: string, now: number): { id: st
   }
 
   const id = randomUUID();
-  db.prepare('INSERT OR IGNORE INTO users (id, email, created_at, last_login_at) VALUES (?, ?, ?, ?)').run(id, normalized, now, null);
+  stmts.insertUserIgnore.run(id, normalized, now, null);
   const created = stmts.getUserByEmail.get(normalized) as DbUser | undefined;
   if (!created) {
     throw new Error('Failed to create user');
@@ -385,7 +393,6 @@ export function getAllTasks(userId: string): QuadrantsState {
   return result;
 }
 
-// Get all archived (completed) tasks
 export function getArchivedTasks(userId: string): ArchivedTask[] {
   const rows = stmts.getArchived.all(userId) as DbTask[];
 
@@ -396,6 +403,32 @@ export function getArchivedTasks(userId: string): ArchivedTask[] {
     completedAt: row.completed_at!,
     quadrant: row.quadrant as QuadrantKey,
   }));
+}
+
+export interface PaginatedArchivedTasks {
+  tasks: ArchivedTask[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export function getArchivedTasksPaginated(userId: string, page: number, pageSize: number): PaginatedArchivedTasks {
+  const offset = (page - 1) * pageSize;
+  const rows = stmts.getArchivedPaginated.all(userId, pageSize, offset) as DbTask[];
+  const countRow = stmts.countArchived.get(userId) as { total: number };
+
+  return {
+    tasks: rows.map(row => ({
+      id: row.id,
+      text: row.text,
+      createdAt: row.created_at,
+      completedAt: row.completed_at!,
+      quadrant: row.quadrant as QuadrantKey,
+    })),
+    total: countRow.total,
+    page,
+    pageSize,
+  };
 }
 
 // Complete a task (archive it)

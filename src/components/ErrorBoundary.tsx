@@ -1,5 +1,5 @@
 import { Component, ReactNode } from 'react';
-import { translations, Language } from '@/i18n/translations';
+import { en } from '@/i18n/translations';
 
 interface Props {
   children: ReactNode;
@@ -9,20 +9,6 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
-}
-
-function getStoredLanguage(): Language {
-  try {
-    const stored = localStorage.getItem('eisenhower-language');
-    if (stored) {
-      const parsed = JSON.parse(stored) as string;
-      if (parsed in translations) return parsed as Language;
-    }
-  } catch {
-    // ignore
-  }
-  const browserLang = navigator.language.split('-')[0] as Language;
-  return browserLang in translations ? browserLang : 'en';
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -49,7 +35,7 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      const t = translations[getStoredLanguage()];
+      const t = en;
 
       return (
         <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">

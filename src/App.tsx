@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
 import { Archive, LogOut } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/i18n';
+import { CsrfProvider } from '@/hooks/CsrfContext';
 import { AuthProvider, useAuth } from '@/auth/AuthContext';
 import { EisenhowerMatrix } from './components/EisenhowerMatrix';
 import { ThemeToggle } from './components/ThemeToggle';
@@ -121,9 +122,11 @@ export default function App() {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <LanguageProvider>
             <ToastProvider>
-              <AuthProvider>
-                <AuthGate />
-              </AuthProvider>
+              <CsrfProvider>
+                <AuthProvider>
+                  <AuthGate />
+                </AuthProvider>
+              </CsrfProvider>
             </ToastProvider>
           </LanguageProvider>
         </ThemeProvider>

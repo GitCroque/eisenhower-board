@@ -3,6 +3,13 @@ import { afterEach, beforeAll, afterAll, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { server } from './mocks/handlers';
 
+const originalConsoleError = console.error;
+console.error = (...args: unknown[]) => {
+  const msg = typeof args[0] === 'string' ? args[0] : '';
+  if (msg.includes('not wrapped in act')) return;
+  originalConsoleError(...args);
+};
+
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {};

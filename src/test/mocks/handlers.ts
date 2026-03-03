@@ -78,17 +78,21 @@ export const handlers = [
     return HttpResponse.json({ success: true });
   }),
 
-  // Get archived tasks
   http.get('/api/archived-tasks', () => {
-    return HttpResponse.json([
-      {
-        id: 'archived-1',
-        text: 'Archived task',
-        createdAt: Date.now() - 86400000,
-        completedAt: Date.now(),
-        quadrant: 'urgentImportant',
-      },
-    ]);
+    return HttpResponse.json({
+      tasks: [
+        {
+          id: 'archived-1',
+          text: 'Archived task',
+          createdAt: Date.now() - 86400000,
+          completedAt: Date.now(),
+          quadrant: 'urgentImportant',
+        },
+      ],
+      total: 1,
+      page: 1,
+      pageSize: 20,
+    });
   }),
 
   // Delete archived task

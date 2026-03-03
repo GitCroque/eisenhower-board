@@ -1,17 +1,25 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { createElement, type ReactNode } from 'react';
+import { CsrfProvider } from './CsrfContext';
 import { useApi, useArchivedTasks } from './useApi';
 
-// Mock fetch to avoid jsdom AbortSignal incompatibility with MSW
 const mockFetch = vi.fn();
+
+function wrapper({ children }: { children: ReactNode }) {
+  return createElement(CsrfProvider, null, children);
+}
 
 function mockResponses(overrides: Record<string, (options?: RequestInit) => Response> = {}) {
   mockFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+    const baseUrl = url.split('?')[0];
     const key = `${options?.method || 'GET'} ${url}`;
+    const baseKey = `${options?.method || 'GET'} ${baseUrl}`;
     if (overrides[key]) return overrides[key](options);
+    if (overrides[baseKey]) return overrides[baseKey](options);
 
-    // URL-only fallbacks
     if (overrides[url]) return overrides[url](options);
+    if (overrides[baseUrl]) return overrides[baseUrl](options);
 
     if (url === '/api/csrf-token') {
       return new Response(JSON.stringify({ token: 'test-csrf-token' }), { status: 200 });
@@ -24,10 +32,15 @@ function mockResponses(overrides: Record<string, (options?: RequestInit) => Resp
         notUrgentNotImportant: [],
       }), { status: 200 });
     }
-    if (url === '/api/archived-tasks' && (!options?.method || options.method === 'GET')) {
-      return new Response(JSON.stringify([
-        { id: 'archived-1', text: 'Archived task', createdAt: 1000, completedAt: 2000, quadrant: 'urgentImportant' },
-      ]), { status: 200 });
+    if (typeof url === 'string' && url.startsWith('/api/archived-tasks') && (!options?.method || options.method === 'GET')) {
+      return new Response(JSON.stringify({
+        tasks: [
+          { id: 'archived-1', text: 'Archived task', createdAt: 1000, completedAt: 2000, quadrant: 'urgentImportant' },
+        ],
+        total: 1,
+        page: 1,
+        pageSize: 20,
+      }), { status: 200 });
     }
     return new Response(JSON.stringify({ error: 'Not found' }), { status: 404 });
   });
@@ -58,7 +71,7 @@ async function callAndCatch(fn: () => Promise<void>): Promise<Error | undefined>
 
 describe('useApi', () => {
   it('fetches tasks on mount', async () => {
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     expect(result.current.loading).toBe(true);
 
@@ -76,7 +89,7 @@ describe('useApi', () => {
       '/api/tasks': () => new Response(JSON.stringify({ error: 'Server error' }), { status: 500 }),
     });
 
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -93,7 +106,7 @@ describe('useApi', () => {
       throw new TypeError('Network error');
     });
 
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -113,7 +126,7 @@ describe('useApi', () => {
       'POST /api/tasks': () => new Response(JSON.stringify({ id: 'new-1', text: 'New task', createdAt: 3000 }), { status: 201 }),
     });
 
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -132,7 +145,7 @@ describe('useApi', () => {
       'POST /api/tasks': () => new Response(JSON.stringify({ error: 'fail' }), { status: 500 }),
     });
 
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -149,7 +162,7 @@ describe('useApi', () => {
       'DELETE /api/tasks/1': () => new Response(JSON.stringify({ success: true }), { status: 200 }),
     });
 
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -169,7 +182,7 @@ describe('useApi', () => {
       'DELETE /api/tasks/1': () => new Response(JSON.stringify({ error: 'fail' }), { status: 500 }),
     });
 
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -185,7 +198,7 @@ describe('useApi', () => {
       'PATCH /api/tasks/1': () => new Response(JSON.stringify({ success: true }), { status: 200 }),
     });
 
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -203,7 +216,7 @@ describe('useApi', () => {
       'PATCH /api/tasks/1': () => new Response(JSON.stringify({ error: 'fail' }), { status: 500 }),
     });
 
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -219,7 +232,7 @@ describe('useApi', () => {
       'PATCH /api/tasks/1': () => new Response(JSON.stringify({ success: true }), { status: 200 }),
     });
 
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -236,7 +249,7 @@ describe('useApi', () => {
   });
 
   it('does nothing when moving to same quadrant', async () => {
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -254,7 +267,7 @@ describe('useApi', () => {
       'POST /api/tasks/1/complete': () => new Response(JSON.stringify({ success: true }), { status: 200 }),
     });
 
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -272,7 +285,7 @@ describe('useApi', () => {
       'POST /api/tasks/1/complete': () => new Response(JSON.stringify({ error: 'fail' }), { status: 500 }),
     });
 
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -303,7 +316,7 @@ describe('useApi', () => {
       return new Response('', { status: 404 });
     });
 
-    const { result } = renderHook(() => useApi());
+    const { result } = renderHook(() => useApi(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -323,7 +336,7 @@ describe('useApi', () => {
 
 describe('useArchivedTasks', () => {
   it('fetches archived tasks on mount', async () => {
-    const { result } = renderHook(() => useArchivedTasks());
+    const { result } = renderHook(() => useArchivedTasks(), { wrapper });
 
     expect(result.current.loading).toBe(true);
 
@@ -342,7 +355,7 @@ describe('useArchivedTasks', () => {
       '/api/archived-tasks': () => new Response(JSON.stringify({ error: 'fail' }), { status: 500 }),
     });
 
-    const { result } = renderHook(() => useArchivedTasks());
+    const { result } = renderHook(() => useArchivedTasks(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -356,7 +369,7 @@ describe('useArchivedTasks', () => {
       'DELETE /api/archived-tasks/archived-1': () => new Response(JSON.stringify({ success: true }), { status: 200 }),
     });
 
-    const { result } = renderHook(() => useArchivedTasks());
+    const { result } = renderHook(() => useArchivedTasks(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -374,7 +387,7 @@ describe('useArchivedTasks', () => {
       'DELETE /api/archived-tasks/archived-1': () => new Response(JSON.stringify({ error: 'fail' }), { status: 500 }),
     });
 
-    const { result } = renderHook(() => useArchivedTasks());
+    const { result } = renderHook(() => useArchivedTasks(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);

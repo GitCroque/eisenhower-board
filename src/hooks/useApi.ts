@@ -1,12 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Task, QuadrantKey, QuadrantsState, ArchivedTask } from '@/types';
-import { useCsrfFetch } from './useCsrfFetch';
+import { useCsrf } from './CsrfContext';
 
 const API_BASE = '/api';
 
-const tasksChannel = typeof BroadcastChannel !== 'undefined'
-  ? new BroadcastChannel('eisenhower-tasks')
-  : null;
+let tasksChannel: BroadcastChannel | null = null;
+function getTasksChannel(): BroadcastChannel | null {
+  if (tasksChannel) return tasksChannel;
+  if (typeof BroadcastChannel !== 'undefined') {
+    tasksChannel = new BroadcastChannel('eisenhower-tasks');
+  }
+  return tasksChannel;
+}
 
 const INITIAL_STATE: QuadrantsState = {
   urgentImportant: [],
@@ -36,9 +41,13 @@ interface UseApiResult {
 
 interface UseArchivedTasksResult {
   archivedTasks: ArchivedTask[];
+  total: number;
+  page: number;
+  pageSize: number;
   loading: boolean;
   error: string | null;
   deleteArchivedTask: (taskId: string) => Promise<void>;
+  setPage: (page: number) => void;
   refetch: () => Promise<void>;
 }
 
@@ -49,7 +58,7 @@ export function useApi(): UseApiResult {
   useEffect(() => { quadrantsRef.current = quadrants; }, [quadrants]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { fetchCsrfToken, fetchWithCsrf } = useCsrfFetch();
+  const { fetchCsrfToken, fetchWithCsrf } = useCsrf();
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchTasks = useCallback(async () => {
@@ -83,12 +92,12 @@ export function useApi(): UseApiResult {
     return () => abortControllerRef.current?.abort();
   }, [fetchCsrfToken, fetchTasks]);
 
-  // Sync across tabs via BroadcastChannel
   useEffect(() => {
-    if (!tasksChannel) return;
+    const channel = getTasksChannel();
+    if (!channel) return;
     const handler = () => { void fetchTasks(); };
-    tasksChannel.addEventListener('message', handler);
-    return () => tasksChannel.removeEventListener('message', handler);
+    channel.addEventListener('message', handler);
+    return () => channel.removeEventListener('message', handler);
   }, [fetchTasks]);
 
   const addTask = useCallback(async (quadrantKey: QuadrantKey, text: string) => {
@@ -111,7 +120,7 @@ export function useApi(): UseApiResult {
         ...prev,
         [quadrantKey]: [...prev[quadrantKey], newTask],
       }));
-      tasksChannel?.postMessage('sync');
+      getTasksChannel()?.postMessage('sync');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
@@ -134,7 +143,7 @@ export function useApi(): UseApiResult {
         ...prev,
         [quadrantKey]: prev[quadrantKey].filter((t) => t.id !== taskId),
       }));
-      tasksChannel?.postMessage('sync');
+      getTasksChannel()?.postMessage('sync');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
@@ -161,7 +170,7 @@ export function useApi(): UseApiResult {
           t.id === taskId ? { ...t, text: newText } : t
         ),
       }));
-      tasksChannel?.postMessage('sync');
+      getTasksChannel()?.postMessage('sync');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
@@ -193,7 +202,7 @@ export function useApi(): UseApiResult {
       if (!response.ok) {
         throw new Error('Failed to move task');
       }
-      tasksChannel?.postMessage('sync');
+      getTasksChannel()?.postMessage('sync');
     } catch (err) {
       // Rollback optimistic update
       setQuadrants((prev) => ({
@@ -222,7 +231,7 @@ export function useApi(): UseApiResult {
         ...prev,
         [quadrantKey]: prev[quadrantKey].filter((t) => t.id !== taskId),
       }));
-      tasksChannel?.postMessage('sync');
+      getTasksChannel()?.postMessage('sync');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
@@ -242,31 +251,38 @@ export function useApi(): UseApiResult {
   };
 }
 
+const DEFAULT_PAGE_SIZE = 20;
+
 export function useArchivedTasks(): UseArchivedTasksResult {
   const [archivedTasks, setArchivedTasks] = useState<ArchivedTask[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPageState] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { fetchCsrfToken, fetchWithCsrf } = useCsrfFetch();
+  const { fetchCsrfToken, fetchWithCsrf } = useCsrf();
   const abortControllerRef = useRef<AbortController | null>(null);
+  const pageRef = useRef(1);
 
-  const fetchArchivedTasks = useCallback(async () => {
+  const fetchArchivedTasks = useCallback(async (targetPage?: number) => {
     abortControllerRef.current?.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
+    const p = targetPage ?? pageRef.current;
 
     try {
       setError(null);
       setLoading(true);
-      const response = await fetch(`${API_BASE}/archived-tasks`, {
-        signal: controller.signal,
-        credentials: 'same-origin',
-      });
+      const response = await fetch(
+        `${API_BASE}/archived-tasks?page=${p}&pageSize=${DEFAULT_PAGE_SIZE}`,
+        { signal: controller.signal, credentials: 'same-origin' },
+      );
       handleUnauthorized(response);
       if (!response.ok) {
         throw new Error('Failed to fetch archived tasks');
       }
       const data = await response.json();
-      setArchivedTasks(data);
+      setArchivedTasks(data.tasks);
+      setTotal(data.total);
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -279,6 +295,12 @@ export function useArchivedTasks(): UseArchivedTasksResult {
     void Promise.all([fetchCsrfToken(), fetchArchivedTasks()]);
     return () => abortControllerRef.current?.abort();
   }, [fetchCsrfToken, fetchArchivedTasks]);
+
+  const setPage = useCallback((newPage: number) => {
+    pageRef.current = newPage;
+    setPageState(newPage);
+    void fetchArchivedTasks(newPage);
+  }, [fetchArchivedTasks]);
 
   const deleteArchivedTask = useCallback(async (taskId: string) => {
     try {
@@ -293,6 +315,7 @@ export function useArchivedTasks(): UseArchivedTasksResult {
       }
 
       setArchivedTasks((prev) => prev.filter((t) => t.id !== taskId));
+      setTotal((prev) => prev - 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       throw err;
@@ -301,9 +324,13 @@ export function useArchivedTasks(): UseArchivedTasksResult {
 
   return {
     archivedTasks,
+    total,
+    page,
+    pageSize: DEFAULT_PAGE_SIZE,
     loading,
     error,
     deleteArchivedTask,
+    setPage,
     refetch: fetchArchivedTasks,
   };
 }

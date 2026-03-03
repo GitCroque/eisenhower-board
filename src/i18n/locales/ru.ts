@@ -1,0 +1,108 @@
+import type { Translations } from '../translations';
+
+const ru: Translations = {
+  title: 'Матрица Эйзенхауэра',
+  subtitle: 'Организуйте задачи по приоритету и срочности',
+
+  quadrants: {
+    urgentImportant: {
+      title: 'Срочное и Важное',
+      description: 'Сделать немедленно',
+    },
+    notUrgentImportant: {
+      title: 'Важное, но Несрочное',
+      description: 'Запланировать',
+    },
+    urgentNotImportant: {
+      title: 'Срочное, но Неважное',
+      description: 'Делегировать',
+    },
+    notUrgentNotImportant: {
+      title: 'Несрочное и Неважное',
+      description: 'Удалить',
+    },
+  },
+
+  axes: {
+    important: 'ВАЖНО',
+    notImportant: 'НЕВАЖНО',
+    urgent: 'СРОЧНО',
+    notUrgent: 'НЕСРОЧНО',
+  },
+
+  tasks: {
+    noTasks: 'Нет задач',
+    addTask: 'Добавить задачу',
+    enterTask: 'Введите задачу...',
+    add: 'Добавить',
+    cancel: 'Отмена',
+    editTask: 'Редактировать задачу',
+    deleteTask: 'Удалить задачу',
+    completeTask: 'Завершить задачу',
+  },
+
+  theme: {
+    toggle: 'Сменить тему',
+  },
+
+  dialogs: {
+    deleteConfirmTitle: 'Удалить задачу?',
+    deleteConfirmDescription: 'Это действие нельзя отменить.',
+    confirm: 'Удалить',
+    cancel: 'Отмена',
+  },
+
+  toasts: {
+    taskAdded: 'Задача добавлена',
+    taskDeleted: 'Задача удалена',
+    taskMoved: 'Задача перемещена',
+    taskCompleted: 'Задача завершена',
+    error: 'Произошла ошибка',
+  },
+
+  errorBoundary: {
+    title: 'Что-то пошло не так',
+    description: 'Произошла непредвиденная ошибка',
+    retry: 'Попробовать снова',
+  },
+
+  states: {
+    loading: 'Загрузка...',
+    error: 'Ошибка',
+    retry: 'Повторить',
+  },
+
+  archive: {
+    title: 'Архивированные задачи',
+    noTasks: 'Нет архивированных задач',
+    completedOn: 'Завершено',
+    deleteForever: 'Удалить навсегда',
+    backToMatrix: 'Вернуться к матрице',
+    openArchive: 'Открыть архив',
+  },
+
+  auth: {
+    signInTitle: 'Войти в Eisenhower Board',
+    signInSubtitle: 'Введите email, и мы отправим вам безопасную ссылку для входа.',
+    emailLabel: 'Email',
+    sendMagicLink: 'Отправить ссылку',
+    sendingLink: 'Отправка ссылки...',
+    checkInbox: 'Проверьте почту',
+    checkInboxDescription: 'Мы отправили ссылку для входа на',
+    linkExpiresIn: 'Ссылка действительна 15 минут.',
+    signOut: 'Выйти',
+    signedInAs: 'Вы вошли как',
+  },
+
+  accessibility: {
+    selectLanguage: 'Выбрать язык',
+    dismissNotification: 'Закрыть уведомление',
+  },
+
+  landing: {
+    description: 'Матрица Эйзенхауэра — это метод продуктивности, который помогает организовать и приоритизировать задачи, распределяя их по четырём квадрантам на основе срочности и важности. Сосредоточьтесь на том, что действительно важно, и перестаньте тратить время на отвлечения.',
+    quadrantsTitle: 'Четыре квадранта для организации приоритетов',
+  },
+};
+
+export default ru;

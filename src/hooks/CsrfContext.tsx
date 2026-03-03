@@ -1,13 +1,23 @@
-import { useCallback, useRef } from 'react';
+import { createContext, useContext, useCallback, useMemo, useRef, ReactNode } from 'react';
 
 const API_BASE = '/api';
 
-export function useCsrfFetch() {
+interface CsrfContextType {
+  fetchCsrfToken: () => Promise<void>;
+  fetchWithCsrf: (url: string, options: RequestInit) => Promise<Response>;
+}
+
+const CsrfContext = createContext<CsrfContextType | undefined>(undefined);
+
+interface CsrfProviderProps {
+  children: ReactNode;
+}
+
+export function CsrfProvider({ children }: CsrfProviderProps) {
   const csrfTokenRef = useRef<string | null>(null);
   const refreshPromiseRef = useRef<Promise<void> | null>(null);
 
   const fetchCsrfToken = useCallback(async () => {
-    // Deduplicate concurrent refresh calls
     if (refreshPromiseRef.current) {
       return refreshPromiseRef.current;
     }
@@ -66,5 +76,19 @@ export function useCsrfFetch() {
     return response;
   }, [fetchCsrfToken]);
 
-  return { fetchCsrfToken, fetchWithCsrf };
+  const value = useMemo(() => ({ fetchCsrfToken, fetchWithCsrf }), [fetchCsrfToken, fetchWithCsrf]);
+
+  return (
+    <CsrfContext.Provider value={value}>
+      {children}
+    </CsrfContext.Provider>
+  );
+}
+
+export function useCsrf(): CsrfContextType {
+  const context = useContext(CsrfContext);
+  if (!context) {
+    throw new Error('useCsrf must be used within a CsrfProvider');
+  }
+  return context;
 }

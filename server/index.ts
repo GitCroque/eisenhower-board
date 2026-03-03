@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
+import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
@@ -11,7 +12,7 @@ import db, {
   updateTaskQuadrant,
   deleteTask,
   completeTask,
-  getArchivedTasks,
+  getArchivedTasksPaginated,
   deleteArchivedTask,
   findOrCreateUserByEmail,
   createMagicLink,
@@ -165,7 +166,8 @@ function validateCsrf(req: Request, res: Response, next: NextFunction): void {
   next();
 }
 
-// Security headers
+app.use(compression());
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -245,6 +247,10 @@ const verifyLimiter = rateLimit({
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const distPath = path.join(__dirname, '..', '..', 'dist');
+app.use('/assets', express.static(path.join(distPath, 'assets'), {
+  maxAge: '1y',
+  immutable: true,
+}));
 app.use(express.static(distPath));
 
 app.get('/api/health', readLimiter, (_req: Request, res: Response) => {
@@ -519,8 +525,10 @@ app.post('/api/tasks/:id/complete', mutationLimiter, requireAuth, validateCsrf, 
 
 app.get('/api/archived-tasks', readLimiter, requireAuth, (req: Request, res: Response) => {
   try {
-    const tasks = getArchivedTasks(req.auth!.userId);
-    res.json(tasks);
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 20));
+    const result = getArchivedTasksPaginated(req.auth!.userId, page, pageSize);
+    res.json(result);
   } catch (err) {
     console.error('GET /api/archived-tasks error:', err);
     res.status(500).json({ error: 'Failed to fetch archived tasks' });
@@ -559,6 +567,21 @@ app.get('/{*splat}', (_req: Request, res: Response) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+function gracefulShutdown(signal: string) {
+  console.log(`${signal} received, shutting down...`);
+  server.close(() => {
+    db.close();
+    process.exit(0);
+  });
+  setTimeout(() => {
+    db.close();
+    process.exit(1);
+  }, 5000).unref();
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

@@ -134,8 +134,32 @@ export function EisenhowerMatrix() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="text-slate-600 dark:text-slate-400">{t.states.loading}</div>
+      <div className="w-full max-w-7xl mx-auto">
+        <div className="relative md:ml-20">
+          <div className="hidden md:flex justify-between mb-6 px-2">
+            <div className="w-1/2 flex justify-center">
+              <div className="h-4 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+            </div>
+            <div className="w-1/2 flex justify-center">
+              <div className="h-4 w-24 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="rounded-xl border-2 border-white/40 bg-white/30 p-6 backdrop-blur-sm dark:border-slate-700/40 dark:bg-slate-800/30">
+                <div className="mb-4 space-y-2">
+                  <div className="h-5 w-36 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-3 w-24 animate-pulse rounded bg-slate-200/70 dark:bg-slate-700/70" />
+                </div>
+                <div className="space-y-3">
+                  {[1, 2].map((j) => (
+                    <div key={j} className="h-12 animate-pulse rounded-xl border border-white/40 bg-white/50 dark:border-slate-700/40 dark:bg-slate-800/50" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
