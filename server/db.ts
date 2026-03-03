@@ -99,6 +99,7 @@ export function initializeSchema(): void {
     CREATE INDEX IF NOT EXISTS idx_tasks_user_active ON tasks(user_id, completed_at, created_at);
     CREATE INDEX IF NOT EXISTS idx_sessions_hash ON sessions(session_hash);
     CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id, created_at);
     CREATE INDEX IF NOT EXISTS idx_magic_links_hash ON magic_links(token_hash);
     CREATE INDEX IF NOT EXISTS idx_magic_links_expires ON magic_links(expires_at);
   `);
@@ -182,7 +183,7 @@ const stmts = {
     'INSERT INTO sessions (id, user_id, session_hash, expires_at, created_at, last_seen_at, ip, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
   ),
   getActiveSessionByHash: db.prepare(`
-    SELECT s.id AS session_id, s.user_id, s.expires_at, u.email
+    SELECT s.id AS session_id, s.user_id, s.expires_at, s.created_at, u.email
     FROM sessions s
     JOIN users u ON u.id = s.user_id
     WHERE s.session_hash = ?
@@ -194,6 +195,16 @@ const stmts = {
   deleteSessionById: db.prepare('DELETE FROM sessions WHERE id = ?'),
   deleteSessionByHash: db.prepare('DELETE FROM sessions WHERE session_hash = ?'),
   deleteExpiredSessions: db.prepare('DELETE FROM sessions WHERE expires_at <= ?'),
+  countSessionsByUser: db.prepare('SELECT COUNT(*) as count FROM sessions WHERE user_id = ?'),
+  getOldestSessionsByUser: db.prepare(
+    'SELECT id FROM sessions WHERE user_id = ? ORDER BY created_at ASC LIMIT ?'
+  ),
+  getSessionsByUser: db.prepare(
+    'SELECT id, created_at, last_seen_at, ip, user_agent FROM sessions WHERE user_id = ? AND expires_at > ? ORDER BY last_seen_at DESC'
+  ),
+  deleteSessionsByIds: db.prepare(
+    'DELETE FROM sessions WHERE id IN (SELECT value FROM json_each(?))'
+  ),
   insertUserIgnore: db.prepare(
     'INSERT OR IGNORE INTO users (id, email, created_at, last_login_at) VALUES (?, ?, ?, ?)'
   ),
@@ -226,6 +237,7 @@ export interface SessionUser {
   userId: string;
   email: string;
   expiresAt: number;
+  createdAt: number;
 }
 
 export interface CleanupResult {
@@ -317,7 +329,16 @@ export function consumeMagicLink(tokenHash: string, now: number): ConsumedMagicL
   return consumeMagicLinkTx(tokenHash, now);
 }
 
-export function createSession(params: CreateSessionParams): void {
+const MAX_SESSIONS_PER_USER = 10;
+
+const createSessionTx = db.transaction((params: CreateSessionParams): void => {
+  const { count } = stmts.countSessionsByUser.get(params.userId) as { count: number };
+  if (count >= MAX_SESSIONS_PER_USER) {
+    const excess = count - MAX_SESSIONS_PER_USER + 1;
+    const oldSessions = stmts.getOldestSessionsByUser.all(params.userId, excess) as { id: string }[];
+    const ids = oldSessions.map(s => s.id);
+    stmts.deleteSessionsByIds.run(JSON.stringify(ids));
+  }
   stmts.insertSession.run(
     params.sessionId,
     params.userId,
@@ -328,6 +349,10 @@ export function createSession(params: CreateSessionParams): void {
     params.ip,
     params.userAgent
   );
+});
+
+export function createSession(params: CreateSessionParams): void {
+  createSessionTx(params);
 }
 
 export function getSessionByHash(sessionHash: string, now: number): SessionUser | null {
@@ -336,6 +361,7 @@ export function getSessionByHash(sessionHash: string, now: number): SessionUser 
     user_id: string;
     email: string;
     expires_at: number;
+    created_at: number;
   } | undefined;
 
   if (!row) {
@@ -347,6 +373,7 @@ export function getSessionByHash(sessionHash: string, now: number): SessionUser 
     userId: row.user_id,
     email: row.email,
     expiresAt: row.expires_at,
+    createdAt: row.created_at,
   };
 }
 
@@ -360,6 +387,40 @@ export function deleteSessionById(sessionId: string): void {
 
 export function deleteSessionByHash(sessionHash: string): void {
   stmts.deleteSessionByHash.run(sessionHash);
+}
+
+export interface ActiveSession {
+  id: string;
+  createdAt: number;
+  lastSeenAt: number;
+  ip: string | null;
+  userAgent: string | null;
+}
+
+export function getActiveSessionsByUser(userId: string, now: number): ActiveSession[] {
+  const rows = stmts.getSessionsByUser.all(userId, now) as {
+    id: string;
+    created_at: number;
+    last_seen_at: number;
+    ip: string | null;
+    user_agent: string | null;
+  }[];
+  return rows.map(r => ({
+    id: r.id,
+    createdAt: r.created_at,
+    lastSeenAt: r.last_seen_at,
+    ip: r.ip,
+    userAgent: r.user_agent,
+  }));
+}
+
+export function revokeSessionById(userId: string, sessionId: string): boolean {
+  const sessions = stmts.getSessionsByUser.all(userId, 0) as { id: string }[];
+  if (!sessions.some(s => s.id === sessionId)) {
+    return false;
+  }
+  stmts.deleteSessionById.run(sessionId);
+  return true;
 }
 
 export function cleanupExpiredAuth(now: number): CleanupResult {

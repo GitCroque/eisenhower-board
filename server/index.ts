@@ -22,6 +22,8 @@ import db, {
   touchSession,
   deleteSessionByHash,
   deleteSessionById,
+  getActiveSessionsByUser,
+  revokeSessionById,
   cleanupExpiredAuth,
   normalizeEmail,
 } from './db.js';
@@ -37,10 +39,11 @@ import {
 const app = express();
 const PORT = process.env.PORT || 3080;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+const SESSION_ABSOLUTE_TTL_MS = 90 * 24 * 60 * 60 * 1000; // 90 days absolute max
 const MAGIC_LINK_TTL_MS = 15 * 60 * 1000; // 15 minutes
-const SESSION_COOKIE_NAME = 'eisenhower_session';
-const CSRF_COOKIE_NAME = 'eisenhower_csrf';
 const isProduction = process.env.NODE_ENV === 'production';
+const SESSION_COOKIE_NAME = isProduction ? '__Host-eisenhower_session' : 'eisenhower_session';
+const CSRF_COOKIE_NAME = isProduction ? '__Host-eisenhower_csrf' : 'eisenhower_csrf';
 
 if (isProduction) {
   app.set('trust proxy', 1);
@@ -134,6 +137,13 @@ function authenticateSession(req: Request, res: Response, next: NextFunction): v
     return;
   }
 
+  if (now - session.createdAt > SESSION_ABSOLUTE_TTL_MS) {
+    deleteSessionById(session.sessionId);
+    clearAuthCookies(res);
+    next();
+    return;
+  }
+
   const refreshedExpiry = now + SESSION_TTL_MS;
   touchSession(session.sessionId, now, refreshedExpiry);
   req.auth = {
@@ -180,8 +190,20 @@ app.use(helmet({
   },
 }));
 
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  res.setHeader(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
+  );
+  next();
+});
+
 // Middleware
 app.use(express.json({ limit: '10kb' }));
+app.use('/api', (_req: Request, res: Response, next: NextFunction) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 app.use('/api', authenticateSession);
 
 // Cleanup expired auth artifacts every 15 minutes
@@ -377,6 +399,44 @@ app.post('/api/auth/logout', mutationLimiter, validateCsrf, (req: Request, res: 
   } catch (err) {
     console.error('POST /api/auth/logout error:', err);
     res.status(500).json({ error: 'Failed to log out' });
+  }
+});
+
+app.get('/api/auth/sessions', readLimiter, requireAuth, (req: Request, res: Response) => {
+  try {
+    const sessions = getActiveSessionsByUser(req.auth!.userId, Date.now());
+    res.json({
+      sessions: sessions.map(s => ({
+        id: s.id,
+        createdAt: s.createdAt,
+        lastSeenAt: s.lastSeenAt,
+        ip: s.ip,
+        userAgent: s.userAgent,
+        current: s.id === req.auth!.sessionId,
+      })),
+    });
+  } catch (err) {
+    console.error('GET /api/auth/sessions error:', err);
+    res.status(500).json({ error: 'Failed to fetch sessions' });
+  }
+});
+
+app.delete('/api/auth/sessions/:id', mutationLimiter, requireAuth, validateCsrf, (req: Request, res: Response) => {
+  try {
+    const sessionId = req.params.id as string;
+    if (sessionId === req.auth!.sessionId) {
+      res.status(400).json({ error: 'Cannot revoke current session, use logout instead' });
+      return;
+    }
+    const revoked = revokeSessionById(req.auth!.userId, sessionId);
+    if (!revoked) {
+      res.status(404).json({ error: 'Session not found' });
+      return;
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/auth/sessions error:', err);
+    res.status(500).json({ error: 'Failed to revoke session' });
   }
 });
 
