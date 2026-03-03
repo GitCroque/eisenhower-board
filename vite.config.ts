@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
@@ -19,6 +20,31 @@ export default defineConfig({
           'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/utilities'],
           'vendor-ui': ['lucide-react', 'next-themes', 'class-variance-authority', 'clsx', 'tailwind-merge'],
         },
+      },
+    },
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        execArgv: ['--no-warnings'],
+      },
+    },
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    coverage: {
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/test/',
+      ],
+      thresholds: {
+        statements: 50,
+        branches: 50,
+        functions: 50,
+        lines: 50,
       },
     },
   },

@@ -40,28 +40,23 @@ A free, open-source web application to organize your tasks using the [Eisenhower
 
 The application is available as a Docker image for `linux/amd64` and `linux/arm64` on the [GitHub Container Registry](https://github.com/GitCroque/eisenhower-board/pkgs/container/eisenhower-board).
 
-```yaml
-services:
-  eisenhower-board:
-    image: ghcr.io/gitcroque/eisenhower-board:latest
-    ports:
-      - "3080:3080"
-    volumes:
-      - eisenhower-data:/app/data
-    environment:
-      - NODE_ENV=production
-      - APP_BASE_URL=https://your-domain.com
-      - SMTP_HOST=your-smtp-server
-      - SMTP_PORT=465
-      - SMTP_SECURE=true
-      - SMTP_USER=your-smtp-user
-      - SMTP_PASS=your-smtp-password
-      - MAIL_FROM=noreply@your-domain.com
-    restart: unless-stopped
+Create a `.env` file with your SMTP configuration, then run:
 
-volumes:
-  eisenhower-data:
+```bash
+docker compose --profile prod up -d
 ```
+
+Required environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `APP_BASE_URL` | Public URL (e.g. `https://your-domain.com`) |
+| `SMTP_HOST` | SMTP server hostname |
+| `SMTP_PORT` | SMTP port (default: `465`) |
+| `SMTP_SECURE` | Use TLS (default: `true`) |
+| `SMTP_USER` | SMTP username |
+| `SMTP_PASS` | SMTP password |
+| `MAIL_FROM` | Sender email address |
 
 Data is stored in a SQLite database inside the `eisenhower-data` volume and persists between restarts. The only external requirement is an SMTP server for sending sign-in emails.
 
@@ -91,10 +86,13 @@ npm run dev
 
 ```
 eisenhower-board/
+├── docker/               # Docker support files
+│   └── entrypoint.sh     # Container entrypoint
 ├── server/               # Express + SQLite backend
 │   ├── index.ts          # API routes, auth, CSRF
 │   ├── db.ts             # SQLite database layer
-│   └── mailer.ts         # SMTP magic-link emails
+│   ├── mailer.ts         # SMTP magic-link emails
+│   └── tsconfig.json     # Server TypeScript config
 ├── shared/               # Shared code (frontend + backend)
 │   ├── types.ts          # Task, QuadrantKey, QuadrantsState
 │   ├── validation.ts     # Zod schemas
@@ -106,7 +104,7 @@ eisenhower-board/
 │   ├── i18n/             # 14 languages
 │   └── types/            # TypeScript types
 ├── Dockerfile            # Multi-stage Alpine build
-└── docker-compose.yml    # Docker Compose config
+└── docker-compose.yml    # Docker Compose (dev + prod profile)
 ```
 
 ## License

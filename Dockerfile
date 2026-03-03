@@ -41,7 +41,7 @@ RUN apk add --no-cache --virtual .build-deps python3 make g++ \
 RUN mkdir -p /app/data && chown -R node:node /app/data
 
 # Copy entrypoint script
-COPY docker-entrypoint.sh /usr/local/bin/
+COPY docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Environment variables
