@@ -229,7 +229,7 @@ describe('useApi', () => {
 
   it('moves a task optimistically between quadrants', async () => {
     mockResponses({
-      'PATCH /api/tasks/1': () => new Response(JSON.stringify({ success: true }), { status: 200 }),
+      'POST /api/tasks/batch': () => new Response(JSON.stringify({ success: true }), { status: 200 }),
     });
 
     const { result } = renderHook(() => useApi(), { wrapper });

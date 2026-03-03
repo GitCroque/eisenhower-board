@@ -14,6 +14,7 @@ import db, {
   completeTask,
   getArchivedTasksPaginated,
   deleteArchivedTask,
+  restoreArchivedTask,
   findOrCreateUserByEmail,
   createMagicLink,
   consumeMagicLink,
@@ -24,6 +25,7 @@ import db, {
   deleteSessionById,
   getActiveSessionsByUser,
   revokeSessionById,
+  revokeOtherSessions,
   cleanupExpiredAuth,
   normalizeEmail,
 } from './db.js';
@@ -34,6 +36,8 @@ import {
   UpdateTaskRequestSchema,
   TaskIdSchema,
   MagicLinkRequestSchema,
+  TaskBatchRequestSchema,
+  ArchivedTasksQuerySchema,
 } from '../shared/validation.js';
 
 const app = express();
@@ -45,8 +49,15 @@ const isProduction = process.env.NODE_ENV === 'production';
 const SESSION_COOKIE_NAME = isProduction ? '__Host-eisenhower_session' : 'eisenhower_session';
 const CSRF_COOKIE_NAME = isProduction ? '__Host-eisenhower_csrf' : 'eisenhower_csrf';
 
-if (isProduction) {
-  app.set('trust proxy', 1);
+const trustProxySetting = process.env.TRUST_PROXY?.trim();
+if (trustProxySetting && trustProxySetting.toLowerCase() !== 'false') {
+  if (trustProxySetting.toLowerCase() === 'true') {
+    app.set('trust proxy', true);
+  } else if (/^\d+$/.test(trustProxySetting)) {
+    app.set('trust proxy', Number(trustProxySetting));
+  } else {
+    app.set('trust proxy', trustProxySetting);
+  }
 }
 
 interface AuthContext {
@@ -119,6 +130,52 @@ function getAppBaseUrl(): string {
   return configuredBaseUrl.replace(/\/+$/, '');
 }
 
+function logSecurityEvent(event: string, metadata: Record<string, unknown>): void {
+  console.warn(`[security] ${event}`, metadata);
+}
+
+function setAuthCookies(res: Response, rawSessionToken: string): void {
+  res.cookie(SESSION_COOKIE_NAME, rawSessionToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: SESSION_TTL_MS,
+  });
+
+  const csrfToken = randomBytes(32).toString('base64url');
+  res.cookie(CSRF_COOKIE_NAME, csrfToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: SESSION_TTL_MS,
+  });
+}
+
+function makeEtag(payload: unknown): string {
+  const digest = createHash('sha1').update(JSON.stringify(payload)).digest('base64url');
+  return `"${digest}"`;
+}
+
+function hasMatchingEtag(req: Request, etag: string): boolean {
+  const ifNoneMatch = req.headers['if-none-match'];
+  if (!ifNoneMatch) {
+    return false;
+  }
+  const values = ifNoneMatch.split(',').map((v) => v.trim());
+  return values.includes(etag) || values.includes('*');
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function authenticateSession(req: Request, res: Response, next: NextFunction): void {
   const cookies = parseCookies(req.headers.cookie);
   const rawSessionToken = cookies[SESSION_COOKIE_NAME];
@@ -169,6 +226,13 @@ function validateCsrf(req: Request, res: Response, next: NextFunction): void {
   const csrfCookie = cookies[CSRF_COOKIE_NAME];
 
   if (!csrfHeader || !csrfCookie || !safeTokenEquals(csrfHeader, csrfCookie)) {
+    logSecurityEvent('csrf_validation_failed', {
+      ip: req.ip ?? null,
+      path: req.originalUrl,
+      hasHeader: Boolean(csrfHeader),
+      hasCookie: Boolean(csrfCookie),
+      userId: req.auth?.userId ?? null,
+    });
     res.status(403).json({ error: 'Invalid or missing CSRF token' });
     return;
   }
@@ -177,6 +241,7 @@ function validateCsrf(req: Request, res: Response, next: NextFunction): void {
 }
 
 app.use(compression());
+app.disable('x-powered-by');
 
 app.use(helmet({
   contentSecurityPolicy: {
@@ -200,6 +265,7 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 
 // Middleware
 app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 app.use('/api', (_req: Request, res: Response, next: NextFunction) => {
   res.set('Cache-Control', 'no-store');
   next();
@@ -211,60 +277,40 @@ setInterval(() => {
   cleanupExpiredAuth(Date.now());
 }, 15 * 60 * 1000).unref();
 
-// Rate limiting for mutating endpoints
-const mutationLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many requests, please try again later' },
-});
+function createRateLimiter(
+  name: string,
+  max: number,
+  windowMs = 60 * 1000,
+  keyGenerator?: (req: Request) => string,
+) {
+  return rateLimit({
+    windowMs,
+    max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator,
+    handler: (req, res) => {
+      logSecurityEvent('rate_limit_exceeded', {
+        limiter: name,
+        ip: req.ip ?? null,
+        path: req.originalUrl,
+        userId: req.auth?.userId ?? null,
+      });
+      res.status(429).json({ error: 'Too many requests, please try again later' });
+    },
+  });
+}
 
-// Rate limiting for read endpoints
-const readLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 60,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many requests, please try again later' },
+const mutationLimiter = createRateLimiter('mutation', 30);
+const readLimiter = createRateLimiter('read', 60);
+const csrfLimiter = createRateLimiter('csrf', 20);
+const magicLinkIpLimiter = createRateLimiter('magic_link_ip', 5);
+const magicLinkEmailLimiter = createRateLimiter('magic_link_email', 3, 60 * 1000, (req) => {
+  const ip = ipKeyGenerator(req.ip ?? '');
+  const email = typeof req.body?.email === 'string' ? normalizeEmail(req.body.email) : '';
+  return `${ip}:${email || 'unknown'}`;
 });
-
-const csrfLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many requests, please try again later' },
-});
-
-const magicLinkIpLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many requests, please try again later' },
-});
-
-const magicLinkEmailLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 3,
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => {
-    const ip = ipKeyGenerator(req.ip ?? '');
-    const email = typeof req.body?.email === 'string' ? normalizeEmail(req.body.email) : '';
-    return `${ip}:${email || 'unknown'}`;
-  },
-  message: { error: 'Too many requests, please try again later' },
-});
-
-const verifyLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many requests, please try again later' },
-});
+const verifyLimiter = createRateLimiter('verify', 10);
 
 // Serve static files from the dist directory
 const __filename = fileURLToPath(import.meta.url);
@@ -281,15 +327,20 @@ app.get('/api/health', readLimiter, (_req: Request, res: Response) => {
 });
 
 app.post('/api/auth/magic-link', magicLinkIpLimiter, magicLinkEmailLimiter, async (req: Request, res: Response) => {
+  const genericResponse = { success: true };
+
   try {
     const parsed = MagicLinkRequestSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: parsed.error.issues[0].message });
+      res.json(genericResponse);
       return;
     }
 
     if (!isMailerConfigured()) {
-      res.status(500).json({ error: 'Email provider is not configured' });
+      logSecurityEvent('magic_link_request_ignored_mailer_not_configured', {
+        ip: req.ip ?? null,
+      });
+      res.json(genericResponse);
       return;
     }
 
@@ -314,12 +365,11 @@ app.post('/api/auth/magic-link', magicLinkIpLimiter, magicLinkEmailLimiter, asyn
       link: verifyUrl,
       expiresInMinutes: Math.floor(MAGIC_LINK_TTL_MS / 60000),
     });
-
-    res.json({ success: true });
   } catch (err) {
     console.error('POST /api/auth/magic-link error:', err);
-    res.status(500).json({ error: 'Failed to send magic link' });
   }
+
+  res.json(genericResponse);
 });
 
 app.get('/api/auth/verify', verifyLimiter, (req: Request, res: Response) => {
@@ -330,9 +380,80 @@ app.get('/api/auth/verify', verifyLimiter, (req: Request, res: Response) => {
       return;
     }
 
+    res.setHeader('Cache-Control', 'no-store');
+    res.type('html').send(`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Confirm sign in</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f8fafc;
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        color: #0f172a;
+      }
+      .card {
+        width: min(420px, 92vw);
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 24px;
+        box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+      }
+      h1 { font-size: 1.2rem; margin: 0 0 8px; }
+      p { margin: 0 0 20px; color: #334155; }
+      button {
+        border: 0;
+        border-radius: 10px;
+        background: #0f172a;
+        color: white;
+        font-size: 0.95rem;
+        padding: 10px 14px;
+        cursor: pointer;
+      }
+      button:hover { background: #1e293b; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Confirm sign in</h1>
+      <p>Click the button below to complete sign in.</p>
+      <form method="post" action="/api/auth/verify/consume">
+        <input type="hidden" name="token" value="${escapeHtml(token)}" />
+        <button type="submit">Sign in</button>
+      </form>
+    </main>
+  </body>
+</html>`);
+  } catch (err) {
+    console.error('GET /api/auth/verify error:', err);
+    res.redirect('/?auth=invalid');
+  }
+});
+
+app.post('/api/auth/verify/consume', verifyLimiter, (req: Request, res: Response) => {
+  try {
+    const token = typeof req.body?.token === 'string' ? req.body.token : '';
+    if (!token) {
+      logSecurityEvent('magic_link_consume_failed_missing_token', {
+        ip: req.ip ?? null,
+      });
+      res.redirect('/?auth=invalid');
+      return;
+    }
+
     const now = Date.now();
     const consumed = consumeMagicLink(hashToken(token), now);
     if (!consumed) {
+      logSecurityEvent('magic_link_consume_failed_invalid_or_expired', {
+        ip: req.ip ?? null,
+      });
       res.redirect('/?auth=invalid');
       return;
     }
@@ -351,26 +472,10 @@ app.get('/api/auth/verify', verifyLimiter, (req: Request, res: Response) => {
       userAgent: req.get('user-agent') || null,
     });
 
-    res.cookie(SESSION_COOKIE_NAME, rawSessionToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: SESSION_TTL_MS,
-    });
-
-    const csrfToken = randomBytes(32).toString('base64url');
-    res.cookie(CSRF_COOKIE_NAME, csrfToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: SESSION_TTL_MS,
-    });
-
+    setAuthCookies(res, rawSessionToken);
     res.redirect('/');
   } catch (err) {
-    console.error('GET /api/auth/verify error:', err);
+    console.error('POST /api/auth/verify/consume error:', err);
     res.redirect('/?auth=invalid');
   }
 });
@@ -433,10 +538,30 @@ app.delete('/api/auth/sessions/:id', mutationLimiter, requireAuth, validateCsrf,
       res.status(404).json({ error: 'Session not found' });
       return;
     }
+    logSecurityEvent('session_revoked', {
+      userId: req.auth!.userId,
+      revokedSessionId: sessionId,
+      bySessionId: req.auth!.sessionId,
+    });
     res.json({ success: true });
   } catch (err) {
     console.error('DELETE /api/auth/sessions error:', err);
     res.status(500).json({ error: 'Failed to revoke session' });
+  }
+});
+
+app.post('/api/auth/sessions/revoke-others', mutationLimiter, requireAuth, validateCsrf, (req: Request, res: Response) => {
+  try {
+    const revokedCount = revokeOtherSessions(req.auth!.userId, req.auth!.sessionId);
+    logSecurityEvent('sessions_revoked_others', {
+      userId: req.auth!.userId,
+      currentSessionId: req.auth!.sessionId,
+      revokedCount,
+    });
+    res.json({ success: true, revokedCount });
+  } catch (err) {
+    console.error('POST /api/auth/sessions/revoke-others error:', err);
+    res.status(500).json({ error: 'Failed to revoke sessions' });
   }
 });
 
@@ -457,6 +582,12 @@ app.get('/api/csrf-token', csrfLimiter, requireAuth, (_req: Request, res: Respon
 app.get('/api/tasks', readLimiter, requireAuth, (req: Request, res: Response) => {
   try {
     const tasks = getAllTasks(req.auth!.userId);
+    const etag = makeEtag(tasks);
+    res.setHeader('ETag', etag);
+    if (hasMatchingEtag(req, etag)) {
+      res.status(304).end();
+      return;
+    }
     res.json(tasks);
   } catch (err) {
     console.error('GET /api/tasks error:', err);
@@ -584,11 +715,86 @@ app.post('/api/tasks/:id/complete', mutationLimiter, requireAuth, validateCsrf, 
   }
 });
 
+app.post('/api/tasks/batch', mutationLimiter, requireAuth, validateCsrf, (req: Request, res: Response) => {
+  try {
+    const parsed = TaskBatchRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.issues[0].message });
+      return;
+    }
+
+    const runBatch = db.transaction(() => {
+      for (const op of parsed.data.operations) {
+        if (op.type === 'move') {
+          const updated = updateTaskQuadrant(req.auth!.userId, op.id, op.quadrant);
+          if (!updated) {
+            return { status: 404, error: `Task not found: ${op.id}` };
+          }
+          continue;
+        }
+
+        if (op.type === 'edit') {
+          const sanitizedText = sanitizeText(op.text);
+          if (!sanitizedText) {
+            return { status: 400, error: 'Invalid task text' };
+          }
+          const updated = updateTaskText(req.auth!.userId, op.id, sanitizedText);
+          if (!updated) {
+            return { status: 404, error: `Task not found: ${op.id}` };
+          }
+          continue;
+        }
+
+        if (op.type === 'delete') {
+          const deleted = deleteTask(req.auth!.userId, op.id);
+          if (!deleted) {
+            return { status: 404, error: `Task not found: ${op.id}` };
+          }
+          continue;
+        }
+
+        const completed = completeTask(req.auth!.userId, op.id);
+        if (!completed) {
+          return { status: 404, error: `Task not found or already completed: ${op.id}` };
+        }
+      }
+
+      return null;
+    });
+
+    const result = runBatch();
+    if (result) {
+      res.status(result.status).json({ error: result.error });
+      return;
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('POST /api/tasks/batch error:', err);
+    res.status(500).json({ error: 'Failed to apply batch operations' });
+  }
+});
+
 app.get('/api/archived-tasks', readLimiter, requireAuth, (req: Request, res: Response) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 20));
-    const result = getArchivedTasksPaginated(req.auth!.userId, page, pageSize);
+    const parsed = ArchivedTasksQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.issues[0].message });
+      return;
+    }
+    const { page, pageSize, q, quadrant, from, to } = parsed.data;
+    const result = getArchivedTasksPaginated(req.auth!.userId, page, pageSize, {
+      q: q || undefined,
+      quadrant,
+      from,
+      to,
+    });
+    const etag = makeEtag(result);
+    res.setHeader('ETag', etag);
+    if (hasMatchingEtag(req, etag)) {
+      res.status(304).end();
+      return;
+    }
     res.json(result);
   } catch (err) {
     console.error('GET /api/archived-tasks error:', err);
@@ -616,6 +822,34 @@ app.delete('/api/archived-tasks/:id', mutationLimiter, requireAuth, validateCsrf
     console.error('DELETE /api/archived-tasks error:', err);
     res.status(500).json({ error: 'Failed to delete archived task' });
   }
+});
+
+app.post('/api/archived-tasks/:id/restore', mutationLimiter, requireAuth, validateCsrf, (req: Request, res: Response) => {
+  try {
+    const idResult = TaskIdSchema.safeParse(req.params.id);
+    if (!idResult.success) {
+      res.status(400).json({ error: 'Invalid task ID' });
+      return;
+    }
+    const restored = restoreArchivedTask(req.auth!.userId, idResult.data);
+    if (!restored) {
+      res.status(404).json({ error: 'Archived task not found' });
+      return;
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('POST /api/archived-tasks/:id/restore error:', err);
+    res.status(500).json({ error: 'Failed to restore archived task' });
+  }
+});
+
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  console.error('Unhandled server error:', err);
+  if (req.path.startsWith('/api/')) {
+    res.status(500).json({ error: 'Internal server error' });
+    return;
+  }
+  res.status(500).send('Internal server error');
 });
 
 // Return 404 JSON for unknown API routes (prevent SPA fallback serving HTML)

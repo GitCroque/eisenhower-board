@@ -1,7 +1,7 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
-import { Archive, LogOut } from 'lucide-react';
+import { Archive, Shield, LogOut } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/i18n';
 import { CsrfProvider } from '@/hooks/CsrfContext';
 import { AuthProvider, useAuth } from '@/auth/AuthContext';
@@ -16,10 +16,30 @@ import { LoginPage } from './components/LoginPage';
 const ArchivePage = lazy(() =>
   import('./components/ArchivePage').then((m) => ({ default: m.ArchivePage }))
 );
+const SessionsPage = lazy(() =>
+  import('./components/SessionsPage').then((m) => ({ default: m.SessionsPage }))
+);
 
 function MatrixPage() {
   const { t } = useLanguage();
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    const preload = () => {
+      void import('./components/ArchivePage');
+      void import('./components/SessionsPage');
+    };
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const idleWindow = window as Window & {
+        requestIdleCallback: (cb: () => void) => number;
+        cancelIdleCallback?: (handle: number) => void;
+      };
+      const handle = idleWindow.requestIdleCallback(preload);
+      return () => idleWindow.cancelIdleCallback?.(handle);
+    }
+    const timeoutId = setTimeout(preload, 600);
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   return (
     <Layout>
@@ -35,6 +55,14 @@ function MatrixPage() {
               aria-label={t.archive.openArchive}
             >
               <Archive className="h-4 w-4" />
+            </Link>
+            <Link
+              to="/sessions"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:text-slate-900 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-slate-200"
+              aria-label="Open sessions"
+              title="Open sessions"
+            >
+              <Shield className="h-4 w-4" />
             </Link>
             <LanguageSelector />
             <ThemeToggle />
@@ -88,6 +116,14 @@ function AppRoutes() {
         element={
           <Suspense fallback={<ArchiveSkeleton />}>
             <ArchivePage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/sessions"
+        element={
+          <Suspense fallback={<ArchiveSkeleton />}>
+            <SessionsPage />
           </Suspense>
         }
       />

@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 import { randomUUID } from 'crypto';
-import type { Task, QuadrantKey, QuadrantsState, ArchivedTask } from '../shared/types.js';
+import type { Task, QuadrantKey, QuadrantsState, ArchivedTask, ArchivedTasksFilters } from '../shared/types.js';
 
 const DEFAULT_DATA_DIR = process.env.NODE_ENV === 'production'
   ? '/app/data'
@@ -97,6 +97,7 @@ export function initializeSchema(): void {
 
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_tasks_user_active ON tasks(user_id, completed_at, created_at);
+    CREATE INDEX IF NOT EXISTS idx_tasks_archived_user_completed ON tasks(user_id, completed_at DESC);
     CREATE INDEX IF NOT EXISTS idx_sessions_hash ON sessions(session_hash);
     CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id, created_at);
@@ -151,6 +152,9 @@ const stmts = {
   deleteArchived: db.prepare(
     'DELETE FROM tasks WHERE user_id = ? AND id = ? AND completed_at IS NOT NULL'
   ),
+  restoreArchived: db.prepare(
+    'UPDATE tasks SET completed_at = NULL WHERE user_id = ? AND id = ? AND completed_at IS NOT NULL'
+  ),
 
   // Users
   getUserByEmail: db.prepare('SELECT id, email, created_at, last_login_at FROM users WHERE email = ?'),
@@ -204,6 +208,9 @@ const stmts = {
   ),
   deleteSessionsByIds: db.prepare(
     'DELETE FROM sessions WHERE id IN (SELECT value FROM json_each(?))'
+  ),
+  deleteOtherSessions: db.prepare(
+    'DELETE FROM sessions WHERE user_id = ? AND id != ?'
   ),
   insertUserIgnore: db.prepare(
     'INSERT OR IGNORE INTO users (id, email, created_at, last_login_at) VALUES (?, ?, ?, ?)'
@@ -288,7 +295,7 @@ const consumeMagicLinkTx = db.transaction((tokenHash: string, now: number): Cons
 });
 
 // Re-export types for convenience
-export type { Task, QuadrantKey, QuadrantsState, ArchivedTask };
+export type { Task, QuadrantKey, QuadrantsState, ArchivedTask, ArchivedTasksFilters };
 
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -423,6 +430,10 @@ export function revokeSessionById(userId: string, sessionId: string): boolean {
   return true;
 }
 
+export function revokeOtherSessions(userId: string, currentSessionId: string): number {
+  return stmts.deleteOtherSessions.run(userId, currentSessionId).changes;
+}
+
 export function cleanupExpiredAuth(now: number): CleanupResult {
   const deletedMagicLinks = stmts.deleteExpiredMagicLinks.run(now).changes;
   const deletedSessions = stmts.deleteExpiredSessions.run(now).changes;
@@ -473,10 +484,58 @@ export interface PaginatedArchivedTasks {
   pageSize: number;
 }
 
-export function getArchivedTasksPaginated(userId: string, page: number, pageSize: number): PaginatedArchivedTasks {
+function buildArchivedFilters(filters: ArchivedTasksFilters): {
+  whereSql: string;
+  params: (string | number)[];
+} {
+  const conditions = ['user_id = ?', 'completed_at IS NOT NULL'];
+  const params: (string | number)[] = [];
+
+  if (filters.q) {
+    conditions.push('text LIKE ?');
+    params.push(`%${filters.q}%`);
+  }
+  if (filters.quadrant) {
+    conditions.push('quadrant = ?');
+    params.push(filters.quadrant);
+  }
+  if (filters.from !== undefined) {
+    conditions.push('completed_at >= ?');
+    params.push(filters.from);
+  }
+  if (filters.to !== undefined) {
+    conditions.push('completed_at <= ?');
+    params.push(filters.to);
+  }
+
+  return {
+    whereSql: conditions.join(' AND '),
+    params,
+  };
+}
+
+export function getArchivedTasksPaginated(
+  userId: string,
+  page: number,
+  pageSize: number,
+  filters: ArchivedTasksFilters = {},
+): PaginatedArchivedTasks {
   const offset = (page - 1) * pageSize;
-  const rows = stmts.getArchivedPaginated.all(userId, pageSize, offset) as DbTask[];
-  const countRow = stmts.countArchived.get(userId) as { total: number };
+  const { whereSql, params } = buildArchivedFilters(filters);
+
+  const rows = db
+    .prepare(
+      `SELECT id, text, quadrant, created_at, completed_at
+       FROM tasks
+       WHERE ${whereSql}
+       ORDER BY completed_at DESC
+       LIMIT ? OFFSET ?`
+    )
+    .all(userId, ...params, pageSize, offset) as DbTask[];
+
+  const countRow = db
+    .prepare(`SELECT COUNT(*) as total FROM tasks WHERE ${whereSql}`)
+    .get(userId, ...params) as { total: number };
 
   return {
     tasks: rows.map(row => ({
@@ -501,6 +560,11 @@ export function completeTask(userId: string, id: string): boolean {
 // Delete an archived task permanently
 export function deleteArchivedTask(userId: string, id: string): boolean {
   const result = stmts.deleteArchived.run(userId, id);
+  return result.changes > 0;
+}
+
+export function restoreArchivedTask(userId: string, id: string): boolean {
+  const result = stmts.restoreArchived.run(userId, id);
   return result.changes > 0;
 }
 

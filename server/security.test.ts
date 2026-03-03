@@ -10,6 +10,12 @@ import {
   getActiveSessionsByUser,
   revokeSessionById,
   deleteSessionById,
+  revokeOtherSessions,
+  createTask,
+  completeTask,
+  getAllTasks,
+  getArchivedTasksPaginated,
+  restoreArchivedTask,
   type CreateSessionParams,
 } from './db.js';
 
@@ -195,6 +201,25 @@ describe('Security: Session revocation', () => {
     const result = getSessionByHash(session.sessionHash, now);
     expect(result).not.toBeNull();
   });
+
+  it('revokes all sessions except the current one', () => {
+    const now = Date.now();
+    const user = findOrCreateUserByEmail('bulk-revoke@example.com', now);
+    const current = makeSession(user.id, { createdAt: now });
+    const other1 = makeSession(user.id, { createdAt: now + 1_000 });
+    const other2 = makeSession(user.id, { createdAt: now + 2_000 });
+
+    createSession(current);
+    createSession(other1);
+    createSession(other2);
+
+    const revokedCount = revokeOtherSessions(user.id, current.sessionId);
+    expect(revokedCount).toBe(2);
+
+    expect(getSessionByHash(current.sessionHash, now)).not.toBeNull();
+    expect(getSessionByHash(other1.sessionHash, now)).toBeNull();
+    expect(getSessionByHash(other2.sessionHash, now)).toBeNull();
+  });
 });
 
 describe('Security: Magic link token consumption', () => {
@@ -265,5 +290,33 @@ describe('Security: User data isolation', () => {
     const result2 = getSessionByHash(session2.sessionHash, now);
     expect(result2!.userId).toBe(user2.id);
     expect(result2!.email).toBe('bob@example.com');
+  });
+});
+
+describe('Security: Archived task restore', () => {
+  beforeEach(() => {
+    resetDatabaseSchema();
+  });
+
+  it('restores an archived task to active tasks', () => {
+    const now = Date.now();
+    const user = findOrCreateUserByEmail('restore@example.com', now);
+    const taskId = randomUUID();
+
+    createTask(user.id, taskId, 'Archived item', 'urgentImportant', now);
+    const completed = completeTask(user.id, taskId);
+    expect(completed).toBe(true);
+
+    const archivedBefore = getArchivedTasksPaginated(user.id, 1, 20);
+    expect(archivedBefore.total).toBe(1);
+
+    const restored = restoreArchivedTask(user.id, taskId);
+    expect(restored).toBe(true);
+
+    const archivedAfter = getArchivedTasksPaginated(user.id, 1, 20);
+    expect(archivedAfter.total).toBe(0);
+
+    const active = getAllTasks(user.id);
+    expect(active.urgentImportant.some((task) => task.id === taskId)).toBe(true);
   });
 });

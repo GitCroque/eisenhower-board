@@ -51,6 +51,7 @@ Required environment variables:
 | Variable | Description |
 |----------|-------------|
 | `APP_BASE_URL` | Public URL (e.g. `https://your-domain.com`) |
+| `TRUST_PROXY` | Proxy trust setting (`false` by default, use `true`, a hop count, or subnet in reverse-proxy deployments) |
 | `SMTP_HOST` | SMTP server hostname |
 | `SMTP_PORT` | SMTP port (default: `465`) |
 | `SMTP_SECURE` | Use TLS (default: `true`) |

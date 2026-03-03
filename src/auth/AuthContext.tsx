@@ -68,16 +68,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     if (!response.ok) {
-      let message = 'Unable to send sign-in link';
-      try {
-        const data = await response.json() as { error?: string };
-        if (data.error) {
-          message = data.error;
-        }
-      } catch {
-        // Ignore JSON parsing errors and keep generic message.
-      }
-      throw new Error(message);
+      throw new Error('Unable to process sign-in request. Please try again.');
     }
   }, []);
 

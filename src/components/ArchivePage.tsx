@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, RotateCcw, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/i18n';
 import { useArchivedTasks } from '@/hooks/useApi';
 import { QuadrantKey } from '@/types';
@@ -24,6 +24,14 @@ const quadrantColors: Record<QuadrantKey, string> = {
   notUrgentNotImportant: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
 };
 
+const quadrantFilterOptions: Array<{ value: QuadrantKey | 'all'; label: string }> = [
+  { value: 'all', label: 'All quadrants' },
+  { value: 'urgentImportant', label: 'Urgent & Important' },
+  { value: 'notUrgentImportant', label: 'Important, Not Urgent' },
+  { value: 'urgentNotImportant', label: 'Urgent, Not Important' },
+  { value: 'notUrgentNotImportant', label: 'Not Urgent, Not Important' },
+];
+
 function formatDate(timestamp: number): string {
   return new Date(timestamp).toLocaleDateString(undefined, {
     year: 'numeric',
@@ -34,27 +42,137 @@ function formatDate(timestamp: number): string {
   });
 }
 
+function getInitialPage(searchParams: URLSearchParams): number {
+  const parsed = Number(searchParams.get('page'));
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return 1;
+  }
+  return Math.floor(parsed);
+}
+
+function getInitialQuadrant(searchParams: URLSearchParams): QuadrantKey | 'all' {
+  const raw = searchParams.get('quadrant');
+  if (
+    raw === 'urgentImportant'
+    || raw === 'notUrgentImportant'
+    || raw === 'urgentNotImportant'
+    || raw === 'notUrgentNotImportant'
+  ) {
+    return raw;
+  }
+  return 'all';
+}
+
 export function ArchivePage() {
   const { t } = useLanguage();
-  const { archivedTasks, total, page, pageSize, loading, error, deleteArchivedTask, setPage, refetch } = useArchivedTasks();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialPage = useMemo(() => getInitialPage(searchParams), [searchParams]);
+  const initialQuadrant = useMemo(() => getInitialQuadrant(searchParams), [searchParams]);
+
+  const {
+    archivedTasks,
+    total,
+    page,
+    pageSize,
+    loading,
+    error,
+    filters,
+    deleteArchivedTask,
+    restoreArchivedTask,
+    setPage,
+    setFilters,
+    refetch,
+  } = useArchivedTasks({
+    initialPage,
+    initialFilters: {
+      q: searchParams.get('q') ?? '',
+      quadrant: initialQuadrant,
+      from: searchParams.get('from') ?? '',
+      to: searchParams.get('to') ?? '',
+    },
+  });
+
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
+  const [jumpPage, setJumpPage] = useState('');
+  const [query, setQuery] = useState(filters.q);
+  const [fromDate, setFromDate] = useState(filters.from);
+  const [toDate, setToDate] = useState(filters.to);
+  const [quadrantFilter, setQuadrantFilter] = useState<QuadrantKey | 'all'>(filters.quadrant);
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  const handleDelete = async () => {
-    if (deleteTaskId) {
-      try {
-        await deleteArchivedTask(deleteTaskId);
-        setDeleteTaskId(null);
-      } catch {
-        // Keep the dialog open so the user can retry.
-      }
+  useEffect(() => {
+    setQuery(filters.q);
+    setFromDate(filters.from);
+    setToDate(filters.to);
+    setQuadrantFilter(filters.quadrant);
+  }, [filters]);
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams();
+    if (page > 1) {
+      nextParams.set('page', String(page));
     }
+    if (filters.q) {
+      nextParams.set('q', filters.q);
+    }
+    if (filters.quadrant !== 'all') {
+      nextParams.set('quadrant', filters.quadrant);
+    }
+    if (filters.from) {
+      nextParams.set('from', filters.from);
+    }
+    if (filters.to) {
+      nextParams.set('to', filters.to);
+    }
+
+    if (nextParams.toString() !== searchParams.toString()) {
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [filters, page, searchParams, setSearchParams]);
+
+  const handleDelete = async () => {
+    if (!deleteTaskId) return;
+
+    try {
+      await deleteArchivedTask(deleteTaskId);
+      setDeleteTaskId(null);
+    } catch {
+      // Keep the dialog open so the user can retry.
+    }
+  };
+
+  const handleRestore = async (taskId: string) => {
+    try {
+      await restoreArchivedTask(taskId);
+    } catch {
+      // Error is surfaced by the hook state.
+    }
+  };
+
+  const handleApplyFilters = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFilters({
+      q: query.trim(),
+      quadrant: quadrantFilter,
+      from: fromDate,
+      to: toDate,
+    });
+  };
+
+  const handleJumpToPage = () => {
+    const target = Number(jumpPage);
+    if (!Number.isFinite(target)) return;
+    const normalized = Math.min(totalPages, Math.max(1, Math.floor(target)));
+    setPage(normalized);
+    setJumpPage('');
   };
 
   if (loading) {
     return (
       <Layout maxWidth="max-w-4xl">
-        <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex min-h-[400px] items-center justify-center">
           <p className="text-slate-600 dark:text-slate-400">{t.states.loading}</p>
         </div>
       </Layout>
@@ -64,7 +182,7 @@ export function ArchivePage() {
   if (error) {
     return (
       <Layout maxWidth="max-w-4xl">
-        <div className="flex flex-col items-center justify-center gap-4 min-h-[400px]">
+        <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
           <p className="text-red-600 dark:text-red-400">{t.states.error}: {error}</p>
           <button
             onClick={() => void refetch()}
@@ -82,7 +200,7 @@ export function ArchivePage() {
       <header className="mb-8">
         <Link
           to="/"
-          className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 transition-colors mb-4"
+          className="mb-4 inline-flex items-center gap-2 text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
         >
           <ArrowLeft className="h-4 w-4" />
           {t.archive.backToMatrix}
@@ -92,61 +210,130 @@ export function ArchivePage() {
         </h1>
       </header>
 
-          {archivedTasks.length === 0 ? (
-            <div className="rounded-xl border border-white/60 bg-white/70 p-8 backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/70 text-center">
-              <p className="text-slate-500 dark:text-slate-400">{t.archive.noTasks}</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {archivedTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="group flex items-start justify-between gap-4 rounded-xl border border-white/60 bg-white/70 p-4 backdrop-blur-md transition-all duration-300 hover:bg-white/90 hover:shadow-lg hover:shadow-black/5 dark:border-slate-700/60 dark:bg-slate-800/70 dark:hover:bg-slate-800/90"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-slate-700 dark:text-slate-200 mb-2">{task.text}</p>
-                    <div className="flex flex-wrap items-center gap-2 text-sm">
-                      <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', quadrantColors[task.quadrant])}>
-                        {t.quadrants[task.quadrant].title}
-                      </span>
-                      <span className="text-slate-500 dark:text-slate-400">
-                        {t.archive.completedOn} {formatDate(task.completedAt)}
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setDeleteTaskId(task.id)}
-                    className="text-slate-400 hover:text-red-600 hover:scale-110 transition-all duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                    aria-label={t.archive.deleteForever}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+      <form onSubmit={handleApplyFilters} className="mb-5 grid gap-3 rounded-xl border border-white/60 bg-white/70 p-4 backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/70 md:grid-cols-4">
+        <input
+          type="text"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search archived tasks"
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+        />
+        <select
+          value={quadrantFilter}
+          onChange={(event) => setQuadrantFilter(event.target.value as QuadrantKey | 'all')}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+        >
+          {quadrantFilterOptions.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(event) => setFromDate(event.target.value)}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+        />
+        <div className="flex gap-2">
+          <input
+            type="date"
+            value={toDate}
+            onChange={(event) => setToDate(event.target.value)}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+          />
+          <button
+            type="submit"
+            className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
+          >
+            Apply
+          </button>
+        </div>
+      </form>
+
+      {archivedTasks.length === 0 ? (
+        <div className="rounded-xl border border-white/60 bg-white/70 p-8 text-center backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/70">
+          <p className="text-slate-500 dark:text-slate-400">{t.archive.noTasks}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {archivedTasks.map((task) => (
+            <div
+              key={task.id}
+              className="group flex items-start justify-between gap-4 rounded-xl border border-white/60 bg-white/70 p-4 backdrop-blur-md transition-all duration-300 hover:bg-white/90 hover:shadow-lg hover:shadow-black/5 dark:border-slate-700/60 dark:bg-slate-800/70 dark:hover:bg-slate-800/90"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="mb-2 text-slate-700 dark:text-slate-200">{task.text}</p>
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', quadrantColors[task.quadrant])}>
+                    {t.quadrants[task.quadrant].title}
+                  </span>
+                  <span className="text-slate-500 dark:text-slate-400">
+                    {t.archive.completedOn} {formatDate(task.completedAt)}
+                  </span>
                 </div>
-              ))}
+              </div>
+              <div className="flex items-center gap-1 opacity-100 transition-all duration-200 md:opacity-0 md:group-hover:opacity-100">
+                <button
+                  onClick={() => void handleRestore(task.id)}
+                  className="rounded-md p-1 text-slate-400 transition-all duration-200 hover:scale-110 hover:text-blue-600"
+                  aria-label="Restore task"
+                  title="Restore task"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setDeleteTaskId(task.id)}
+                  className="rounded-md p-1 text-slate-400 transition-all duration-200 hover:scale-110 hover:text-red-600"
+                  aria-label={t.archive.deleteForever}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-          )}
+          ))}
+        </div>
+      )}
 
       {totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-center gap-3">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={() => setPage(page - 1)}
             disabled={page <= 1}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90"
             aria-label="Previous page"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
+
           <span className="text-sm text-slate-600 dark:text-slate-400">
             {page} / {totalPages}
           </span>
+
           <button
             onClick={() => setPage(page + 1)}
             disabled={page >= totalPages}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90"
             aria-label="Next page"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
+
+          <div className="ml-2 flex items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={jumpPage}
+              onChange={(event) => setJumpPage(event.target.value)}
+              placeholder="Page"
+              className="h-9 w-20 rounded-lg border border-slate-300 bg-white px-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+            />
+            <button
+              onClick={handleJumpToPage}
+              className="h-9 rounded-lg border border-white/60 bg-white/70 px-3 text-sm font-medium text-slate-700 backdrop-blur-md transition-all duration-200 hover:bg-white/90 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:bg-slate-800/90"
+            >
+              Go
+            </button>
+          </div>
         </div>
       )}
 
@@ -160,7 +347,7 @@ export function ArchivePage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t.dialogs.cancel}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
+            <AlertDialogAction onClick={() => void handleDelete()}>
               {t.dialogs.confirm}
             </AlertDialogAction>
           </AlertDialogFooter>
