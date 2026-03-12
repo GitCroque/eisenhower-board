@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { randomUUID } from 'crypto';
 import type { Task, QuadrantKey, QuadrantsState, ArchivedTask, ArchivedTasksFilters } from '../shared/types.js';
+import { configureSqlitePragmas } from './sqliteConfig.js';
 
 const DEFAULT_DATA_DIR = process.env.NODE_ENV === 'production'
   ? '/app/data'
@@ -17,9 +18,7 @@ if (!fs.existsSync(DATA_DIR)) {
 
 const db = new Database(DB_PATH);
 
-// Enable WAL mode for better performance and enforce foreign keys
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+configureSqlitePragmas(db);
 
 function tableExists(name: string): boolean {
   const row = db.prepare(

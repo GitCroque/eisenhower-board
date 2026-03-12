@@ -9,6 +9,7 @@ services:
       - NODE_ENV=production
       - PORT=3080
       - DATA_DIR=/app/data
+      - SQLITE_JOURNAL_MODE=${SQLITE_JOURNAL_MODE:-WAL}
       - APP_BASE_URL=${APP_BASE_URL:-http://localhost:3080}
       - TRUST_PROXY=${TRUST_PROXY:-false}
       - SMTP_HOST=${SMTP_HOST}
@@ -29,6 +30,7 @@ services:
       - NODE_ENV=production
       - PORT=3080
       - DATA_DIR=/app/data
+      - SQLITE_JOURNAL_MODE=${SQLITE_JOURNAL_MODE:-WAL}
       - APP_BASE_URL=${APP_BASE_URL}
       - TRUST_PROXY=${TRUST_PROXY:-false}
       - SMTP_HOST=${SMTP_HOST}

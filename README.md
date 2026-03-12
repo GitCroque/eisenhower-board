@@ -59,6 +59,12 @@ Required environment variables:
 | `SMTP_PASS` | SMTP password |
 | `MAIL_FROM` | Sender email address |
 
+Optional environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `SQLITE_JOURNAL_MODE` | SQLite journal mode (`WAL` by default). Set `DELETE` on volumes that do not support WAL shared-memory files, such as some NAS, NFS, CIFS, or FUSE-backed mounts. |
+
 Data is stored in a SQLite database inside the `eisenhower-data` volume and persists between restarts. The only external requirement is an SMTP server for sending sign-in emails.
 
 ## Development
