@@ -4,6 +4,15 @@ export type SqliteJournalMode = typeof SQLITE_JOURNAL_MODES[number];
 
 interface SqliteDatabase {
   pragma(source: string, options?: { simple?: boolean }): unknown;
+  close(): void;
+}
+
+export interface SqliteConfigOptions {
+  env?: { SQLITE_JOURNAL_MODE?: string };
+  logger?: LoggerLike;
+  /** Called when WAL files need to be cleaned up before fallback to DELETE mode.
+   *  Should close the db, remove -wal/-shm files, and return a fresh db instance. */
+  onWalCleanup?: () => SqliteDatabase;
 }
 
 interface LoggerLike {
@@ -47,18 +56,25 @@ function applyJournalMode(db: SqliteDatabase, mode: SqliteJournalMode): SqliteJo
   return isSqliteJournalMode(normalizedResult) ? normalizedResult : mode;
 }
 
+export interface ConfigureSqlitePragmasResult {
+  journalMode: SqliteJournalMode;
+  /** If WAL cleanup was needed, this is the new db instance. Otherwise undefined. */
+  reopenedDb?: SqliteDatabase;
+}
+
 export function configureSqlitePragmas(
   db: SqliteDatabase,
-  env?: { SQLITE_JOURNAL_MODE?: string },
-  logger: LoggerLike = console
-): SqliteJournalMode {
+  options: SqliteConfigOptions = {},
+): ConfigureSqlitePragmasResult {
+  const { env, logger = console, onWalCleanup } = options;
   const resolvedEnv = env ?? (process.env as Record<string, string | undefined>);
   const requestedJournalMode = normalizeJournalMode(resolvedEnv.SQLITE_JOURNAL_MODE, logger);
 
   let usedWalFallback = false;
   let activeJournalMode: SqliteJournalMode;
+  let activeDb = db;
   try {
-    activeJournalMode = applyJournalMode(db, requestedJournalMode);
+    activeJournalMode = applyJournalMode(activeDb, requestedJournalMode);
   } catch (error) {
     if (requestedJournalMode !== 'WAL' || !isWalSharedMemoryError(error)) {
       throw error;
@@ -68,7 +84,20 @@ export function configureSqlitePragmas(
       '[db] SQLite WAL mode is not supported on this volume (SQLITE_IOERR_SHMSIZE). Falling back to DELETE journal mode.'
     );
     usedWalFallback = true;
-    activeJournalMode = applyJournalMode(db, 'DELETE');
+
+    try {
+      activeJournalMode = applyJournalMode(activeDb, 'DELETE');
+    } catch (fallbackError) {
+      if (!isWalSharedMemoryError(fallbackError) || !onWalCleanup) {
+        throw fallbackError;
+      }
+
+      logger.warn(
+        '[db] DELETE fallback also failed due to stale WAL/SHM files. Cleaning up and reopening database.'
+      );
+      activeDb = onWalCleanup();
+      activeJournalMode = applyJournalMode(activeDb, 'DELETE');
+    }
   }
 
   if (activeJournalMode !== requestedJournalMode && !usedWalFallback) {
@@ -77,6 +106,9 @@ export function configureSqlitePragmas(
     );
   }
 
-  db.pragma('foreign_keys = ON');
-  return activeJournalMode;
+  activeDb.pragma('foreign_keys = ON');
+  return {
+    journalMode: activeJournalMode,
+    ...(activeDb !== db ? { reopenedDb: activeDb } : {}),
+  };
 }

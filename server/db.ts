@@ -16,9 +16,24 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-const db = new Database(DB_PATH);
+let db = new Database(DB_PATH);
 
-configureSqlitePragmas(db);
+const { reopenedDb } = configureSqlitePragmas(db, {
+  onWalCleanup() {
+    db.close();
+    for (const suffix of ['-wal', '-shm']) {
+      const filePath = DB_PATH + suffix;
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.warn(`[db] Removed stale ${filePath}`);
+      }
+    }
+    return new Database(DB_PATH);
+  },
+});
+if (reopenedDb) {
+  db = reopenedDb as InstanceType<typeof Database>;
+}
 
 function tableExists(name: string): boolean {
   const row = db.prepare(
