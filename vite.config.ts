@@ -39,6 +39,14 @@ export default defineConfig({
       exclude: [
         'node_modules/',
         'src/test/',
+        'dist/**',
+        'dist-server/**',
+        'src/i18n/locales/**',
+        'src/main.tsx',
+        'src/types/**',
+        'shared/types.ts',
+        'vite.config.ts',
+        'vitest.server.config.ts',
       ],
       thresholds: {
         statements: 50,

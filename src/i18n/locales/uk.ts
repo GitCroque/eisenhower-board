@@ -79,6 +79,30 @@ const uk: Translations = {
     deleteForever: 'Видалити назавжди',
     backToMatrix: 'Повернутися до матриці',
     openArchive: 'Відкрити архів',
+    searchPlaceholder: 'Шукати в архіві завдань',
+    allQuadrants: 'Усі квадранти',
+    applyFilters: 'Застосувати',
+    restoreTask: 'Відновити завдання',
+    previousPage: 'Попередня сторінка',
+    nextPage: 'Наступна сторінка',
+    pagePlaceholder: 'Сторінка',
+    goToPage: 'Перейти',
+  },
+
+  sessions: {
+    title: 'Активні сесії',
+    openSessions: 'Відкрити сесії',
+    loading: 'Завантаження сесій...',
+    backToMatrix: 'Повернутися до матриці',
+    revokeOtherSessions: 'Завершити інші сесії',
+    revokingOthers: 'Завершення...',
+    noSessions: 'Немає активних сесій.',
+    unknownDevice: 'Невідомий пристрій',
+    unknownIp: 'Невідомо',
+    current: 'Поточна',
+    createdAt: 'Створено',
+    lastSeenAt: 'Остання активність',
+    revokeSession: 'Завершити сесію',
   },
 
   auth: {
@@ -92,6 +116,9 @@ const uk: Translations = {
     linkExpiresIn: 'Посилання дійсне 15 хвилин.',
     signOut: 'Вийти',
     signedInAs: 'Ви увійшли як',
+    sessionCheckFailedTitle: 'Не вдалося перевірити сесію',
+    sessionCheckFailedDescription: 'Перевірте зʼєднання та спробуйте знову перед входом.',
+    retrySessionCheck: 'Повторити',
   },
 
   accessibility: {

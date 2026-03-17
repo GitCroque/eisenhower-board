@@ -66,6 +66,103 @@ interface AuthContext {
   email: string;
 }
 
+const SUPPORTED_LANGUAGES = ['en', 'fr', 'de', 'es', 'it', 'pt', 'nl', 'pl', 'ru', 'uk', 'zh', 'hi', 'ar', 'bn'] as const;
+type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
+
+const SIGN_IN_CONFIRM_COPY: Record<SupportedLanguage, {
+  title: string;
+  description: string;
+  action: string;
+}> = {
+  en: {
+    title: 'Confirm sign in',
+    description: 'Click the button below to complete sign in.',
+    action: 'Sign in',
+  },
+  fr: {
+    title: 'Confirmer la connexion',
+    description: 'Cliquez sur le bouton ci-dessous pour terminer la connexion.',
+    action: 'Se connecter',
+  },
+  de: {
+    title: 'Anmeldung bestätigen',
+    description: 'Klicken Sie auf die Schaltfläche unten, um die Anmeldung abzuschließen.',
+    action: 'Anmelden',
+  },
+  es: {
+    title: 'Confirmar inicio de sesión',
+    description: 'Haz clic en el botón de abajo para completar el inicio de sesión.',
+    action: 'Iniciar sesión',
+  },
+  it: {
+    title: 'Conferma accesso',
+    description: 'Fai clic sul pulsante qui sotto per completare l’accesso.',
+    action: 'Accedi',
+  },
+  pt: {
+    title: 'Confirmar login',
+    description: 'Clique no botão abaixo para concluir o login.',
+    action: 'Entrar',
+  },
+  nl: {
+    title: 'Inloggen bevestigen',
+    description: 'Klik op de knop hieronder om het inloggen te voltooien.',
+    action: 'Inloggen',
+  },
+  pl: {
+    title: 'Potwierdź logowanie',
+    description: 'Kliknij przycisk poniżej, aby dokończyć logowanie.',
+    action: 'Zaloguj się',
+  },
+  ru: {
+    title: 'Подтвердите вход',
+    description: 'Нажмите кнопку ниже, чтобы завершить вход.',
+    action: 'Войти',
+  },
+  uk: {
+    title: 'Підтвердьте вхід',
+    description: 'Натисніть кнопку нижче, щоб завершити вхід.',
+    action: 'Увійти',
+  },
+  zh: {
+    title: '确认登录',
+    description: '点击下方按钮以完成登录。',
+    action: '登录',
+  },
+  hi: {
+    title: 'साइन इन की पुष्टि करें',
+    description: 'साइन इन पूरा करने के लिए नीचे दिए गए बटन पर क्लिक करें।',
+    action: 'साइन इन करें',
+  },
+  ar: {
+    title: 'تأكيد تسجيل الدخول',
+    description: 'اضغط على الزر أدناه لإكمال تسجيل الدخول.',
+    action: 'تسجيل الدخول',
+  },
+  bn: {
+    title: 'সাইন-ইন নিশ্চিত করুন',
+    description: 'সাইন-ইন সম্পূর্ণ করতে নিচের বোতামে ক্লিক করুন।',
+    action: 'সাইন ইন করুন',
+  },
+};
+
+function getPreferredLanguage(header?: string): SupportedLanguage {
+  if (!header) {
+    return 'en';
+  }
+
+  const languages = header.split(',');
+  for (const entry of languages) {
+    const [tag] = entry.trim().split(';');
+    const base = tag.toLowerCase().split('-')[0];
+    if ((SUPPORTED_LANGUAGES as readonly string[]).includes(base)) {
+      return base as SupportedLanguage;
+    }
+  }
+
+  return 'en';
+}
+
 declare global {
   namespace Express {
     interface Request {
@@ -380,14 +477,18 @@ app.get('/api/auth/verify', verifyLimiter, (req: Request, res: Response) => {
       return;
     }
 
+    const language = getPreferredLanguage(req.get('accept-language'));
+    const copy = SIGN_IN_CONFIRM_COPY[language];
+    const dir = language === 'ar' ? 'rtl' : 'ltr';
+
     res.setHeader('Cache-Control', 'no-store');
     res.type('html').send(`<!doctype html>
-<html lang="en">
+<html lang="${language}" dir="${dir}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Confirm sign in</title>
+    <title>${escapeHtml(copy.title)}</title>
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -422,11 +523,11 @@ app.get('/api/auth/verify', verifyLimiter, (req: Request, res: Response) => {
   </head>
   <body>
     <main class="card">
-      <h1>Confirm sign in</h1>
-      <p>Click the button below to complete sign in.</p>
+      <h1>${escapeHtml(copy.title)}</h1>
+      <p>${escapeHtml(copy.description)}</p>
       <form method="post" action="/api/auth/verify/consume">
         <input type="hidden" name="token" value="${escapeHtml(token)}" />
-        <button type="submit">Sign in</button>
+        <button type="submit">${escapeHtml(copy.action)}</button>
       </form>
     </main>
   </body>

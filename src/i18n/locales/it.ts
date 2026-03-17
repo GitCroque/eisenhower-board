@@ -79,6 +79,30 @@ const it: Translations = {
     deleteForever: 'Elimina definitivamente',
     backToMatrix: 'Torna alla matrice',
     openArchive: 'Apri archivio',
+    searchPlaceholder: 'Cerca nelle attività archiviate',
+    allQuadrants: 'Tutti i quadranti',
+    applyFilters: 'Applica',
+    restoreTask: 'Ripristina attività',
+    previousPage: 'Pagina precedente',
+    nextPage: 'Pagina successiva',
+    pagePlaceholder: 'Pagina',
+    goToPage: 'Vai',
+  },
+
+  sessions: {
+    title: 'Sessioni attive',
+    openSessions: 'Apri sessioni',
+    loading: 'Caricamento sessioni...',
+    backToMatrix: 'Torna alla matrice',
+    revokeOtherSessions: 'Revoca le altre sessioni',
+    revokingOthers: 'Revoca in corso...',
+    noSessions: 'Nessuna sessione attiva.',
+    unknownDevice: 'Dispositivo sconosciuto',
+    unknownIp: 'Sconosciuto',
+    current: 'Corrente',
+    createdAt: 'Creata',
+    lastSeenAt: 'Ultima attività',
+    revokeSession: 'Revoca sessione',
   },
 
   accessibility: {
@@ -97,6 +121,9 @@ const it: Translations = {
     linkExpiresIn: 'Il link scade tra 15 minuti.',
     signOut: 'Esci',
     signedInAs: 'Connesso come',
+    sessionCheckFailedTitle: 'Impossibile verificare la tua sessione',
+    sessionCheckFailedDescription: 'Controlla la connessione e riprova prima di accedere.',
+    retrySessionCheck: 'Riprova',
   },
 
   landing: {

@@ -8,6 +8,7 @@ interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
+  authCheckFailed: boolean;
   requestMagicLink: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -41,6 +42,7 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authCheckFailed, setAuthCheckFailed] = useState(false);
   const { fetchWithCsrf } = useCsrf();
 
   const refresh = useCallback(async () => {
@@ -48,8 +50,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setLoading(true);
       const data = await fetchAuthMe();
       setUser(data.authenticated && data.user ? data.user : null);
+      setAuthCheckFailed(false);
     } catch {
-      setUser(null);
+      setAuthCheckFailed(true);
     } finally {
       setLoading(false);
     }
@@ -80,6 +83,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch {
       // Local logout is more important than server logout
     } finally {
+      setAuthCheckFailed(false);
       setUser(null);
     }
   }, [fetchWithCsrf]);
@@ -87,10 +91,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value = useMemo<AuthContextType>(() => ({
     user,
     loading,
+    authCheckFailed,
     requestMagicLink,
     logout,
     refresh,
-  }), [user, loading, requestMagicLink, logout, refresh]);
+  }), [user, loading, authCheckFailed, requestMagicLink, logout, refresh]);
 
   return (
     <AuthContext.Provider value={value}>

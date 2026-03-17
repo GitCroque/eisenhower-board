@@ -15,7 +15,7 @@
     "test": "vitest",
     "test:server": "vitest run --config vitest.server.config.ts",
     "test:ui": "vitest --ui",
-    "test:coverage": "node -e \"try{require.resolve('@vitest/coverage-v8');process.exit(0)}catch{process.exit(1)}\" >/dev/null 2>&1 && vitest run --coverage || vitest run"
+    "test:coverage": "node -e \"try{require.resolve('@vitest/coverage-v8');process.exit(0)}catch{process.exit(1)}\" >/dev/null 2>&1; if [ $? -eq 0 ]; then vitest run --coverage; else vitest run; fi"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

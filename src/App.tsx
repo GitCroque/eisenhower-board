@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
 import { Archive, Shield, LogOut } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/i18n';
@@ -59,8 +59,8 @@ function MatrixPage() {
             <Link
               to="/sessions"
               className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:text-slate-900 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-slate-200"
-              aria-label="Open sessions"
-              title="Open sessions"
+              aria-label={t.sessions.openSessions}
+              title={t.sessions.openSessions}
             >
               <Shield className="h-4 w-4" />
             </Link>
@@ -127,18 +127,41 @@ function AppRoutes() {
           </Suspense>
         }
       />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
 
 function AuthGate() {
-  const { user, loading } = useAuth();
+  const { user, loading, authCheckFailed, refresh } = useAuth();
+  const { t } = useLanguage();
 
   if (loading) {
     return (
       <Layout>
         <div className="flex min-h-[400px] items-center justify-center">
-          <div className="text-slate-600 dark:text-slate-400">Loading...</div>
+          <div className="text-slate-600 dark:text-slate-400">{t.states.loading}</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (authCheckFailed && !user) {
+    return (
+      <Layout maxWidth="max-w-xl">
+        <div className="mx-auto mt-16 rounded-2xl border border-white/60 bg-white/70 p-8 text-center backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/70">
+          <h1 className="mb-2 text-2xl font-bold text-slate-800 dark:text-white">
+            {t.auth.sessionCheckFailedTitle}
+          </h1>
+          <p className="mb-6 text-slate-600 dark:text-slate-400">
+            {t.auth.sessionCheckFailedDescription}
+          </p>
+          <button
+            onClick={() => void refresh()}
+            className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
+          >
+            {t.auth.retrySessionCheck}
+          </button>
         </div>
       </Layout>
     );

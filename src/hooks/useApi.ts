@@ -55,7 +55,7 @@ interface UseApiResult {
   refetch: () => Promise<void>;
 }
 
-interface ArchivedFiltersState {
+export interface ArchivedFiltersState {
   q: string;
   quadrant: QuadrantKey | 'all';
   from: string;
@@ -63,22 +63,18 @@ interface ArchivedFiltersState {
 }
 
 interface UseArchivedTasksOptions {
-  initialPage?: number;
-  initialFilters?: Partial<ArchivedFiltersState>;
+  page: number;
+  filters: ArchivedFiltersState;
 }
 
 interface UseArchivedTasksResult {
   archivedTasks: ArchivedTask[];
   total: number;
-  page: number;
   pageSize: number;
   loading: boolean;
   error: string | null;
-  filters: ArchivedFiltersState;
   deleteArchivedTask: (taskId: string) => Promise<void>;
   restoreArchivedTask: (taskId: string) => Promise<void>;
-  setPage: (page: number) => void;
-  setFilters: (next: Partial<ArchivedFiltersState>) => void;
   refetch: () => Promise<void>;
 }
 
@@ -91,13 +87,6 @@ interface DeferredOperation {
   resolve: () => void;
   reject: (error: Error) => void;
 }
-
-const DEFAULT_ARCHIVED_FILTERS: ArchivedFiltersState = {
-  q: '',
-  quadrant: 'all',
-  from: '',
-  to: '',
-};
 
 export function useApi(): UseApiResult {
   const [quadrants, setQuadrants] = useState<QuadrantsState>(INITIAL_STATE);
@@ -397,33 +386,26 @@ export function useApi(): UseApiResult {
   };
 }
 
-export function useArchivedTasks(options: UseArchivedTasksOptions = {}): UseArchivedTasksResult {
+export function useArchivedTasks(options: UseArchivedTasksOptions): UseArchivedTasksResult {
   const [archivedTasks, setArchivedTasks] = useState<ArchivedTask[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPageState] = useState(Math.max(1, options.initialPage ?? 1));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFiltersState] = useState<ArchivedFiltersState>({
-    ...DEFAULT_ARCHIVED_FILTERS,
-    ...options.initialFilters,
-  });
+  const page = Math.max(1, options.page);
+  const filters = options.filters;
 
   const { fetchCsrfToken, fetchWithCsrf } = useCsrf();
   const abortControllerRef = useRef<AbortController | null>(null);
-  const pageRef = useRef(Math.max(1, options.initialPage ?? 1));
-  const filtersRef = useRef<ArchivedFiltersState>({
-    ...DEFAULT_ARCHIVED_FILTERS,
-    ...options.initialFilters,
-  });
   const archivedEtagRef = useRef<string | null>(null);
+  const archivedQueryRef = useRef<string | null>(null);
 
   const fetchArchivedTasks = useCallback(async (targetPage?: number, targetFilters?: ArchivedFiltersState) => {
     abortControllerRef.current?.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    const currentPage = targetPage ?? pageRef.current;
-    const currentFilters = targetFilters ?? filtersRef.current;
+    const currentPage = targetPage ?? page;
+    const currentFilters = targetFilters ?? filters;
 
     const params = new URLSearchParams({
       page: String(currentPage),
@@ -452,12 +434,13 @@ export function useArchivedTasks(options: UseArchivedTasksOptions = {}): UseArch
       setLoading(true);
 
       const headers: HeadersInit = {};
-      if (archivedEtagRef.current) {
+      const queryKey = params.toString();
+      if (archivedEtagRef.current && archivedQueryRef.current === queryKey) {
         headers['If-None-Match'] = archivedEtagRef.current;
       }
 
       const response = await fetch(
-        `${API_BASE}/archived-tasks?${params.toString()}`,
+        `${API_BASE}/archived-tasks?${queryKey}`,
         { signal: controller.signal, credentials: 'same-origin', headers },
       );
 
@@ -472,6 +455,7 @@ export function useArchivedTasks(options: UseArchivedTasksOptions = {}): UseArch
       const etag = response.headers.get('ETag');
       if (etag) {
         archivedEtagRef.current = etag;
+        archivedQueryRef.current = queryKey;
       }
 
       const data = await response.json() as {
@@ -486,32 +470,14 @@ export function useArchivedTasks(options: UseArchivedTasksOptions = {}): UseArch
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filters.from, filters.q, filters.quadrant, filters.to, page]);
 
   useEffect(() => {
-    void Promise.all([fetchCsrfToken(), fetchArchivedTasks()]);
-    return () => abortControllerRef.current?.abort();
-  }, [fetchCsrfToken, fetchArchivedTasks]);
-
-  const setPage = useCallback((newPage: number) => {
-    const normalizedPage = Math.max(1, newPage);
-    pageRef.current = normalizedPage;
-    setPageState(normalizedPage);
-    void fetchArchivedTasks(normalizedPage);
-  }, [fetchArchivedTasks]);
-
-  const setFilters = useCallback((next: Partial<ArchivedFiltersState>) => {
-    const merged = {
-      ...filtersRef.current,
-      ...next,
-    };
-    filtersRef.current = merged;
-    setFiltersState(merged);
-    pageRef.current = 1;
-    setPageState(1);
     archivedEtagRef.current = null;
-    void fetchArchivedTasks(1, merged);
-  }, [fetchArchivedTasks]);
+    archivedQueryRef.current = null;
+    void Promise.all([fetchCsrfToken(), fetchArchivedTasks(page, filters)]);
+    return () => abortControllerRef.current?.abort();
+  }, [fetchCsrfToken, fetchArchivedTasks, filters.from, filters.q, filters.quadrant, filters.to, page]);
 
   const deleteArchivedTask = useCallback(async (taskId: string) => {
     try {
@@ -526,6 +492,7 @@ export function useArchivedTasks(options: UseArchivedTasksOptions = {}): UseArch
       }
 
       archivedEtagRef.current = null;
+      archivedQueryRef.current = null;
       setArchivedTasks((prev) => prev.filter((t) => t.id !== taskId));
       setTotal((prev) => Math.max(0, prev - 1));
     } catch (err) {
@@ -547,6 +514,7 @@ export function useArchivedTasks(options: UseArchivedTasksOptions = {}): UseArch
       }
 
       archivedEtagRef.current = null;
+      archivedQueryRef.current = null;
       setArchivedTasks((prev) => prev.filter((t) => t.id !== taskId));
       setTotal((prev) => Math.max(0, prev - 1));
       getTasksChannel()?.postMessage('sync');
@@ -559,15 +527,11 @@ export function useArchivedTasks(options: UseArchivedTasksOptions = {}): UseArch
   return {
     archivedTasks,
     total,
-    page,
     pageSize: DEFAULT_PAGE_SIZE,
     loading,
     error,
-    filters,
     deleteArchivedTask,
     restoreArchivedTask,
-    setPage,
-    setFilters,
     refetch: fetchArchivedTasks,
   };
 }

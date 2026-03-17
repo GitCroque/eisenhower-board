@@ -79,6 +79,30 @@ const ar: Translations = {
     deleteForever: 'حذف نهائياً',
     backToMatrix: 'العودة إلى المصفوفة',
     openArchive: 'فتح الأرشيف',
+    searchPlaceholder: 'ابحث في المهام المؤرشفة',
+    allQuadrants: 'جميع الأرباع',
+    applyFilters: 'تطبيق',
+    restoreTask: 'استعادة المهمة',
+    previousPage: 'الصفحة السابقة',
+    nextPage: 'الصفحة التالية',
+    pagePlaceholder: 'صفحة',
+    goToPage: 'اذهب',
+  },
+
+  sessions: {
+    title: 'الجلسات النشطة',
+    openSessions: 'فتح الجلسات',
+    loading: 'جارٍ تحميل الجلسات...',
+    backToMatrix: 'العودة إلى المصفوفة',
+    revokeOtherSessions: 'إلغاء الجلسات الأخرى',
+    revokingOthers: 'جارٍ الإلغاء...',
+    noSessions: 'لا توجد جلسات نشطة.',
+    unknownDevice: 'جهاز غير معروف',
+    unknownIp: 'غير معروف',
+    current: 'الحالية',
+    createdAt: 'أُنشئت',
+    lastSeenAt: 'آخر نشاط',
+    revokeSession: 'إلغاء الجلسة',
   },
 
   accessibility: {
@@ -97,6 +121,9 @@ const ar: Translations = {
     linkExpiresIn: 'تنتهي صلاحية الرابط خلال 15 دقيقة.',
     signOut: 'تسجيل الخروج',
     signedInAs: 'مسجل الدخول باسم',
+    sessionCheckFailedTitle: 'تعذر التحقق من جلستك',
+    sessionCheckFailedDescription: 'تحقق من اتصالك ثم حاول مرة أخرى قبل تسجيل الدخول.',
+    retrySessionCheck: 'أعد المحاولة',
   },
 
   landing: {

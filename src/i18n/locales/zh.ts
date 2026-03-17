@@ -79,6 +79,30 @@ const zh: Translations = {
     deleteForever: '永久删除',
     backToMatrix: '返回矩阵',
     openArchive: '打开归档',
+    searchPlaceholder: '搜索已归档任务',
+    allQuadrants: '所有象限',
+    applyFilters: '应用',
+    restoreTask: '恢复任务',
+    previousPage: '上一页',
+    nextPage: '下一页',
+    pagePlaceholder: '页码',
+    goToPage: '前往',
+  },
+
+  sessions: {
+    title: '活动会话',
+    openSessions: '打开会话',
+    loading: '正在加载会话...',
+    backToMatrix: '返回矩阵',
+    revokeOtherSessions: '撤销其他会话',
+    revokingOthers: '正在撤销...',
+    noSessions: '没有活动会话。',
+    unknownDevice: '未知设备',
+    unknownIp: '未知',
+    current: '当前',
+    createdAt: '创建于',
+    lastSeenAt: '最后活动',
+    revokeSession: '撤销会话',
   },
 
   accessibility: {
@@ -97,6 +121,9 @@ const zh: Translations = {
     linkExpiresIn: '链接将在15分钟后过期。',
     signOut: '退出登录',
     signedInAs: '已登录为',
+    sessionCheckFailedTitle: '无法验证您的会话',
+    sessionCheckFailedDescription: '请检查网络连接，然后在登录前重试。',
+    retrySessionCheck: '重试',
   },
 
   landing: {

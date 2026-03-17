@@ -89,6 +89,31 @@ export interface Translations {
     deleteForever: string;
     backToMatrix: string;
     openArchive: string;
+    searchPlaceholder: string;
+    allQuadrants: string;
+    applyFilters: string;
+    restoreTask: string;
+    previousPage: string;
+    nextPage: string;
+    pagePlaceholder: string;
+    goToPage: string;
+  };
+
+  // Sessions
+  sessions: {
+    title: string;
+    openSessions: string;
+    loading: string;
+    backToMatrix: string;
+    revokeOtherSessions: string;
+    revokingOthers: string;
+    noSessions: string;
+    unknownDevice: string;
+    unknownIp: string;
+    current: string;
+    createdAt: string;
+    lastSeenAt: string;
+    revokeSession: string;
   };
 
   // Accessibility
@@ -109,6 +134,9 @@ export interface Translations {
     linkExpiresIn: string;
     signOut: string;
     signedInAs: string;
+    sessionCheckFailedTitle: string;
+    sessionCheckFailedDescription: string;
+    retrySessionCheck: string;
   };
 
   // Landing page
@@ -197,6 +225,30 @@ export const en: Translations = {
     deleteForever: 'Delete permanently',
     backToMatrix: 'Back to matrix',
     openArchive: 'Open archive',
+    searchPlaceholder: 'Search archived tasks',
+    allQuadrants: 'All quadrants',
+    applyFilters: 'Apply',
+    restoreTask: 'Restore task',
+    previousPage: 'Previous page',
+    nextPage: 'Next page',
+    pagePlaceholder: 'Page',
+    goToPage: 'Go',
+  },
+
+  sessions: {
+    title: 'Active sessions',
+    openSessions: 'Open sessions',
+    loading: 'Loading sessions...',
+    backToMatrix: 'Back to matrix',
+    revokeOtherSessions: 'Revoke other sessions',
+    revokingOthers: 'Revoking...',
+    noSessions: 'No active sessions.',
+    unknownDevice: 'Unknown device',
+    unknownIp: 'Unknown',
+    current: 'Current',
+    createdAt: 'Created',
+    lastSeenAt: 'Last seen',
+    revokeSession: 'Revoke session',
   },
 
   accessibility: {
@@ -215,6 +267,9 @@ export const en: Translations = {
     linkExpiresIn: 'The link expires in 15 minutes.',
     signOut: 'Sign out',
     signedInAs: 'Signed in as',
+    sessionCheckFailedTitle: 'Unable to verify your session',
+    sessionCheckFailedDescription: 'Check your connection and try again before signing in.',
+    retrySessionCheck: 'Retry',
   },
 
   landing: {

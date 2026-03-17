@@ -79,6 +79,30 @@ const bn: Translations = {
     deleteForever: 'স্থায়ীভাবে মুছুন',
     backToMatrix: 'ম্যাট্রিক্সে ফিরে যান',
     openArchive: 'সংরক্ষণাগার খুলুন',
+    searchPlaceholder: 'সংরক্ষিত কাজ খুঁজুন',
+    allQuadrants: 'সব চতুর্ভুজ',
+    applyFilters: 'প্রয়োগ করুন',
+    restoreTask: 'কাজ পুনরুদ্ধার করুন',
+    previousPage: 'আগের পৃষ্ঠা',
+    nextPage: 'পরের পৃষ্ঠা',
+    pagePlaceholder: 'পৃষ্ঠা',
+    goToPage: 'যান',
+  },
+
+  sessions: {
+    title: 'সক্রিয় সেশন',
+    openSessions: 'সেশন খুলুন',
+    loading: 'সেশন লোড হচ্ছে...',
+    backToMatrix: 'ম্যাট্রিক্সে ফিরে যান',
+    revokeOtherSessions: 'অন্যান্য সেশন বাতিল করুন',
+    revokingOthers: 'বাতিল করা হচ্ছে...',
+    noSessions: 'কোনো সক্রিয় সেশন নেই।',
+    unknownDevice: 'অজানা ডিভাইস',
+    unknownIp: 'অজানা',
+    current: 'বর্তমান',
+    createdAt: 'তৈরি হয়েছে',
+    lastSeenAt: 'সর্বশেষ কার্যকলাপ',
+    revokeSession: 'সেশন বাতিল করুন',
   },
 
   accessibility: {
@@ -97,6 +121,9 @@ const bn: Translations = {
     linkExpiresIn: 'লিংকটি ১৫ মিনিটে মেয়াদ শেষ হবে।',
     signOut: 'সাইন আউট',
     signedInAs: 'লগ ইন হয়েছে',
+    sessionCheckFailedTitle: 'আপনার সেশন যাচাই করা যায়নি',
+    sessionCheckFailedDescription: 'সাইন ইন করার আগে আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।',
+    retrySessionCheck: 'আবার চেষ্টা করুন',
   },
 
   landing: {

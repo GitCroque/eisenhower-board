@@ -79,6 +79,30 @@ const ru: Translations = {
     deleteForever: 'Удалить навсегда',
     backToMatrix: 'Вернуться к матрице',
     openArchive: 'Открыть архив',
+    searchPlaceholder: 'Искать в архиве задач',
+    allQuadrants: 'Все квадранты',
+    applyFilters: 'Применить',
+    restoreTask: 'Восстановить задачу',
+    previousPage: 'Предыдущая страница',
+    nextPage: 'Следующая страница',
+    pagePlaceholder: 'Страница',
+    goToPage: 'Перейти',
+  },
+
+  sessions: {
+    title: 'Активные сеансы',
+    openSessions: 'Открыть сеансы',
+    loading: 'Загрузка сеансов...',
+    backToMatrix: 'Вернуться к матрице',
+    revokeOtherSessions: 'Завершить другие сеансы',
+    revokingOthers: 'Завершение...',
+    noSessions: 'Нет активных сеансов.',
+    unknownDevice: 'Неизвестное устройство',
+    unknownIp: 'Неизвестно',
+    current: 'Текущий',
+    createdAt: 'Создан',
+    lastSeenAt: 'Последняя активность',
+    revokeSession: 'Завершить сеанс',
   },
 
   auth: {
@@ -92,6 +116,9 @@ const ru: Translations = {
     linkExpiresIn: 'Ссылка действительна 15 минут.',
     signOut: 'Выйти',
     signedInAs: 'Вы вошли как',
+    sessionCheckFailedTitle: 'Не удалось проверить сеанс',
+    sessionCheckFailedDescription: 'Проверьте подключение и попробуйте снова перед входом.',
+    retrySessionCheck: 'Повторить',
   },
 
   accessibility: {

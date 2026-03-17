@@ -79,6 +79,30 @@ const hi: Translations = {
     deleteForever: 'स्थायी रूप से हटाएं',
     backToMatrix: 'मैट्रिक्स पर वापस जाएं',
     openArchive: 'संग्रह खोलें',
+    searchPlaceholder: 'संग्रहीत कार्य खोजें',
+    allQuadrants: 'सभी चतुर्थांश',
+    applyFilters: 'लागू करें',
+    restoreTask: 'कार्य पुनर्स्थापित करें',
+    previousPage: 'पिछला पृष्ठ',
+    nextPage: 'अगला पृष्ठ',
+    pagePlaceholder: 'पृष्ठ',
+    goToPage: 'जाएँ',
+  },
+
+  sessions: {
+    title: 'सक्रिय सत्र',
+    openSessions: 'सत्र खोलें',
+    loading: 'सत्र लोड हो रहे हैं...',
+    backToMatrix: 'मैट्रिक्स पर वापस जाएं',
+    revokeOtherSessions: 'अन्य सत्र रद्द करें',
+    revokingOthers: 'रद्द किया जा रहा है...',
+    noSessions: 'कोई सक्रिय सत्र नहीं।',
+    unknownDevice: 'अज्ञात डिवाइस',
+    unknownIp: 'अज्ञात',
+    current: 'वर्तमान',
+    createdAt: 'बनाया गया',
+    lastSeenAt: 'अंतिम गतिविधि',
+    revokeSession: 'सत्र रद्द करें',
   },
 
   accessibility: {
@@ -97,6 +121,9 @@ const hi: Translations = {
     linkExpiresIn: 'लिंक 15 मिनट में समाप्त हो जाएगा।',
     signOut: 'साइन आउट',
     signedInAs: 'लॉग इन',
+    sessionCheckFailedTitle: 'आपके सत्र की पुष्टि नहीं हो सकी',
+    sessionCheckFailedDescription: 'साइन इन करने से पहले अपना कनेक्शन जांचें और फिर से प्रयास करें।',
+    retrySessionCheck: 'फिर से प्रयास करें',
   },
 
   landing: {

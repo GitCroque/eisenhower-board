@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield, Trash2 } from 'lucide-react';
 import { useCsrf } from '@/hooks/CsrfContext';
+import { useLanguage } from '@/i18n';
 import { Layout } from './Layout';
 
 interface AuthSession {
@@ -28,6 +29,7 @@ function formatDate(timestamp: number): string {
 }
 
 export function SessionsPage() {
+  const { t } = useLanguage();
   const [sessions, setSessions] = useState<AuthSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -112,7 +114,7 @@ export function SessionsPage() {
     return (
       <Layout maxWidth="max-w-4xl">
         <div className="flex min-h-[400px] items-center justify-center">
-          <p className="text-slate-600 dark:text-slate-400">Loading sessions...</p>
+          <p className="text-slate-600 dark:text-slate-400">{t.sessions.loading}</p>
         </div>
       </Layout>
     );
@@ -126,17 +128,17 @@ export function SessionsPage() {
           className="mb-4 inline-flex items-center gap-2 text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to matrix
+          {t.sessions.backToMatrix}
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-white">Active sessions</h1>
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-white">{t.sessions.title}</h1>
           <button
             onClick={() => void revokeOtherSessions()}
             disabled={!hasOtherSessions || revokingOthers}
             className="inline-flex items-center gap-2 rounded-lg border border-white/60 bg-white/70 px-3 py-2 text-sm font-medium text-slate-700 backdrop-blur-md transition-all duration-200 hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:bg-slate-800/90"
           >
             <Shield className="h-4 w-4" />
-            {revokingOthers ? 'Revoking...' : 'Revoke other sessions'}
+            {revokingOthers ? t.sessions.revokingOthers : t.sessions.revokeOtherSessions}
           </button>
         </div>
       </header>
@@ -149,7 +151,7 @@ export function SessionsPage() {
 
       {sessions.length === 0 ? (
         <div className="rounded-xl border border-white/60 bg-white/70 p-8 text-center backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/70">
-          <p className="text-slate-500 dark:text-slate-400">No active sessions.</p>
+          <p className="text-slate-500 dark:text-slate-400">{t.sessions.noSessions}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -161,20 +163,20 @@ export function SessionsPage() {
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex items-center gap-2">
                   <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
-                    {session.userAgent || 'Unknown device'}
+                    {session.userAgent || t.sessions.unknownDevice}
                   </p>
                   {session.current && (
                     <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-                      Current
+                      {t.sessions.current}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">IP: {session.ip || 'Unknown'}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">IP: {session.ip || t.sessions.unknownIp}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Created: {formatDate(session.createdAt)}
+                  {t.sessions.createdAt}: {formatDate(session.createdAt)}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Last seen: {formatDate(session.lastSeenAt)}
+                  {t.sessions.lastSeenAt}: {formatDate(session.lastSeenAt)}
                 </p>
               </div>
               {!session.current && (
@@ -182,7 +184,7 @@ export function SessionsPage() {
                   onClick={() => void revokeSession(session.id)}
                   disabled={revokingId === session.id}
                   className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-red-950/30"
-                  aria-label="Revoke session"
+                  aria-label={t.sessions.revokeSession}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>

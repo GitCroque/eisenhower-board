@@ -79,6 +79,30 @@ const nl: Translations = {
     deleteForever: 'Permanent verwijderen',
     backToMatrix: 'Terug naar matrix',
     openArchive: 'Archief openen',
+    searchPlaceholder: 'Zoek in gearchiveerde taken',
+    allQuadrants: 'Alle kwadranten',
+    applyFilters: 'Toepassen',
+    restoreTask: 'Taak herstellen',
+    previousPage: 'Vorige pagina',
+    nextPage: 'Volgende pagina',
+    pagePlaceholder: 'Pagina',
+    goToPage: 'Ga',
+  },
+
+  sessions: {
+    title: 'Actieve sessies',
+    openSessions: 'Sessies openen',
+    loading: 'Sessies laden...',
+    backToMatrix: 'Terug naar matrix',
+    revokeOtherSessions: 'Andere sessies intrekken',
+    revokingOthers: 'Bezig met intrekken...',
+    noSessions: 'Geen actieve sessies.',
+    unknownDevice: 'Onbekend apparaat',
+    unknownIp: 'Onbekend',
+    current: 'Huidig',
+    createdAt: 'Aangemaakt',
+    lastSeenAt: 'Laatst gezien',
+    revokeSession: 'Sessie intrekken',
   },
 
   accessibility: {
@@ -97,6 +121,9 @@ const nl: Translations = {
     linkExpiresIn: 'De link verloopt over 15 minuten.',
     signOut: 'Uitloggen',
     signedInAs: 'Ingelogd als',
+    sessionCheckFailedTitle: 'Je sessie kon niet worden gecontroleerd',
+    sessionCheckFailedDescription: 'Controleer je verbinding en probeer het opnieuw voordat je inlogt.',
+    retrySessionCheck: 'Opnieuw proberen',
   },
 
   landing: {

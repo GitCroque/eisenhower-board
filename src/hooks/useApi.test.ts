@@ -2,9 +2,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { CsrfProvider } from './CsrfContext';
-import { useApi, useArchivedTasks } from './useApi';
+import { useApi, useArchivedTasks, type ArchivedFiltersState } from './useApi';
 
 const mockFetch = vi.fn();
+const defaultArchivedOptions: { page: number; filters: ArchivedFiltersState } = {
+  page: 1,
+  filters: {
+    q: '',
+    quadrant: 'all',
+    from: '',
+    to: '',
+  },
+};
 
 function wrapper({ children }: { children: ReactNode }) {
   return createElement(CsrfProvider, null, children);
@@ -336,7 +345,7 @@ describe('useApi', () => {
 
 describe('useArchivedTasks', () => {
   it('fetches archived tasks on mount', async () => {
-    const { result } = renderHook(() => useArchivedTasks(), { wrapper });
+    const { result } = renderHook(() => useArchivedTasks(defaultArchivedOptions), { wrapper });
 
     expect(result.current.loading).toBe(true);
 
@@ -355,7 +364,7 @@ describe('useArchivedTasks', () => {
       '/api/archived-tasks': () => new Response(JSON.stringify({ error: 'fail' }), { status: 500 }),
     });
 
-    const { result } = renderHook(() => useArchivedTasks(), { wrapper });
+    const { result } = renderHook(() => useArchivedTasks(defaultArchivedOptions), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -369,7 +378,7 @@ describe('useArchivedTasks', () => {
       'DELETE /api/archived-tasks/archived-1': () => new Response(JSON.stringify({ success: true }), { status: 200 }),
     });
 
-    const { result } = renderHook(() => useArchivedTasks(), { wrapper });
+    const { result } = renderHook(() => useArchivedTasks(defaultArchivedOptions), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -387,7 +396,7 @@ describe('useArchivedTasks', () => {
       'DELETE /api/archived-tasks/archived-1': () => new Response(JSON.stringify({ error: 'fail' }), { status: 500 }),
     });
 
-    const { result } = renderHook(() => useArchivedTasks(), { wrapper });
+    const { result } = renderHook(() => useArchivedTasks(defaultArchivedOptions), { wrapper });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -398,5 +407,32 @@ describe('useArchivedTasks', () => {
     );
 
     expect(err?.message).toBe('Failed to delete archived task');
+  });
+
+  it('refetches when controlled page and filters change', async () => {
+    const { rerender } = renderHook(
+      ({ page, filters }: { page: number; filters: ArchivedFiltersState }) => useArchivedTasks({ page, filters }),
+      { wrapper, initialProps: defaultArchivedOptions },
+    );
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/archived-tasks?page=1&pageSize=20', expect.any(Object));
+    });
+
+    rerender({
+      page: 2,
+      filters: {
+        ...defaultArchivedOptions.filters,
+        q: 'focus',
+        quadrant: 'urgentImportant',
+      },
+    });
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/archived-tasks?page=2&pageSize=20&q=focus&quadrant=urgentImportant',
+        expect.any(Object),
+      );
+    });
   });
 });

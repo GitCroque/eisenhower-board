@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, RotateCcw, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/i18n';
@@ -24,12 +24,12 @@ const quadrantColors: Record<QuadrantKey, string> = {
   notUrgentNotImportant: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
 };
 
-const quadrantFilterOptions: Array<{ value: QuadrantKey | 'all'; label: string }> = [
-  { value: 'all', label: 'All quadrants' },
-  { value: 'urgentImportant', label: 'Urgent & Important' },
-  { value: 'notUrgentImportant', label: 'Important, Not Urgent' },
-  { value: 'urgentNotImportant', label: 'Urgent, Not Important' },
-  { value: 'notUrgentNotImportant', label: 'Not Urgent, Not Important' },
+const quadrantFilterOptions: Array<QuadrantKey | 'all'> = [
+  'all',
+  'urgentImportant',
+  'notUrgentImportant',
+  'urgentNotImportant',
+  'notUrgentNotImportant',
 ];
 
 function formatDate(timestamp: number): string {
@@ -67,30 +67,26 @@ export function ArchivePage() {
   const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const initialPage = useMemo(() => getInitialPage(searchParams), [searchParams]);
-  const initialQuadrant = useMemo(() => getInitialQuadrant(searchParams), [searchParams]);
+  const page = useMemo(() => getInitialPage(searchParams), [searchParams]);
+  const filters = useMemo(() => ({
+    q: searchParams.get('q') ?? '',
+    quadrant: getInitialQuadrant(searchParams),
+    from: searchParams.get('from') ?? '',
+    to: searchParams.get('to') ?? '',
+  }), [searchParams]);
 
   const {
     archivedTasks,
     total,
-    page,
     pageSize,
     loading,
     error,
-    filters,
     deleteArchivedTask,
     restoreArchivedTask,
-    setPage,
-    setFilters,
     refetch,
   } = useArchivedTasks({
-    initialPage,
-    initialFilters: {
-      q: searchParams.get('q') ?? '',
-      quadrant: initialQuadrant,
-      from: searchParams.get('from') ?? '',
-      to: searchParams.get('to') ?? '',
-    },
+    page,
+    filters,
   });
 
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
@@ -102,6 +98,26 @@ export function ArchivePage() {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  const updateSearch = useCallback((nextPage: number, nextFilters: typeof filters) => {
+    const nextParams = new URLSearchParams();
+    if (nextPage > 1) {
+      nextParams.set('page', String(nextPage));
+    }
+    if (nextFilters.q) {
+      nextParams.set('q', nextFilters.q);
+    }
+    if (nextFilters.quadrant !== 'all') {
+      nextParams.set('quadrant', nextFilters.quadrant);
+    }
+    if (nextFilters.from) {
+      nextParams.set('from', nextFilters.from);
+    }
+    if (nextFilters.to) {
+      nextParams.set('to', nextFilters.to);
+    }
+    setSearchParams(nextParams, { replace: true });
+  }, [setSearchParams]);
+
   useEffect(() => {
     setQuery(filters.q);
     setFromDate(filters.from);
@@ -110,27 +126,10 @@ export function ArchivePage() {
   }, [filters]);
 
   useEffect(() => {
-    const nextParams = new URLSearchParams();
-    if (page > 1) {
-      nextParams.set('page', String(page));
+    if (!loading && page > totalPages) {
+      updateSearch(totalPages, filters);
     }
-    if (filters.q) {
-      nextParams.set('q', filters.q);
-    }
-    if (filters.quadrant !== 'all') {
-      nextParams.set('quadrant', filters.quadrant);
-    }
-    if (filters.from) {
-      nextParams.set('from', filters.from);
-    }
-    if (filters.to) {
-      nextParams.set('to', filters.to);
-    }
-
-    if (nextParams.toString() !== searchParams.toString()) {
-      setSearchParams(nextParams, { replace: true });
-    }
-  }, [filters, page, searchParams, setSearchParams]);
+  }, [filters, loading, page, totalPages, updateSearch]);
 
   const handleDelete = async () => {
     if (!deleteTaskId) return;
@@ -153,7 +152,7 @@ export function ArchivePage() {
 
   const handleApplyFilters = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setFilters({
+    updateSearch(1, {
       q: query.trim(),
       quadrant: quadrantFilter,
       from: fromDate,
@@ -165,7 +164,7 @@ export function ArchivePage() {
     const target = Number(jumpPage);
     if (!Number.isFinite(target)) return;
     const normalized = Math.min(totalPages, Math.max(1, Math.floor(target)));
-    setPage(normalized);
+    updateSearch(normalized, filters);
     setJumpPage('');
   };
 
@@ -215,7 +214,7 @@ export function ArchivePage() {
           type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search archived tasks"
+          placeholder={t.archive.searchPlaceholder}
           className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
         />
         <select
@@ -224,7 +223,9 @@ export function ArchivePage() {
           className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
         >
           {quadrantFilterOptions.map((option) => (
-            <option key={option.value} value={option.value}>{option.label}</option>
+            <option key={option} value={option}>
+              {option === 'all' ? t.archive.allQuadrants : t.quadrants[option].title}
+            </option>
           ))}
         </select>
         <input
@@ -244,7 +245,7 @@ export function ArchivePage() {
             type="submit"
             className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
           >
-            Apply
+            {t.archive.applyFilters}
           </button>
         </div>
       </form>
@@ -275,8 +276,8 @@ export function ArchivePage() {
                 <button
                   onClick={() => void handleRestore(task.id)}
                   className="rounded-md p-1 text-slate-400 transition-all duration-200 hover:scale-110 hover:text-blue-600"
-                  aria-label="Restore task"
-                  title="Restore task"
+                  aria-label={t.archive.restoreTask}
+                  title={t.archive.restoreTask}
                 >
                   <RotateCcw className="h-4 w-4" />
                 </button>
@@ -296,10 +297,10 @@ export function ArchivePage() {
       {totalPages > 1 && (
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <button
-            onClick={() => setPage(page - 1)}
+            onClick={() => updateSearch(page - 1, filters)}
             disabled={page <= 1}
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90"
-            aria-label="Previous page"
+            aria-label={t.archive.previousPage}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -309,10 +310,10 @@ export function ArchivePage() {
           </span>
 
           <button
-            onClick={() => setPage(page + 1)}
+            onClick={() => updateSearch(page + 1, filters)}
             disabled={page >= totalPages}
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90"
-            aria-label="Next page"
+            aria-label={t.archive.nextPage}
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -324,14 +325,14 @@ export function ArchivePage() {
               max={totalPages}
               value={jumpPage}
               onChange={(event) => setJumpPage(event.target.value)}
-              placeholder="Page"
+              placeholder={t.archive.pagePlaceholder}
               className="h-9 w-20 rounded-lg border border-slate-300 bg-white px-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
             />
             <button
               onClick={handleJumpToPage}
               className="h-9 rounded-lg border border-white/60 bg-white/70 px-3 text-sm font-medium text-slate-700 backdrop-blur-md transition-all duration-200 hover:bg-white/90 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:bg-slate-800/90"
             >
-              Go
+              {t.archive.goToPage}
             </button>
           </div>
         </div>
