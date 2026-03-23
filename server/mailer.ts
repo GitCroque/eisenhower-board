@@ -10,80 +10,112 @@ export interface SendMagicLinkParams {
 const SUPPORTED_LANGUAGES = ['en', 'fr', 'de', 'es', 'it', 'pt', 'nl', 'pl', 'ru', 'uk', 'zh', 'hi', 'ar', 'bn'] as const;
 type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
 
+const APP_NAME = 'Focus by Eisenhower';
+
 const EMAIL_COPY: Record<SupportedLanguage, {
   subject: string;
+  greeting: string;
   body: string;
   expires: string;
+  ignore: string;
 }> = {
   en: {
-    subject: 'Your sign-in link',
-    body: 'Click the link below to sign in to Eisenhower Board:',
+    subject: 'Your secure sign-in link',
+    greeting: 'Hello,',
+    body: `You requested to sign in to ${APP_NAME}. Click the link below to access your space:`,
     expires: 'This link expires in {minutes} minutes and can only be used once.',
+    ignore: 'If you did not request this, please ignore this email.',
   },
   fr: {
-    subject: 'Votre lien de connexion',
-    body: 'Cliquez sur le lien ci-dessous pour vous connecter à Eisenhower Board :',
+    subject: 'Votre lien de connexion sécurisé',
+    greeting: 'Bonjour,',
+    body: `Vous avez demandé à vous connecter à ${APP_NAME}. Cliquez sur le lien ci-dessous pour accéder à votre espace :`,
     expires: 'Ce lien expire dans {minutes} minutes et ne peut être utilisé qu\u2019une seule fois.',
+    ignore: 'Si vous n\u2019êtes pas à l\u2019origine de cette demande, ignorez cet email.',
   },
   de: {
-    subject: 'Ihr Anmeldelink',
-    body: 'Klicken Sie auf den folgenden Link, um sich bei Eisenhower Board anzumelden:',
+    subject: 'Ihr sicherer Anmeldelink',
+    greeting: 'Hallo,',
+    body: `Sie haben eine Anmeldung bei ${APP_NAME} angefordert. Klicken Sie auf den folgenden Link, um auf Ihren Bereich zuzugreifen:`,
     expires: 'Dieser Link läuft in {minutes} Minuten ab und kann nur einmal verwendet werden.',
+    ignore: 'Wenn Sie diese Anfrage nicht gestellt haben, ignorieren Sie bitte diese E-Mail.',
   },
   es: {
-    subject: 'Tu enlace de inicio de sesión',
-    body: 'Haz clic en el enlace de abajo para iniciar sesión en Eisenhower Board:',
+    subject: 'Tu enlace de acceso seguro',
+    greeting: 'Hola,',
+    body: `Has solicitado iniciar sesión en ${APP_NAME}. Haz clic en el enlace de abajo para acceder a tu espacio:`,
     expires: 'Este enlace caduca en {minutes} minutos y solo puede usarse una vez.',
+    ignore: 'Si no has solicitado esto, ignora este correo.',
   },
   it: {
-    subject: 'Il tuo link di accesso',
-    body: 'Clicca sul link qui sotto per accedere a Eisenhower Board:',
+    subject: 'Il tuo link di accesso sicuro',
+    greeting: 'Ciao,',
+    body: `Hai richiesto l'accesso a ${APP_NAME}. Clicca sul link qui sotto per accedere al tuo spazio:`,
     expires: 'Questo link scade tra {minutes} minuti e può essere usato una sola volta.',
+    ignore: 'Se non hai effettuato questa richiesta, ignora questa email.',
   },
   pt: {
-    subject: 'Seu link de login',
-    body: 'Clique no link abaixo para entrar no Eisenhower Board:',
+    subject: 'Seu link de acesso seguro',
+    greeting: 'Olá,',
+    body: `Você solicitou acesso ao ${APP_NAME}. Clique no link abaixo para acessar seu espaço:`,
     expires: 'Este link expira em {minutes} minutos e só pode ser usado uma vez.',
+    ignore: 'Se você não fez esta solicitação, ignore este email.',
   },
   nl: {
-    subject: 'Uw aanmeldlink',
-    body: 'Klik op de onderstaande link om in te loggen bij Eisenhower Board:',
+    subject: 'Uw beveiligde aanmeldlink',
+    greeting: 'Hallo,',
+    body: `U heeft aanmelding bij ${APP_NAME} aangevraagd. Klik op de onderstaande link om toegang te krijgen tot uw ruimte:`,
     expires: 'Deze link verloopt over {minutes} minuten en kan slechts één keer worden gebruikt.',
+    ignore: 'Als u dit niet heeft aangevraagd, kunt u deze e-mail negeren.',
   },
   pl: {
-    subject: 'Twój link do logowania',
-    body: 'Kliknij poniższy link, aby zalogować się do Eisenhower Board:',
+    subject: 'Twój bezpieczny link do logowania',
+    greeting: 'Cześć,',
+    body: `Poprosiłeś o zalogowanie się do ${APP_NAME}. Kliknij poniższy link, aby uzyskać dostęp do swojej przestrzeni:`,
     expires: 'Ten link wygasa za {minutes} minut i może być użyty tylko raz.',
+    ignore: 'Jeśli nie wysłałeś tego żądania, zignoruj tego e-maila.',
   },
   ru: {
-    subject: 'Ваша ссылка для входа',
-    body: 'Нажмите на ссылку ниже, чтобы войти в Eisenhower Board:',
+    subject: 'Ваша безопасная ссылка для входа',
+    greeting: 'Здравствуйте,',
+    body: `Вы запросили вход в ${APP_NAME}. Нажмите на ссылку ниже, чтобы получить доступ к вашему пространству:`,
     expires: 'Эта ссылка истекает через {minutes} минут и может быть использована только один раз.',
+    ignore: 'Если вы не отправляли этот запрос, проигнорируйте это письмо.',
   },
   uk: {
-    subject: 'Ваше посилання для входу',
-    body: 'Натисніть на посилання нижче, щоб увійти в Eisenhower Board:',
+    subject: 'Ваше безпечне посилання для входу',
+    greeting: 'Вітаємо,',
+    body: `Ви запросили вхід до ${APP_NAME}. Натисніть на посилання нижче, щоб отримати доступ до вашого простору:`,
     expires: 'Це посилання дійсне {minutes} хвилин і може бути використане лише один раз.',
+    ignore: 'Якщо ви не надсилали цей запит, проігноруйте цей лист.',
   },
   zh: {
-    subject: '您的登录链接',
-    body: '点击以下链接登录 Eisenhower Board：',
+    subject: '您的安全登录链接',
+    greeting: '您好，',
+    body: `您请求登录 ${APP_NAME}。请点击以下链接访问您的空间：`,
     expires: '此链接将在 {minutes} 分钟后过期，且只能使用一次。',
+    ignore: '如果您没有发起此请求，请忽略此邮件。',
   },
   hi: {
-    subject: 'आपका साइन-इन लिंक',
-    body: 'Eisenhower Board में साइन इन करने के लिए नीचे दिए गए लिंक पर क्लिक करें:',
+    subject: 'आपका सुरक्षित साइन-इन लिंक',
+    greeting: 'नमस्ते,',
+    body: `आपने ${APP_NAME} में साइन इन करने का अनुरोध किया है। अपने स्पेस तक पहुँचने के लिए नीचे दिए गए लिंक पर क्लिक करें:`,
     expires: 'यह लिंक {minutes} मिनट में समाप्त हो जाएगा और केवल एक बार उपयोग किया जा सकता है।',
+    ignore: 'यदि आपने यह अनुरोध नहीं किया है, तो कृपया इस ईमेल को अनदेखा करें।',
   },
   ar: {
-    subject: 'رابط تسجيل الدخول الخاص بك',
-    body: 'انقر على الرابط أدناه لتسجيل الدخول إلى Eisenhower Board:',
+    subject: 'رابط تسجيل الدخول الآمن الخاص بك',
+    greeting: 'مرحبًا،',
+    body: `لقد طلبت تسجيل الدخول إلى ${APP_NAME}. انقر على الرابط أدناه للوصول إلى مساحتك:`,
     expires: 'تنتهي صلاحية هذا الرابط خلال {minutes} دقيقة ولا يمكن استخدامه إلا مرة واحدة.',
+    ignore: 'إذا لم تكن أنت من أرسل هذا الطلب، يرجى تجاهل هذا البريد الإلكتروني.',
   },
   bn: {
-    subject: 'আপনার সাইন-ইন লিঙ্ক',
-    body: 'Eisenhower Board-এ সাইন ইন করতে নিচের লিঙ্কে ক্লিক করুন:',
+    subject: 'আপনার নিরাপদ সাইন-ইন লিঙ্ক',
+    greeting: 'হ্যালো,',
+    body: `আপনি ${APP_NAME}-এ সাইন ইন করার অনুরোধ করেছেন। আপনার স্পেসে প্রবেশ করতে নিচের লিঙ্কে ক্লিক করুন:`,
     expires: 'এই লিঙ্কটি {minutes} মিনিটে মেয়াদ শেষ হবে এবং শুধুমাত্র একবার ব্যবহার করা যাবে।',
+    ignore: 'আপনি এই অনুরোধ না করলে, এই ইমেলটি উপেক্ষা করুন।',
   },
 };
 
@@ -111,11 +143,13 @@ function buildEmail(params: SendMagicLinkParams) {
 
   return {
     subject: copy.subject,
-    text: [copy.body, params.link, '', expires].join('\n'),
+    text: [copy.greeting, '', copy.body, '', params.link, '', expires, '', copy.ignore].join('\n'),
     html: [
+      `<p>${escapeHtml(copy.greeting)}</p>`,
       `<p>${escapeHtml(copy.body)}</p>`,
       `<p><a href="${escapeHtml(params.link)}">${escapeHtml(params.link)}</a></p>`,
       `<p>${escapeHtml(expires)}</p>`,
+      `<p style="color:#888;font-size:0.9em">${escapeHtml(copy.ignore)}</p>`,
     ].join(''),
   };
 }
