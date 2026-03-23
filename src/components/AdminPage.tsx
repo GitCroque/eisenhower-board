@@ -72,6 +72,9 @@ export function AdminPage() {
       if (response.ok) {
         setUsers(prev => prev.filter(u => u.id !== userId));
         if (stats) setStats({ ...stats, totalUsers: stats.totalUsers - 1 });
+      } else {
+        const body = await response.text();
+        console.error('Delete user failed:', response.status, body);
       }
     } catch (err) {
       console.error('Delete user failed:', err);
@@ -143,16 +146,16 @@ export function AdminPage() {
                         {u.lastLoginAt ? formatDate(u.lastLoginAt) : t.admin.never}
                       </td>
                       <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{u.taskCount}</td>
-                      <td className="px-4 py-2.5">
+                      <td className="w-28 px-4 py-2.5 text-right">
                         {u.email !== user.email && (
                           confirmDeleteId === u.id ? (
-                            <div className="flex items-center gap-1">
+                            <span className="inline-flex items-center gap-1">
                               <button
                                 onClick={() => void deleteUser(u.id)}
                                 disabled={deletingId === u.id}
                                 className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
                               >
-                                {deletingId === u.id ? '...' : t.tasks.deleteTask}
+                                {deletingId === u.id ? '...' : 'OK'}
                               </button>
                               <button
                                 onClick={() => setConfirmDeleteId(null)}
@@ -160,7 +163,7 @@ export function AdminPage() {
                               >
                                 {t.tasks.cancel}
                               </button>
-                            </div>
+                            </span>
                           ) : (
                             <button
                               onClick={() => setConfirmDeleteId(u.id)}
