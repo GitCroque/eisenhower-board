@@ -39,7 +39,7 @@ const QUADRANT_MINI = [
 
 export function LoginPage() {
   const { requestMagicLink } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [email, setEmail] = useState('');
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -57,7 +57,7 @@ export function LoginPage() {
       setLoading(true);
       setError(null);
       const normalizedEmail = email.trim().toLowerCase();
-      await requestMagicLink(normalizedEmail);
+      await requestMagicLink(normalizedEmail, language);
       setSubmittedEmail(normalizedEmail);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to send sign-in link');

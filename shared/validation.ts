@@ -35,6 +35,7 @@ export const UpdateTaskRequestSchema = z.object({
 
 export const MagicLinkRequestSchema = z.object({
   email: z.string().trim().toLowerCase().email('Invalid email'),
+  language: z.string().min(2).max(5).optional(),
 });
 
 export const TaskIdSchema = z.string().uuid('Invalid task ID');

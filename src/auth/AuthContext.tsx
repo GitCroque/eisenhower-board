@@ -9,7 +9,7 @@ interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   authCheckFailed: boolean;
-  requestMagicLink: (email: string) => Promise<void>;
+  requestMagicLink: (email: string, language?: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -62,12 +62,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     void refresh();
   }, [refresh]);
 
-  const requestMagicLink = useCallback(async (email: string) => {
+  const requestMagicLink = useCallback(async (email: string, language?: string) => {
     const response = await fetch(`${API_BASE}/auth/magic-link`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, language }),
     });
 
     if (!response.ok) {

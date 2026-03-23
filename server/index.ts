@@ -461,6 +461,7 @@ app.post('/api/auth/magic-link', magicLinkIpLimiter, magicLinkEmailLimiter, asyn
       to: user.email,
       link: verifyUrl,
       expiresInMinutes: Math.floor(MAGIC_LINK_TTL_MS / 60000),
+      language: parsed.data.language,
     });
   } catch (err) {
     console.error('POST /api/auth/magic-link error:', err);
