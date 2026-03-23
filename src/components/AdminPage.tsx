@@ -153,7 +153,7 @@ export function AdminPage() {
                         {u.lastLoginAt ? formatDate(u.lastLoginAt) : t.admin.never}
                       </td>
                       <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{u.taskCount}</td>
-                      <td className="px-4 py-2.5 text-right">
+                      <td className="h-10 px-4 text-right">
                         {u.email !== user.email && (
                           confirmDeleteId === u.id ? (
                             <span className="inline-flex items-center gap-1">
