@@ -39,24 +39,7 @@ A free, open-source web application to organize your tasks using the [Eisenhower
 
 ## Self-hosting
 
-The application is available as a Docker image for `linux/amd64` and `linux/arm64` on the [GitHub Container Registry](https://github.com/GitCroque/eisenhower-board/pkgs/container/eisenhower-board).
-
-### Railway (recommended)
-
-The app is deployed on [Railway](https://railway.com/) with auto-deploy from GitHub. A `railway.toml` is included in the repo.
-
-Required Railway variables:
-
-| Variable | Description |
-|----------|-------------|
-| `APP_BASE_URL` | Public URL (e.g. `https://focus.letmiko.app`) |
-| `TRUST_PROXY` | Hop count for reverse proxy (`1` for Railway) |
-| `RESEND_API_KEY` | [Resend](https://resend.com/) API key for sending emails |
-| `MAIL_FROM` | Sender email address (must be verified in Resend) |
-
-### Docker
-
-Create a `.env` file with your configuration, then run:
+The application is available as a Docker image for `linux/amd64` and `linux/arm64` on the [GitHub Container Registry](https://github.com/GitCroque/eisenhower-board/pkgs/container/eisenhower-board). A `railway.toml` is also included for one-click deployment on [Railway](https://railway.com/).
 
 ```bash
 docker compose --profile prod up -d
@@ -67,27 +50,20 @@ Required environment variables:
 | Variable | Description |
 |----------|-------------|
 | `APP_BASE_URL` | Public URL (e.g. `https://your-domain.com`) |
-| `TRUST_PROXY` | Proxy trust setting (`false` by default, use `1` or a subnet behind a reverse proxy) |
 | `MAIL_FROM` | Sender email address |
 
 Email provider (one of):
 
 | Variable | Description |
 |----------|-------------|
-| `RESEND_API_KEY` | Resend API key (recommended, uses HTTPS) |
-| `SMTP_HOST` | SMTP server hostname (fallback) |
+| `RESEND_API_KEY` | [Resend](https://resend.com/) API key (recommended, uses HTTPS) |
+| `SMTP_HOST` | SMTP server hostname (alternative) |
 | `SMTP_PORT` | SMTP port (default: `465`) |
 | `SMTP_SECURE` | Use TLS (default: `true`) |
 | `SMTP_USER` | SMTP username |
 | `SMTP_PASS` | SMTP password |
 
-Optional environment variables:
-
-| Variable | Description |
-|----------|-------------|
-| `SQLITE_JOURNAL_MODE` | SQLite journal mode (`WAL` by default). Set `DELETE` on volumes that do not support WAL shared-memory files, such as some NAS, NFS, CIFS, or FUSE-backed mounts. |
-
-Data is stored in a SQLite database inside the `eisenhower-data` volume and persists between restarts.
+Data is stored in a SQLite database inside a Docker volume and persists between restarts.
 
 ## Development
 
@@ -133,8 +109,7 @@ eisenhower-board/
 │   ├── i18n/             # 14 languages
 │   └── types/            # TypeScript types
 ├── Dockerfile            # Multi-stage Alpine build
-├── docker-compose.yml    # Docker Compose (dev + prod profile)
-└── railway.toml          # Railway deployment config
+└── docker-compose.yml    # Docker Compose (dev + prod profile)
 ```
 
 ## License
