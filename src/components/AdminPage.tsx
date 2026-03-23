@@ -35,6 +35,7 @@ export function AdminPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   if (!user?.isAdmin) {
     return <Navigate to="/" replace />;
@@ -64,8 +65,7 @@ export function AdminPage() {
     void Promise.all([fetchCsrfToken(), fetchData()]);
   }, [fetchCsrfToken, fetchData]);
 
-  const deleteUser = useCallback(async (userId: string, email: string) => {
-    if (!confirm(t.admin.deleteUserConfirmDescription.replace('{email}', email))) return;
+  const deleteUser = useCallback(async (userId: string) => {
     try {
       setDeletingId(userId);
       const response = await fetchWithCsrf(`/api/admin/users/${userId}`, { method: 'DELETE' });
@@ -73,10 +73,13 @@ export function AdminPage() {
         setUsers(prev => prev.filter(u => u.id !== userId));
         if (stats) setStats({ ...stats, totalUsers: stats.totalUsers - 1 });
       }
+    } catch (err) {
+      console.error('Delete user failed:', err);
     } finally {
       setDeletingId(null);
+      setConfirmDeleteId(null);
     }
-  }, [fetchWithCsrf, t.admin.deleteUserConfirmDescription, stats]);
+  }, [fetchWithCsrf, stats]);
 
   return (
     <Layout maxWidth="max-w-5xl">
@@ -142,14 +145,31 @@ export function AdminPage() {
                       <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{u.taskCount}</td>
                       <td className="px-4 py-2.5">
                         {u.email !== user.email && (
-                          <button
-                            onClick={() => void deleteUser(u.id, u.email)}
-                            disabled={deletingId === u.id}
-                            className="rounded p-1 text-red-500 transition hover:bg-red-50 disabled:opacity-50 dark:hover:bg-red-950"
-                            title={t.admin.deleteUser}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          confirmDeleteId === u.id ? (
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => void deleteUser(u.id)}
+                                disabled={deletingId === u.id}
+                                className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+                              >
+                                {deletingId === u.id ? '...' : t.tasks.deleteTask}
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="rounded px-2 py-1 text-xs text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-700"
+                              >
+                                {t.tasks.cancel}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmDeleteId(u.id)}
+                              className="rounded p-1 text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950"
+                              title={t.admin.deleteUser}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )
                         )}
                       </td>
                     </tr>
