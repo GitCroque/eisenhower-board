@@ -130,6 +130,43 @@ const hi: Translations = {
     description: 'आइज़नहावर मैट्रिक्स एक उत्पादकता विधि है जो आपके कार्यों को उनकी तात्कालिकता और महत्व के आधार पर चार भागों में वर्गीकृत करके उन्हें व्यवस्थित और प्राथमिकता देने में मदद करती है। जो वास्तव में मायने रखता है उस पर ध्यान दें।',
     quadrantsTitle: 'अपनी प्राथमिकताओं को व्यवस्थित करने के लिए चार भाग',
   },
+
+  admin: {
+    title: 'प्रशासन',
+    stats: 'आँकड़े',
+    totalUsers: 'कुल उपयोगकर्ता',
+    activeUsers30d: 'सक्रिय उपयोगकर्ता (30 दिन)',
+    users: 'उपयोगकर्ता',
+    email: 'ईमेल',
+    createdAt: 'बनाया गया',
+    lastLoginAt: 'अंतिम लॉगिन',
+    taskCount: 'कार्य',
+    never: 'कभी नहीं',
+    deleteUser: 'उपयोगकर्ता हटाएं',
+    deleteUserConfirmTitle: 'उपयोगकर्ता हटाएं?',
+    deleteUserConfirmDescription: '{email} का सारा डेटा स्थायी रूप से हटा दिया जाएगा। यह क्रिया पूर्ववत नहीं की जा सकती।',
+    cannotDeleteSelf: 'आप यहाँ से अपना खाता नहीं हटा सकते',
+    userDeleted: 'उपयोगकर्ता हटाया गया',
+  },
+
+  account: {
+    title: 'खाता',
+    currentEmail: 'वर्तमान ईमेल',
+    newEmail: 'नया ईमेल',
+    changeEmail: 'ईमेल बदलें',
+    changingEmail: 'बदला जा रहा है...',
+    emailChangeRequested: 'सत्यापन ईमेल भेजा गया',
+    emailChangeRequestedDescription: 'परिवर्तन की पुष्टि के लिए अपने नए ईमेल का इनबॉक्स जांचें।',
+    emailChanged: 'ईमेल बदला गया',
+    emailChangedDescription: 'आपका ईमेल सफलतापूर्वक अपडेट हो गया है।',
+    dangerZone: 'खतरनाक क्षेत्र',
+    deleteAccount: 'मेरा खाता हटाएं',
+    deleteAccountConfirmTitle: 'अपना खाता हटाएं?',
+    deleteAccountConfirmDescription: 'आपके सभी कार्य और डेटा स्थायी रूप से हटा दिए जाएंगे। यह क्रिया पूर्ववत नहीं की जा सकती।',
+    deleteAccountTypeEmail: 'पुष्टि के लिए अपना ईमेल दर्ज करें',
+    deletingAccount: 'हटाया जा रहा है...',
+    accountDeleted: 'खाता हटाया गया',
+  },
 };
 
 export default hi;

@@ -130,6 +130,43 @@ const nl: Translations = {
     description: 'De Eisenhower-matrix is een productiviteitsmethode die je helpt taken te organiseren en prioriteren door ze in vier kwadranten in te delen op basis van urgentie en belang. Focus op wat echt belangrijk is en verspil geen tijd aan afleidingen.',
     quadrantsTitle: 'Vier kwadranten om je prioriteiten te organiseren',
   },
+
+  admin: {
+    title: 'Beheer',
+    stats: 'Statistieken',
+    totalUsers: 'Totaal aantal gebruikers',
+    activeUsers30d: 'Actieve gebruikers (30 dagen)',
+    users: 'Gebruikers',
+    email: 'E-mail',
+    createdAt: 'Aangemaakt',
+    lastLoginAt: 'Laatste login',
+    taskCount: 'Taken',
+    never: 'Nooit',
+    deleteUser: 'Gebruiker verwijderen',
+    deleteUserConfirmTitle: 'Gebruiker verwijderen?',
+    deleteUserConfirmDescription: 'Alle gegevens van {email} worden permanent verwijderd. Deze actie kan niet ongedaan worden gemaakt.',
+    cannotDeleteSelf: 'Je kunt je eigen account niet verwijderen vanaf deze pagina',
+    userDeleted: 'Gebruiker verwijderd',
+  },
+
+  account: {
+    title: 'Account',
+    currentEmail: 'Huidig e-mailadres',
+    newEmail: 'Nieuw e-mailadres',
+    changeEmail: 'E-mail wijzigen',
+    changingEmail: 'Wijzigen...',
+    emailChangeRequested: 'Verificatie-e-mail verzonden',
+    emailChangeRequestedDescription: 'Controleer de inbox van je nieuwe e-mailadres om de wijziging te bevestigen.',
+    emailChanged: 'E-mail gewijzigd',
+    emailChangedDescription: 'Je e-mailadres is succesvol bijgewerkt.',
+    dangerZone: 'Gevarenzone',
+    deleteAccount: 'Mijn account verwijderen',
+    deleteAccountConfirmTitle: 'Account verwijderen?',
+    deleteAccountConfirmDescription: 'Al je taken en gegevens worden permanent verwijderd. Deze actie kan niet ongedaan worden gemaakt.',
+    deleteAccountTypeEmail: 'Typ je e-mailadres ter bevestiging',
+    deletingAccount: 'Verwijderen...',
+    accountDeleted: 'Account verwijderd',
+  },
 };
 
 export default nl;

@@ -130,6 +130,43 @@ const zh: Translations = {
     description: '艾森豪威尔矩阵是一种生产力方法，通过将任务按紧急程度和重要程度分为四个象限，帮助您组织和优先处理任务。专注于真正重要的事情，不再在干扰上浪费时间。',
     quadrantsTitle: '四个象限组织您的优先事项',
   },
+
+  admin: {
+    title: '管理',
+    stats: '统计',
+    totalUsers: '用户总数',
+    activeUsers30d: '活跃用户（30天）',
+    users: '用户',
+    email: '邮箱',
+    createdAt: '创建时间',
+    lastLoginAt: '最后登录',
+    taskCount: '任务数',
+    never: '从未',
+    deleteUser: '删除用户',
+    deleteUserConfirmTitle: '删除用户？',
+    deleteUserConfirmDescription: '{email} 的所有数据将被永久删除。此操作无法撤消。',
+    cannotDeleteSelf: '您无法在此处删除自己的账户',
+    userDeleted: '用户已删除',
+  },
+
+  account: {
+    title: '账户',
+    currentEmail: '当前邮箱',
+    newEmail: '新邮箱',
+    changeEmail: '更改邮箱',
+    changingEmail: '更改中...',
+    emailChangeRequested: '验证邮件已发送',
+    emailChangeRequestedDescription: '请查收新邮箱的收件箱以确认更改。',
+    emailChanged: '邮箱已更改',
+    emailChangedDescription: '您的邮箱已成功更新。',
+    dangerZone: '危险区域',
+    deleteAccount: '删除我的账户',
+    deleteAccountConfirmTitle: '删除您的账户？',
+    deleteAccountConfirmDescription: '您的所有任务和数据将被永久删除。此操作无法撤消。',
+    deleteAccountTypeEmail: '输入您的邮箱以确认',
+    deletingAccount: '删除中...',
+    accountDeleted: '账户已删除',
+  },
 };
 
 export default zh;

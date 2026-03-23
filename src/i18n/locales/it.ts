@@ -130,6 +130,43 @@ const it: Translations = {
     description: "La Matrice di Eisenhower è un metodo di produttività che ti aiuta a organizzare e dare priorità alle attività classificandole in quattro quadranti in base alla loro urgenza e importanza. Concentrati su ciò che conta davvero e smetti di perdere tempo con le distrazioni.",
     quadrantsTitle: 'Quattro quadranti per organizzare le tue priorità',
   },
+
+  admin: {
+    title: 'Amministrazione',
+    stats: 'Statistiche',
+    totalUsers: 'Utenti totali',
+    activeUsers30d: 'Utenti attivi (30 giorni)',
+    users: 'Utenti',
+    email: 'Email',
+    createdAt: 'Creato',
+    lastLoginAt: 'Ultimo accesso',
+    taskCount: 'Attività',
+    never: 'Mai',
+    deleteUser: "Elimina l'utente",
+    deleteUserConfirmTitle: "Eliminare l'utente?",
+    deleteUserConfirmDescription: 'Tutti i dati di {email} saranno eliminati definitivamente. Questa azione è irreversibile.',
+    cannotDeleteSelf: 'Non puoi eliminare il tuo account da questa pagina',
+    userDeleted: 'Utente eliminato',
+  },
+
+  account: {
+    title: 'Account',
+    currentEmail: 'Email attuale',
+    newEmail: 'Nuova email',
+    changeEmail: 'Cambia email',
+    changingEmail: 'Modifica in corso...',
+    emailChangeRequested: 'Email di verifica inviata',
+    emailChangeRequestedDescription: 'Controlla la casella di posta del tuo nuovo indirizzo email per confermare la modifica.',
+    emailChanged: 'Email modificata',
+    emailChangedDescription: 'Il tuo indirizzo email è stato aggiornato con successo.',
+    dangerZone: 'Zona pericolosa',
+    deleteAccount: 'Elimina il mio account',
+    deleteAccountConfirmTitle: 'Eliminare il tuo account?',
+    deleteAccountConfirmDescription: 'Tutte le tue attività e i tuoi dati saranno eliminati definitivamente. Questa azione è irreversibile.',
+    deleteAccountTypeEmail: 'Digita la tua email per confermare',
+    deletingAccount: 'Eliminazione...',
+    accountDeleted: 'Account eliminato',
+  },
 };
 
 export default it;

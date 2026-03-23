@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
-import { Archive, Shield, LogOut } from 'lucide-react';
+import { Archive, Shield, ShieldCheck, UserCog, LogOut } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/i18n';
 import { CsrfProvider } from '@/hooks/CsrfContext';
 import { AuthProvider, useAuth } from '@/auth/AuthContext';
@@ -18,6 +18,12 @@ const ArchivePage = lazy(() =>
 );
 const SessionsPage = lazy(() =>
   import('./components/SessionsPage').then((m) => ({ default: m.SessionsPage }))
+);
+const AdminPage = lazy(() =>
+  import('./components/AdminPage').then((m) => ({ default: m.AdminPage }))
+);
+const AccountPage = lazy(() =>
+  import('./components/AccountPage').then((m) => ({ default: m.AccountPage }))
 );
 
 function MatrixPage() {
@@ -64,6 +70,24 @@ function MatrixPage() {
             >
               <Shield className="h-4 w-4" />
             </Link>
+            <Link
+              to="/account"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:text-slate-900 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-slate-200"
+              aria-label={t.account.title}
+              title={t.account.title}
+            >
+              <UserCog className="h-4 w-4" />
+            </Link>
+            {user?.isAdmin && (
+              <Link
+                to="/admin"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-amber-200/60 bg-amber-50/70 text-amber-600 backdrop-blur-md transition-all duration-200 hover:bg-amber-100/90 dark:border-amber-700/60 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50"
+                aria-label={t.admin.title}
+                title={t.admin.title}
+              >
+                <ShieldCheck className="h-4 w-4" />
+              </Link>
+            )}
             <LanguageSelector />
             <ThemeToggle />
             <button
@@ -124,6 +148,22 @@ function AppRoutes() {
         element={
           <Suspense fallback={<ArchiveSkeleton />}>
             <SessionsPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/account"
+        element={
+          <Suspense fallback={<ArchiveSkeleton />}>
+            <AccountPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <Suspense fallback={<ArchiveSkeleton />}>
+            <AdminPage />
           </Suspense>
         }
       />

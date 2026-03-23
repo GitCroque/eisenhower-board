@@ -130,6 +130,43 @@ const bn: Translations = {
     description: 'আইজেনহাওয়ার ম্যাট্রিক্স একটি উৎপাদনশীলতা পদ্ধতি যা আপনার কাজগুলিকে জরুরিতা এবং গুরুত্বের ভিত্তিতে চারটি ভাগে ভাগ করে সংগঠিত এবং অগ্রাধিকার দিতে সাহায্য করে। যা সত্যিই গুরুত্বপূর্ণ তার উপর মনোযোগ দিন।',
     quadrantsTitle: 'আপনার অগ্রাধিকার সংগঠিত করতে চারটি ভাগ',
   },
+
+  admin: {
+    title: 'প্রশাসন',
+    stats: 'পরিসংখ্যান',
+    totalUsers: 'মোট ব্যবহারকারী',
+    activeUsers30d: 'সক্রিয় ব্যবহারকারী (৩০ দিন)',
+    users: 'ব্যবহারকারী',
+    email: 'ইমেল',
+    createdAt: 'তৈরির তারিখ',
+    lastLoginAt: 'সর্বশেষ লগইন',
+    taskCount: 'কাজ',
+    never: 'কখনো না',
+    deleteUser: 'ব্যবহারকারী মুছুন',
+    deleteUserConfirmTitle: 'ব্যবহারকারী মুছুন?',
+    deleteUserConfirmDescription: '{email}-এর সমস্ত ডেটা স্থায়ীভাবে মুছে ফেলা হবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।',
+    cannotDeleteSelf: 'আপনি এখান থেকে নিজের অ্যাকাউন্ট মুছতে পারবেন না',
+    userDeleted: 'ব্যবহারকারী মুছে ফেলা হয়েছে',
+  },
+
+  account: {
+    title: 'অ্যাকাউন্ট',
+    currentEmail: 'বর্তমান ইমেল',
+    newEmail: 'নতুন ইমেল',
+    changeEmail: 'ইমেল পরিবর্তন করুন',
+    changingEmail: 'পরিবর্তন হচ্ছে...',
+    emailChangeRequested: 'যাচাইকরণ ইমেল পাঠানো হয়েছে',
+    emailChangeRequestedDescription: 'পরিবর্তন নিশ্চিত করতে আপনার নতুন ইমেলের ইনবক্স দেখুন।',
+    emailChanged: 'ইমেল পরিবর্তিত হয়েছে',
+    emailChangedDescription: 'আপনার ইমেল সফলভাবে আপডেট হয়েছে।',
+    dangerZone: 'বিপদ অঞ্চল',
+    deleteAccount: 'আমার অ্যাকাউন্ট মুছুন',
+    deleteAccountConfirmTitle: 'আপনার অ্যাকাউন্ট মুছুন?',
+    deleteAccountConfirmDescription: 'আপনার সমস্ত কাজ এবং ডেটা স্থায়ীভাবে মুছে ফেলা হবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।',
+    deleteAccountTypeEmail: 'নিশ্চিত করতে আপনার ইমেল লিখুন',
+    deletingAccount: 'মুছে ফেলা হচ্ছে...',
+    accountDeleted: 'অ্যাকাউন্ট মুছে ফেলা হয়েছে',
+  },
 };
 
 export default bn;

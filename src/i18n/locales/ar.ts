@@ -130,6 +130,43 @@ const ar: Translations = {
     description: 'مصفوفة أيزنهاور هي أداة إنتاجية تساعدك على تنظيم مهامك وترتيب أولوياتها عن طريق تصنيفها في أربعة أرباع حسب الإلحاح والأهمية. ركّز على ما يهم حقاً وتوقف عن إضاعة الوقت في المشتتات.',
     quadrantsTitle: 'أربعة أرباع لتنظيم أولوياتك',
   },
+
+  admin: {
+    title: 'الإدارة',
+    stats: 'الإحصائيات',
+    totalUsers: 'إجمالي المستخدمين',
+    activeUsers30d: 'المستخدمون النشطون (30 يوماً)',
+    users: 'المستخدمون',
+    email: 'البريد الإلكتروني',
+    createdAt: 'تاريخ الإنشاء',
+    lastLoginAt: 'آخر تسجيل دخول',
+    taskCount: 'المهام',
+    never: 'أبداً',
+    deleteUser: 'حذف المستخدم',
+    deleteUserConfirmTitle: 'حذف المستخدم؟',
+    deleteUserConfirmDescription: 'سيتم حذف جميع بيانات {email} نهائياً. لا يمكن التراجع عن هذا الإجراء.',
+    cannotDeleteSelf: 'لا يمكنك حذف حسابك الخاص من هنا',
+    userDeleted: 'تم حذف المستخدم',
+  },
+
+  account: {
+    title: 'الحساب',
+    currentEmail: 'البريد الإلكتروني الحالي',
+    newEmail: 'البريد الإلكتروني الجديد',
+    changeEmail: 'تغيير البريد الإلكتروني',
+    changingEmail: 'جارٍ التغيير...',
+    emailChangeRequested: 'تم إرسال بريد التحقق',
+    emailChangeRequestedDescription: 'تحقق من صندوق الوارد لبريدك الإلكتروني الجديد لتأكيد التغيير.',
+    emailChanged: 'تم تغيير البريد الإلكتروني',
+    emailChangedDescription: 'تم تحديث بريدك الإلكتروني بنجاح.',
+    dangerZone: 'منطقة الخطر',
+    deleteAccount: 'حذف حسابي',
+    deleteAccountConfirmTitle: 'حذف حسابك؟',
+    deleteAccountConfirmDescription: 'سيتم حذف جميع مهامك وبياناتك نهائياً. لا يمكن التراجع عن هذا الإجراء.',
+    deleteAccountTypeEmail: 'اكتب بريدك الإلكتروني للتأكيد',
+    deletingAccount: 'جارٍ الحذف...',
+    accountDeleted: 'تم حذف الحساب',
+  },
 };
 
 export default ar;

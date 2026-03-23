@@ -118,10 +118,26 @@ export function initializeSchema(): void {
     CREATE INDEX IF NOT EXISTS idx_magic_links_hash ON magic_links(token_hash);
     CREATE INDEX IF NOT EXISTS idx_magic_links_expires ON magic_links(expires_at);
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS email_change_requests (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      new_email TEXT NOT NULL,
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at INTEGER NOT NULL,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_email_change_token ON email_change_requests(token_hash);
+    CREATE INDEX IF NOT EXISTS idx_email_change_expires ON email_change_requests(expires_at);
+  `);
 }
 
 export function resetDatabaseSchema(): void {
   db.exec(`
+    DROP TABLE IF EXISTS email_change_requests;
     DROP TABLE IF EXISTS tasks;
     DROP TABLE IF EXISTS sessions;
     DROP TABLE IF EXISTS magic_links;
@@ -229,6 +245,40 @@ const stmts = {
   insertUserIgnore: db.prepare(
     'INSERT OR IGNORE INTO users (id, email, created_at, last_login_at) VALUES (?, ?, ?, ?)'
   ),
+
+  // Admin
+  getAllUsersWithTaskCount: db.prepare(`
+    SELECT u.id, u.email, u.created_at, u.last_login_at,
+      (SELECT COUNT(*) FROM tasks t WHERE t.user_id = u.id) as task_count
+    FROM users u
+    ORDER BY u.created_at DESC
+  `),
+  getAdminStats: db.prepare(`
+    SELECT
+      (SELECT COUNT(*) FROM users) as total_users,
+      (SELECT COUNT(*) FROM users WHERE last_login_at > ?) as active_users_30d
+  `),
+  getUserById: db.prepare('SELECT id, email, created_at, last_login_at FROM users WHERE id = ?'),
+  deleteUserById: db.prepare('DELETE FROM users WHERE id = ?'),
+
+  // Purge inactive users
+  purgeInactiveUsers: db.prepare(
+    'DELETE FROM users WHERE (last_login_at IS NOT NULL AND last_login_at < ?) OR (last_login_at IS NULL AND created_at < ?)'
+  ),
+
+  // Email change requests
+  insertEmailChangeRequest: db.prepare(
+    'INSERT INTO email_change_requests (id, user_id, new_email, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+  ),
+  getValidEmailChangeByHash: db.prepare(`
+    SELECT id, user_id, new_email
+    FROM email_change_requests
+    WHERE token_hash = ? AND expires_at > ?
+  `),
+  deleteEmailChangeRequest: db.prepare('DELETE FROM email_change_requests WHERE id = ?'),
+  deleteEmailChangesByUser: db.prepare('DELETE FROM email_change_requests WHERE user_id = ?'),
+  deleteExpiredEmailChangeRequests: db.prepare('DELETE FROM email_change_requests WHERE expires_at <= ?'),
+  updateUserEmail: db.prepare('UPDATE users SET email = ? WHERE id = ?'),
 } as const;
 
 export interface DbTask {
@@ -240,7 +290,7 @@ export interface DbTask {
   completed_at: number | null;
 }
 
-interface DbUser {
+export interface DbUser {
   id: string;
   email: string;
   created_at: number;
@@ -264,6 +314,8 @@ export interface SessionUser {
 export interface CleanupResult {
   deletedMagicLinks: number;
   deletedSessions: number;
+  deletedEmailChanges: number;
+  purgedUsers: number;
 }
 
 export interface CreateSessionParams {
@@ -448,10 +500,112 @@ export function revokeOtherSessions(userId: string, currentSessionId: string): n
   return stmts.deleteOtherSessions.run(userId, currentSessionId).changes;
 }
 
+const INACTIVE_THRESHOLD_MS = 90 * 24 * 60 * 60 * 1000; // 90 days
+
 export function cleanupExpiredAuth(now: number): CleanupResult {
   const deletedMagicLinks = stmts.deleteExpiredMagicLinks.run(now).changes;
   const deletedSessions = stmts.deleteExpiredSessions.run(now).changes;
-  return { deletedMagicLinks, deletedSessions };
+  const deletedEmailChanges = stmts.deleteExpiredEmailChangeRequests.run(now).changes;
+
+  const threshold = now - INACTIVE_THRESHOLD_MS;
+  const purgedUsers = stmts.purgeInactiveUsers.run(threshold, threshold).changes;
+  if (purgedUsers > 0) {
+    console.log(`[cleanup] Purged ${purgedUsers} inactive user(s)`);
+  }
+
+  return { deletedMagicLinks, deletedSessions, deletedEmailChanges, purgedUsers };
+}
+
+// --- Admin ---
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  createdAt: number;
+  lastLoginAt: number | null;
+  taskCount: number;
+}
+
+export function getAllUsersWithTaskCount(): AdminUser[] {
+  const rows = stmts.getAllUsersWithTaskCount.all() as {
+    id: string;
+    email: string;
+    created_at: number;
+    last_login_at: number | null;
+    task_count: number;
+  }[];
+  return rows.map(r => ({
+    id: r.id,
+    email: r.email,
+    createdAt: r.created_at,
+    lastLoginAt: r.last_login_at,
+    taskCount: r.task_count,
+  }));
+}
+
+export function getAdminStats(activeThreshold: number): { totalUsers: number; activeUsers30d: number } {
+  const row = stmts.getAdminStats.get(activeThreshold) as {
+    total_users: number;
+    active_users_30d: number;
+  };
+  return { totalUsers: row.total_users, activeUsers30d: row.active_users_30d };
+}
+
+export function getUserById(userId: string): DbUser | undefined {
+  return stmts.getUserById.get(userId) as DbUser | undefined;
+}
+
+export function deleteUserById(userId: string): boolean {
+  return stmts.deleteUserById.run(userId).changes > 0;
+}
+
+// --- Email change ---
+
+export interface CreateEmailChangeParams {
+  id: string;
+  userId: string;
+  newEmail: string;
+  tokenHash: string;
+  expiresAt: number;
+  createdAt: number;
+}
+
+export interface ConsumedEmailChange {
+  userId: string;
+  newEmail: string;
+}
+
+export function createEmailChangeRequest(params: CreateEmailChangeParams): void {
+  stmts.deleteEmailChangesByUser.run(params.userId);
+  stmts.insertEmailChangeRequest.run(
+    params.id,
+    params.userId,
+    params.newEmail,
+    params.tokenHash,
+    params.expiresAt,
+    params.createdAt
+  );
+}
+
+const consumeEmailChangeTx = db.transaction((tokenHash: string, now: number): ConsumedEmailChange | null => {
+  const row = stmts.getValidEmailChangeByHash.get(tokenHash, now) as {
+    id: string;
+    user_id: string;
+    new_email: string;
+  } | undefined;
+  if (!row) return null;
+
+  const existing = stmts.getUserByEmail.get(row.new_email) as DbUser | undefined;
+  if (existing && existing.id !== row.user_id) return null;
+
+  stmts.updateUserEmail.run(row.new_email, row.user_id);
+  stmts.deleteEmailChangesByUser.run(row.user_id);
+
+  return { userId: row.user_id, newEmail: row.new_email };
+});
+
+export function consumeEmailChange(tokenHash: string, now: number): ConsumedEmailChange | null {
+  return consumeEmailChangeTx(tokenHash, now);
 }
 
 // Get all active tasks (not completed) grouped by quadrant

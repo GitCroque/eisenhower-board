@@ -28,14 +28,22 @@ import db, {
   revokeOtherSessions,
   cleanupExpiredAuth,
   normalizeEmail,
+  getAllUsersWithTaskCount,
+  getAdminStats,
+  deleteUserById,
+  getUserById,
+  createEmailChangeRequest,
+  consumeEmailChange,
 } from './db.js';
-import { sendMagicLinkEmail, isMailerConfigured } from './mailer.js';
+import { sendMagicLinkEmail, sendEmailChangeVerification, isMailerConfigured } from './mailer.js';
 import { sanitizeText } from '../shared/sanitize.js';
 import {
   CreateTaskRequestSchema,
   UpdateTaskRequestSchema,
   TaskIdSchema,
+  UserIdSchema,
   MagicLinkRequestSchema,
+  ChangeEmailRequestSchema,
   TaskBatchRequestSchema,
   ArchivedTasksQuerySchema,
 } from '../shared/validation.js';
@@ -45,6 +53,7 @@ const PORT = process.env.PORT || 3080;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const SESSION_ABSOLUTE_TTL_MS = 90 * 24 * 60 * 60 * 1000; // 90 days absolute max
 const MAGIC_LINK_TTL_MS = 15 * 60 * 1000; // 15 minutes
+const EMAIL_CHANGE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 const isProduction = process.env.NODE_ENV === 'production';
 const SESSION_COOKIE_NAME = isProduction ? '__Host-eisenhower_session' : 'eisenhower_session';
 const CSRF_COOKIE_NAME = isProduction ? '__Host-eisenhower_csrf' : 'eisenhower_csrf';
@@ -64,6 +73,18 @@ interface AuthContext {
   sessionId: string;
   userId: string;
   email: string;
+}
+
+// --- Admin configuration ---
+const ADMIN_EMAILS: Set<string> = new Set(
+  (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map(e => e.trim().toLowerCase())
+    .filter(Boolean)
+);
+
+function isAdmin(email: string): boolean {
+  return ADMIN_EMAILS.has(email.toLowerCase());
 }
 
 const SUPPORTED_LANGUAGES = ['en', 'fr', 'de', 'es', 'it', 'pt', 'nl', 'pl', 'ru', 'uk', 'zh', 'hi', 'ar', 'bn'] as const;
@@ -144,6 +165,27 @@ const SIGN_IN_CONFIRM_COPY: Record<SupportedLanguage, {
     description: 'সাইন-ইন সম্পূর্ণ করতে নিচের বোতামে ক্লিক করুন।',
     action: 'সাইন ইন করুন',
   },
+};
+
+const EMAIL_CHANGE_CONFIRM_COPY: Record<SupportedLanguage, {
+  title: string;
+  description: string;
+  action: string;
+}> = {
+  en: { title: 'Confirm email change', description: 'Click the button below to confirm your new email address.', action: 'Confirm' },
+  fr: { title: 'Confirmer le changement d\u2019email', description: 'Cliquez sur le bouton ci-dessous pour confirmer votre nouvelle adresse email.', action: 'Confirmer' },
+  de: { title: 'E-Mail-Änderung bestätigen', description: 'Klicken Sie auf die Schaltfläche unten, um Ihre neue E-Mail-Adresse zu bestätigen.', action: 'Bestätigen' },
+  es: { title: 'Confirmar cambio de correo', description: 'Haz clic en el botón de abajo para confirmar tu nueva dirección de correo.', action: 'Confirmar' },
+  it: { title: 'Conferma cambio email', description: 'Fai clic sul pulsante qui sotto per confermare il tuo nuovo indirizzo email.', action: 'Conferma' },
+  pt: { title: 'Confirmar alteração de email', description: 'Clique no botão abaixo para confirmar seu novo endereço de email.', action: 'Confirmar' },
+  nl: { title: 'E-mailwijziging bevestigen', description: 'Klik op de knop hieronder om uw nieuwe e-mailadres te bevestigen.', action: 'Bevestigen' },
+  pl: { title: 'Potwierdź zmianę e-maila', description: 'Kliknij przycisk poniżej, aby potwierdzić nowy adres e-mail.', action: 'Potwierdź' },
+  ru: { title: 'Подтвердите смену почты', description: 'Нажмите кнопку ниже, чтобы подтвердить новый адрес электронной почты.', action: 'Подтвердить' },
+  uk: { title: 'Підтвердіть зміну пошти', description: 'Натисніть кнопку нижче, щоб підтвердити нову адресу електронної пошти.', action: 'Підтвердити' },
+  zh: { title: '确认更改邮箱', description: '点击下方按钮以确认您的新邮箱地址。', action: '确认' },
+  hi: { title: 'ईमेल परिवर्तन की पुष्टि करें', description: 'अपना नया ईमेल पता पुष्टि करने के लिए नीचे दिए गए बटन पर क्लिक करें।', action: 'पुष्टि करें' },
+  ar: { title: 'تأكيد تغيير البريد الإلكتروني', description: 'اضغط على الزر أدناه لتأكيد عنوان بريدك الإلكتروني الجديد.', action: 'تأكيد' },
+  bn: { title: 'ইমেল পরিবর্তন নিশ্চিত করুন', description: 'আপনার নতুন ইমেল ঠিকানা নিশ্চিত করতে নিচের বোতামে ক্লিক করুন।', action: 'নিশ্চিত করুন' },
 };
 
 function getPreferredLanguage(header?: string): SupportedLanguage {
@@ -316,6 +358,14 @@ function requireAuth(req: Request, res: Response, next: NextFunction): void {
   next();
 }
 
+function requireAdmin(req: Request, res: Response, next: NextFunction): void {
+  if (!req.auth || !isAdmin(req.auth.email)) {
+    res.status(403).json({ error: 'Forbidden' });
+    return;
+  }
+  next();
+}
+
 function validateCsrf(req: Request, res: Response, next: NextFunction): void {
   const header = req.headers['x-csrf-token'];
   const csrfHeader = Array.isArray(header) ? header[0] : header;
@@ -408,6 +458,10 @@ const magicLinkEmailLimiter = createRateLimiter('magic_link_email', 3, 60 * 1000
   return `${ip}:${email || 'unknown'}`;
 });
 const verifyLimiter = createRateLimiter('verify', 10);
+const adminReadLimiter = createRateLimiter('admin_read', 30);
+const adminMutationLimiter = createRateLimiter('admin_mutation', 10);
+const accountMutationLimiter = createRateLimiter('account_mutation', 5);
+const emailChangeLimiter = createRateLimiter('email_change', 3, 15 * 60 * 1000);
 
 // Serve static files from the dist directory
 const __filename = fileURLToPath(import.meta.url);
@@ -592,6 +646,7 @@ app.get('/api/auth/me', readLimiter, (req: Request, res: Response) => {
     authenticated: true,
     user: {
       email: req.auth.email,
+      isAdmin: isAdmin(req.auth.email),
     },
   });
 });
@@ -952,6 +1007,225 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
     return;
   }
   res.status(500).send('Internal server error');
+});
+
+// --- Admin routes ---
+
+app.get('/api/admin/users', adminReadLimiter, requireAuth, requireAdmin, (_req: Request, res: Response) => {
+  try {
+    const users = getAllUsersWithTaskCount();
+    res.json({ users });
+  } catch (err) {
+    console.error('GET /api/admin/users error:', err);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+app.get('/api/admin/stats', adminReadLimiter, requireAuth, requireAdmin, (_req: Request, res: Response) => {
+  try {
+    const threshold = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const stats = getAdminStats(threshold);
+    res.json(stats);
+  } catch (err) {
+    console.error('GET /api/admin/stats error:', err);
+    res.status(500).json({ error: 'Failed to fetch stats' });
+  }
+});
+
+app.delete('/api/admin/users/:id', adminMutationLimiter, requireAuth, requireAdmin, validateCsrf, (req: Request, res: Response) => {
+  try {
+    const parsed = UserIdSchema.safeParse(req.params.id);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Invalid user ID' });
+      return;
+    }
+
+    if (parsed.data === req.auth!.userId) {
+      res.status(400).json({ error: 'Cannot delete your own account from admin' });
+      return;
+    }
+
+    const deleted = deleteUserById(parsed.data);
+    if (!deleted) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    logSecurityEvent('admin_delete_user', {
+      adminId: req.auth!.userId,
+      deletedUserId: parsed.data,
+      ip: req.ip ?? null,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/admin/users/:id error:', err);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
+// --- Account routes ---
+
+app.delete('/api/account', accountMutationLimiter, requireAuth, validateCsrf, (req: Request, res: Response) => {
+  try {
+    deleteUserById(req.auth!.userId);
+    clearAuthCookies(res);
+
+    logSecurityEvent('account_self_delete', {
+      userId: req.auth!.userId,
+      ip: req.ip ?? null,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /api/account error:', err);
+    res.status(500).json({ error: 'Failed to delete account' });
+  }
+});
+
+app.post('/api/account/change-email', emailChangeLimiter, requireAuth, validateCsrf, async (req: Request, res: Response) => {
+  const genericResponse = { success: true };
+
+  try {
+    const parsed = ChangeEmailRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.json(genericResponse);
+      return;
+    }
+
+    if (!isMailerConfigured()) {
+      res.json(genericResponse);
+      return;
+    }
+
+    const newEmail = normalizeEmail(parsed.data.email);
+    if (newEmail === req.auth!.email) {
+      res.json(genericResponse);
+      return;
+    }
+
+    const now = Date.now();
+    const rawToken = randomBytes(32).toString('base64url');
+    const tokenHash = hashToken(rawToken);
+
+    createEmailChangeRequest({
+      id: randomUUID(),
+      userId: req.auth!.userId,
+      newEmail,
+      tokenHash,
+      expiresAt: now + EMAIL_CHANGE_TTL_MS,
+      createdAt: now,
+    });
+
+    const verifyUrl = `${getAppBaseUrl()}/api/account/verify-email?token=${encodeURIComponent(rawToken)}`;
+    await sendEmailChangeVerification({
+      to: newEmail,
+      link: verifyUrl,
+      expiresInMinutes: Math.floor(EMAIL_CHANGE_TTL_MS / 60000),
+      language: parsed.data.language,
+    });
+  } catch (err) {
+    console.error('POST /api/account/change-email error:', err);
+  }
+
+  res.json(genericResponse);
+});
+
+app.get('/api/account/verify-email', verifyLimiter, (req: Request, res: Response) => {
+  try {
+    const token = typeof req.query.token === 'string' ? req.query.token : '';
+    if (!token) {
+      res.redirect('/?email-change=invalid');
+      return;
+    }
+
+    const language = getPreferredLanguage(req.get('accept-language'));
+    const copy = EMAIL_CHANGE_CONFIRM_COPY[language];
+    const dir = language === 'ar' ? 'rtl' : 'ltr';
+
+    res.setHeader('Cache-Control', 'no-store');
+    res.type('html').send(`<!doctype html>
+<html lang="${language}" dir="${dir}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>${escapeHtml(copy.title)}</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f8fafc;
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        color: #0f172a;
+      }
+      .card {
+        width: min(420px, 92vw);
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 24px;
+        box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+      }
+      h1 { font-size: 1.2rem; margin: 0 0 8px; }
+      p { margin: 0 0 20px; color: #334155; }
+      button {
+        border: 0;
+        border-radius: 10px;
+        background: #0f172a;
+        color: white;
+        font-size: 0.95rem;
+        padding: 10px 14px;
+        cursor: pointer;
+      }
+      button:hover { background: #1e293b; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>${escapeHtml(copy.title)}</h1>
+      <p>${escapeHtml(copy.description)}</p>
+      <form method="post" action="/api/account/verify-email/consume">
+        <input type="hidden" name="token" value="${escapeHtml(token)}" />
+        <button type="submit">${escapeHtml(copy.action)}</button>
+      </form>
+    </main>
+  </body>
+</html>`);
+  } catch (err) {
+    console.error('GET /api/account/verify-email error:', err);
+    res.redirect('/?email-change=invalid');
+  }
+});
+
+app.post('/api/account/verify-email/consume', express.urlencoded({ extended: false }), verifyLimiter, (req: Request, res: Response) => {
+  try {
+    const token = typeof req.body?.token === 'string' ? req.body.token : '';
+    if (!token) {
+      res.redirect('/?email-change=invalid');
+      return;
+    }
+
+    const tokenHash = hashToken(token);
+    const result = consumeEmailChange(tokenHash, Date.now());
+    if (!result) {
+      res.redirect('/?email-change=invalid');
+      return;
+    }
+
+    logSecurityEvent('email_changed', {
+      userId: result.userId,
+      newEmail: result.newEmail,
+      ip: req.ip ?? null,
+    });
+
+    res.redirect('/?email-changed=true');
+  } catch (err) {
+    console.error('POST /api/account/verify-email/consume error:', err);
+    res.redirect('/?email-change=invalid');
+  }
 });
 
 // Return 404 JSON for unknown API routes (prevent SPA fallback serving HTML)

@@ -130,6 +130,43 @@ const ru: Translations = {
     description: 'Матрица Эйзенхауэра — это метод продуктивности, который помогает организовать и приоритизировать задачи, распределяя их по четырём квадрантам на основе срочности и важности. Сосредоточьтесь на том, что действительно важно, и перестаньте тратить время на отвлечения.',
     quadrantsTitle: 'Четыре квадранта для организации приоритетов',
   },
+
+  admin: {
+    title: 'Администрирование',
+    stats: 'Статистика',
+    totalUsers: 'Всего пользователей',
+    activeUsers30d: 'Активные пользователи (30 дней)',
+    users: 'Пользователи',
+    email: 'Электронная почта',
+    createdAt: 'Создан',
+    lastLoginAt: 'Последний вход',
+    taskCount: 'Задачи',
+    never: 'Никогда',
+    deleteUser: 'Удалить пользователя',
+    deleteUserConfirmTitle: 'Удалить пользователя?',
+    deleteUserConfirmDescription: 'Все данные пользователя {email} будут безвозвратно удалены. Это действие нельзя отменить.',
+    cannotDeleteSelf: 'Вы не можете удалить свой собственный аккаунт отсюда',
+    userDeleted: 'Пользователь удалён',
+  },
+
+  account: {
+    title: 'Аккаунт',
+    currentEmail: 'Текущая почта',
+    newEmail: 'Новая почта',
+    changeEmail: 'Изменить почту',
+    changingEmail: 'Изменение...',
+    emailChangeRequested: 'Письмо для подтверждения отправлено',
+    emailChangeRequestedDescription: 'Проверьте входящие сообщения на новом адресе для подтверждения изменения.',
+    emailChanged: 'Почта изменена',
+    emailChangedDescription: 'Ваш адрес электронной почты успешно обновлён.',
+    dangerZone: 'Опасная зона',
+    deleteAccount: 'Удалить мой аккаунт',
+    deleteAccountConfirmTitle: 'Удалить ваш аккаунт?',
+    deleteAccountConfirmDescription: 'Все ваши задачи и данные будут безвозвратно удалены. Это действие нельзя отменить.',
+    deleteAccountTypeEmail: 'Введите свою почту для подтверждения',
+    deletingAccount: 'Удаление...',
+    accountDeleted: 'Аккаунт удалён',
+  },
 };
 
 export default ru;

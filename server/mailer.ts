@@ -119,6 +119,115 @@ const EMAIL_COPY: Record<SupportedLanguage, {
   },
 };
 
+type EmailCopyEntry = {
+  subject: string;
+  greeting: string;
+  body: string;
+  expires: string;
+  ignore: string;
+};
+
+const EMAIL_CHANGE_COPY: Record<SupportedLanguage, EmailCopyEntry> = {
+  en: {
+    subject: 'Confirm your new email address',
+    greeting: 'Hello,',
+    body: `You requested to change your email address on ${APP_NAME}. Click the link below to confirm:`,
+    expires: 'This link expires in {minutes} minutes and can only be used once.',
+    ignore: 'If you did not request this, please ignore this email.',
+  },
+  fr: {
+    subject: 'Confirmez votre nouvelle adresse email',
+    greeting: 'Bonjour,',
+    body: `Vous avez demandé à changer votre adresse email sur ${APP_NAME}. Cliquez sur le lien ci-dessous pour confirmer :`,
+    expires: 'Ce lien expire dans {minutes} minutes et ne peut être utilisé qu\u2019une seule fois.',
+    ignore: 'Si vous n\u2019êtes pas à l\u2019origine de cette demande, ignorez cet email.',
+  },
+  de: {
+    subject: 'Bestätigen Sie Ihre neue E-Mail-Adresse',
+    greeting: 'Hallo,',
+    body: `Sie haben eine Änderung Ihrer E-Mail-Adresse bei ${APP_NAME} angefordert. Klicken Sie auf den folgenden Link zur Bestätigung:`,
+    expires: 'Dieser Link läuft in {minutes} Minuten ab und kann nur einmal verwendet werden.',
+    ignore: 'Wenn Sie diese Anfrage nicht gestellt haben, ignorieren Sie bitte diese E-Mail.',
+  },
+  es: {
+    subject: 'Confirma tu nueva dirección de correo',
+    greeting: 'Hola,',
+    body: `Has solicitado cambiar tu dirección de correo en ${APP_NAME}. Haz clic en el enlace de abajo para confirmar:`,
+    expires: 'Este enlace caduca en {minutes} minutos y solo puede usarse una vez.',
+    ignore: 'Si no has solicitado esto, ignora este correo.',
+  },
+  it: {
+    subject: 'Conferma il tuo nuovo indirizzo email',
+    greeting: 'Ciao,',
+    body: `Hai richiesto di cambiare il tuo indirizzo email su ${APP_NAME}. Clicca sul link qui sotto per confermare:`,
+    expires: 'Questo link scade tra {minutes} minuti e può essere usato una sola volta.',
+    ignore: 'Se non hai effettuato questa richiesta, ignora questa email.',
+  },
+  pt: {
+    subject: 'Confirme seu novo endereço de email',
+    greeting: 'Olá,',
+    body: `Você solicitou a alteração do seu endereço de email no ${APP_NAME}. Clique no link abaixo para confirmar:`,
+    expires: 'Este link expira em {minutes} minutos e só pode ser usado uma vez.',
+    ignore: 'Se você não fez esta solicitação, ignore este email.',
+  },
+  nl: {
+    subject: 'Bevestig uw nieuwe e-mailadres',
+    greeting: 'Hallo,',
+    body: `U heeft een wijziging van uw e-mailadres bij ${APP_NAME} aangevraagd. Klik op de onderstaande link om te bevestigen:`,
+    expires: 'Deze link verloopt over {minutes} minuten en kan slechts één keer worden gebruikt.',
+    ignore: 'Als u dit niet heeft aangevraagd, kunt u deze e-mail negeren.',
+  },
+  pl: {
+    subject: 'Potwierdź swój nowy adres e-mail',
+    greeting: 'Cześć,',
+    body: `Poprosiłeś o zmianę adresu e-mail w ${APP_NAME}. Kliknij poniższy link, aby potwierdzić:`,
+    expires: 'Ten link wygasa za {minutes} minut i może być użyty tylko raz.',
+    ignore: 'Jeśli nie wysłałeś tego żądania, zignoruj tego e-maila.',
+  },
+  ru: {
+    subject: 'Подтвердите ваш новый адрес электронной почты',
+    greeting: 'Здравствуйте,',
+    body: `Вы запросили изменение адреса электронной почты в ${APP_NAME}. Нажмите на ссылку ниже для подтверждения:`,
+    expires: 'Эта ссылка истекает через {minutes} минут и может быть использована только один раз.',
+    ignore: 'Если вы не отправляли этот запрос, проигнорируйте это письмо.',
+  },
+  uk: {
+    subject: 'Підтвердіть вашу нову адресу електронної пошти',
+    greeting: 'Вітаємо,',
+    body: `Ви запросили зміну адреси електронної пошти в ${APP_NAME}. Натисніть на посилання нижче для підтвердження:`,
+    expires: 'Це посилання дійсне {minutes} хвилин і може бути використане лише один раз.',
+    ignore: 'Якщо ви не надсилали цей запит, проігноруйте цей лист.',
+  },
+  zh: {
+    subject: '确认您的新电子邮件地址',
+    greeting: '您好，',
+    body: `您请求更改在 ${APP_NAME} 上的电子邮件地址。请点击以下链接确认：`,
+    expires: '此链接将在 {minutes} 分钟后过期，且只能使用一次。',
+    ignore: '如果您没有发起此请求，请忽略此邮件。',
+  },
+  hi: {
+    subject: 'अपना नया ईमेल पता पुष्टि करें',
+    greeting: 'नमस्ते,',
+    body: `आपने ${APP_NAME} पर अपना ईमेल पता बदलने का अनुरोध किया है। पुष्टि करने के लिए नीचे दिए गए लिंक पर क्लिक करें:`,
+    expires: 'यह लिंक {minutes} मिनट में समाप्त हो जाएगा और केवल एक बार उपयोग किया जा सकता है।',
+    ignore: 'यदि आपने यह अनुरोध नहीं किया है, तो कृपया इस ईमेल को अनदेखा करें।',
+  },
+  ar: {
+    subject: 'تأكيد عنوان بريدك الإلكتروني الجديد',
+    greeting: 'مرحبًا،',
+    body: `لقد طلبت تغيير عنوان بريدك الإلكتروني في ${APP_NAME}. انقر على الرابط أدناه للتأكيد:`,
+    expires: 'تنتهي صلاحية هذا الرابط خلال {minutes} دقيقة ولا يمكن استخدامه إلا مرة واحدة.',
+    ignore: 'إذا لم تكن أنت من أرسل هذا الطلب، يرجى تجاهل هذا البريد الإلكتروني.',
+  },
+  bn: {
+    subject: 'আপনার নতুন ইমেল ঠিকানা নিশ্চিত করুন',
+    greeting: 'হ্যালো,',
+    body: `আপনি ${APP_NAME}-এ আপনার ইমেল ঠিকানা পরিবর্তনের অনুরোধ করেছেন। নিশ্চিত করতে নিচের লিঙ্কে ক্লিক করুন:`,
+    expires: 'এই লিঙ্কটি {minutes} মিনিটে মেয়াদ শেষ হবে এবং শুধুমাত্র একবার ব্যবহার করা যাবে।',
+    ignore: 'আপনি এই অনুরোধ না করলে, এই ইমেলটি উপেক্ষা করুন।',
+  },
+};
+
 function resolveLanguage(lang?: string): SupportedLanguage {
   if (!lang) return 'en';
   const base = lang.toLowerCase().split('-')[0];
@@ -160,10 +269,16 @@ function isResendConfigured(): boolean {
   return Boolean(process.env.RESEND_API_KEY && process.env.MAIL_FROM);
 }
 
-async function sendViaResend(params: SendMagicLinkParams): Promise<void> {
+interface EmailPayload {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+}
+
+async function sendViaResend(payload: EmailPayload): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY!;
   const from = process.env.MAIL_FROM!;
-  const email = buildEmail(params);
 
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -173,10 +288,10 @@ async function sendViaResend(params: SendMagicLinkParams): Promise<void> {
     },
     body: JSON.stringify({
       from,
-      to: [params.to],
-      subject: email.subject,
-      text: email.text,
-      html: email.html,
+      to: [payload.to],
+      subject: payload.subject,
+      text: payload.text,
+      html: payload.html,
     }),
   });
 
@@ -233,18 +348,27 @@ function getTransporter(): nodemailer.Transporter {
   return cachedTransporter;
 }
 
-async function sendViaSmtp(params: SendMagicLinkParams): Promise<void> {
+async function sendViaSmtp(payload: EmailPayload): Promise<void> {
   const config = getSmtpConfig();
   const transporter = getTransporter();
-  const email = buildEmail(params);
 
   await transporter.sendMail({
     from: config.from,
-    to: params.to,
-    subject: email.subject,
-    text: email.text,
-    html: email.html,
+    to: payload.to,
+    subject: payload.subject,
+    text: payload.text,
+    html: payload.html,
   });
+}
+
+async function sendEmail(payload: EmailPayload): Promise<void> {
+  if (isResendConfigured()) {
+    await sendViaResend(payload);
+  } else if (isSmtpConfigured()) {
+    await sendViaSmtp(payload);
+  } else {
+    throw new Error('No email provider configured (set RESEND_API_KEY or SMTP_HOST)');
+  }
 }
 
 // --- Public API ---
@@ -254,11 +378,33 @@ export function isMailerConfigured(): boolean {
 }
 
 export async function sendMagicLinkEmail(params: SendMagicLinkParams): Promise<void> {
-  if (isResendConfigured()) {
-    await sendViaResend(params);
-  } else if (isSmtpConfigured()) {
-    await sendViaSmtp(params);
-  } else {
-    throw new Error('No email provider configured (set RESEND_API_KEY or SMTP_HOST)');
-  }
+  const email = buildEmail(params);
+  await sendEmail({ to: params.to, ...email });
+}
+
+export interface SendEmailChangeParams {
+  to: string;
+  link: string;
+  expiresInMinutes: number;
+  language?: string;
+}
+
+export async function sendEmailChangeVerification(params: SendEmailChangeParams): Promise<void> {
+  const lang = resolveLanguage(params.language);
+  const copy = EMAIL_CHANGE_COPY[lang];
+  const expires = copy.expires.replace('{minutes}', String(params.expiresInMinutes));
+
+  const email = {
+    subject: copy.subject,
+    text: [copy.greeting, '', copy.body, '', params.link, '', expires, '', copy.ignore].join('\n'),
+    html: [
+      `<p>${escapeHtml(copy.greeting)}</p>`,
+      `<p>${escapeHtml(copy.body)}</p>`,
+      `<p><a href="${escapeHtml(params.link)}">${escapeHtml(params.link)}</a></p>`,
+      `<p>${escapeHtml(expires)}</p>`,
+      `<p style="color:#888;font-size:0.9em">${escapeHtml(copy.ignore)}</p>`,
+    ].join(''),
+  };
+
+  await sendEmail({ to: params.to, ...email });
 }

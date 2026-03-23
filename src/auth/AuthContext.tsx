@@ -1,8 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useCsrf } from '@/hooks/CsrfContext';
 
-interface AuthUser {
+export interface AuthUser {
   email: string;
+  isAdmin: boolean;
 }
 
 interface AuthContextType {
@@ -12,6 +13,8 @@ interface AuthContextType {
   requestMagicLink: (email: string, language?: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
+  changeEmail: (newEmail: string, language?: string) => Promise<void>;
 }
 
 interface AuthMeResponse {
@@ -88,6 +91,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [fetchWithCsrf]);
 
+  const deleteAccount = useCallback(async () => {
+    await fetchWithCsrf(`${API_BASE}/account`, {
+      method: 'DELETE',
+    });
+    setUser(null);
+  }, [fetchWithCsrf]);
+
+  const changeEmail = useCallback(async (newEmail: string, language?: string) => {
+    const response = await fetchWithCsrf(`${API_BASE}/account/change-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: newEmail, language }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to request email change');
+    }
+  }, [fetchWithCsrf]);
+
   const value = useMemo<AuthContextType>(() => ({
     user,
     loading,
@@ -95,7 +117,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     requestMagicLink,
     logout,
     refresh,
-  }), [user, loading, authCheckFailed, requestMagicLink, logout, refresh]);
+    deleteAccount,
+    changeEmail,
+  }), [user, loading, authCheckFailed, requestMagicLink, logout, refresh, deleteAccount, changeEmail]);
 
   return (
     <AuthContext.Provider value={value}>

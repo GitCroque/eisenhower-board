@@ -130,6 +130,43 @@ const pt: Translations = {
     description: 'A Matriz de Eisenhower é um método de produtividade que ajuda você a organizar e priorizar tarefas classificando-as em quatro quadrantes com base na urgência e importância. Foque no que realmente importa e pare de perder tempo com distrações.',
     quadrantsTitle: 'Quatro quadrantes para organizar suas prioridades',
   },
+
+  admin: {
+    title: 'Administração',
+    stats: 'Estatísticas',
+    totalUsers: 'Total de usuários',
+    activeUsers30d: 'Usuários ativos (30 dias)',
+    users: 'Usuários',
+    email: 'Email',
+    createdAt: 'Criado',
+    lastLoginAt: 'Último login',
+    taskCount: 'Tarefas',
+    never: 'Nunca',
+    deleteUser: 'Excluir usuário',
+    deleteUserConfirmTitle: 'Excluir usuário?',
+    deleteUserConfirmDescription: 'Todos os dados de {email} serão excluídos permanentemente. Esta ação é irreversível.',
+    cannotDeleteSelf: 'Você não pode excluir sua própria conta a partir desta página',
+    userDeleted: 'Usuário excluído',
+  },
+
+  account: {
+    title: 'Conta',
+    currentEmail: 'Email atual',
+    newEmail: 'Novo email',
+    changeEmail: 'Alterar email',
+    changingEmail: 'Alterando...',
+    emailChangeRequested: 'Email de verificação enviado',
+    emailChangeRequestedDescription: 'Verifique a caixa de entrada do seu novo email para confirmar a alteração.',
+    emailChanged: 'Email alterado',
+    emailChangedDescription: 'Seu email foi atualizado com sucesso.',
+    dangerZone: 'Zona de perigo',
+    deleteAccount: 'Excluir minha conta',
+    deleteAccountConfirmTitle: 'Excluir sua conta?',
+    deleteAccountConfirmDescription: 'Todas as suas tarefas e dados serão excluídos permanentemente. Esta ação é irreversível.',
+    deleteAccountTypeEmail: 'Digite seu email para confirmar',
+    deletingAccount: 'Excluindo...',
+    accountDeleted: 'Conta excluída',
+  },
 };
 
 export default pt;

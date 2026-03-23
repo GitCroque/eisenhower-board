@@ -40,6 +40,13 @@ export const MagicLinkRequestSchema = z.object({
 
 export const TaskIdSchema = z.string().uuid('Invalid task ID');
 
+export const UserIdSchema = z.string().uuid('Invalid user ID');
+
+export const ChangeEmailRequestSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Invalid email'),
+  language: z.string().min(2).max(5).optional(),
+});
+
 const TaskMoveBatchOperationSchema = z.object({
   type: z.literal('move'),
   id: TaskIdSchema,

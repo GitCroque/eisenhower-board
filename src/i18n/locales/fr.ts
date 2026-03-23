@@ -130,6 +130,43 @@ const fr: Translations = {
     description: "La matrice d'Eisenhower est une méthode de productivité qui vous aide à organiser et prioriser vos tâches en les classant dans quatre quadrants selon leur urgence et leur importance. Concentrez-vous sur ce qui compte vraiment et cessez de perdre du temps sur les distractions.",
     quadrantsTitle: 'Quatre quadrants pour organiser vos priorités',
   },
+
+  admin: {
+    title: 'Administration',
+    stats: 'Statistiques',
+    totalUsers: 'Utilisateurs au total',
+    activeUsers30d: 'Utilisateurs actifs (30 jours)',
+    users: 'Utilisateurs',
+    email: 'Email',
+    createdAt: 'Créé',
+    lastLoginAt: 'Dernière connexion',
+    taskCount: 'Tâches',
+    never: 'Jamais',
+    deleteUser: "Supprimer l'utilisateur",
+    deleteUserConfirmTitle: "Supprimer l'utilisateur ?",
+    deleteUserConfirmDescription: 'Toutes les données de {email} seront définitivement supprimées. Cette action est irréversible.',
+    cannotDeleteSelf: "Vous ne pouvez pas supprimer votre propre compte depuis cette page",
+    userDeleted: 'Utilisateur supprimé',
+  },
+
+  account: {
+    title: 'Compte',
+    currentEmail: 'Email actuel',
+    newEmail: 'Nouvel email',
+    changeEmail: "Changer d'email",
+    changingEmail: 'Modification...',
+    emailChangeRequested: 'Email de vérification envoyé',
+    emailChangeRequestedDescription: 'Consultez la boîte de réception de votre nouvel email pour confirmer le changement.',
+    emailChanged: 'Email modifié',
+    emailChangedDescription: 'Votre email a été mis à jour avec succès.',
+    dangerZone: 'Zone de danger',
+    deleteAccount: 'Supprimer mon compte',
+    deleteAccountConfirmTitle: 'Supprimer votre compte ?',
+    deleteAccountConfirmDescription: 'Toutes vos tâches et données seront définitivement supprimées. Cette action est irréversible.',
+    deleteAccountTypeEmail: 'Saisissez votre email pour confirmer',
+    deletingAccount: 'Suppression...',
+    accountDeleted: 'Compte supprimé',
+  },
 };
 
 export default fr;

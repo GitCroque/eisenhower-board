@@ -130,6 +130,43 @@ const uk: Translations = {
     description: 'Матриця Ейзенхауера — це метод продуктивності, який допомагає організувати та пріоритизувати завдання, розподіляючи їх на чотири квадранти за терміновістю та важливістю. Зосередьтеся на тому, що справді важливо, і перестаньте витрачати час на відволікання.',
     quadrantsTitle: 'Чотири квадранти для організації пріоритетів',
   },
+
+  admin: {
+    title: 'Адміністрування',
+    stats: 'Статистика',
+    totalUsers: 'Всього користувачів',
+    activeUsers30d: 'Активні користувачі (30 днів)',
+    users: 'Користувачі',
+    email: 'Електронна пошта',
+    createdAt: 'Створено',
+    lastLoginAt: 'Останній вхід',
+    taskCount: 'Завдання',
+    never: 'Ніколи',
+    deleteUser: 'Видалити користувача',
+    deleteUserConfirmTitle: 'Видалити користувача?',
+    deleteUserConfirmDescription: 'Усі дані користувача {email} будуть безповоротно видалені. Цю дію не можна скасувати.',
+    cannotDeleteSelf: 'Ви не можете видалити свій власний обліковий запис звідси',
+    userDeleted: 'Користувача видалено',
+  },
+
+  account: {
+    title: 'Обліковий запис',
+    currentEmail: 'Поточна пошта',
+    newEmail: 'Нова пошта',
+    changeEmail: 'Змінити пошту',
+    changingEmail: 'Зміна...',
+    emailChangeRequested: 'Лист для підтвердження надіслано',
+    emailChangeRequestedDescription: 'Перевірте вхідні повідомлення на новій адресі для підтвердження зміни.',
+    emailChanged: 'Пошту змінено',
+    emailChangedDescription: 'Вашу адресу електронної пошти успішно оновлено.',
+    dangerZone: 'Небезпечна зона',
+    deleteAccount: 'Видалити мій обліковий запис',
+    deleteAccountConfirmTitle: 'Видалити ваш обліковий запис?',
+    deleteAccountConfirmDescription: 'Усі ваші завдання та дані будуть безповоротно видалені. Цю дію не можна скасувати.',
+    deleteAccountTypeEmail: 'Введіть свою пошту для підтвердження',
+    deletingAccount: 'Видалення...',
+    accountDeleted: 'Обліковий запис видалено',
+  },
 };
 
 export default uk;

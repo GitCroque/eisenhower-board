@@ -144,6 +144,45 @@ export interface Translations {
     description: string;
     quadrantsTitle: string;
   };
+
+  // Admin dashboard
+  admin: {
+    title: string;
+    stats: string;
+    totalUsers: string;
+    activeUsers30d: string;
+    users: string;
+    email: string;
+    createdAt: string;
+    lastLoginAt: string;
+    taskCount: string;
+    never: string;
+    deleteUser: string;
+    deleteUserConfirmTitle: string;
+    deleteUserConfirmDescription: string;
+    cannotDeleteSelf: string;
+    userDeleted: string;
+  };
+
+  // Account management
+  account: {
+    title: string;
+    currentEmail: string;
+    newEmail: string;
+    changeEmail: string;
+    changingEmail: string;
+    emailChangeRequested: string;
+    emailChangeRequestedDescription: string;
+    emailChanged: string;
+    emailChangedDescription: string;
+    dangerZone: string;
+    deleteAccount: string;
+    deleteAccountConfirmTitle: string;
+    deleteAccountConfirmDescription: string;
+    deleteAccountTypeEmail: string;
+    deletingAccount: string;
+    accountDeleted: string;
+  };
 }
 
 export const en: Translations = {
@@ -275,6 +314,43 @@ export const en: Translations = {
   landing: {
     description: 'The Eisenhower Matrix is a productivity method that helps you organize and prioritize tasks by sorting them into four quadrants based on their urgency and importance. Focus on what truly matters and stop wasting time on distractions.',
     quadrantsTitle: 'Four quadrants to organize your priorities',
+  },
+
+  admin: {
+    title: 'Administration',
+    stats: 'Statistics',
+    totalUsers: 'Total users',
+    activeUsers30d: 'Active users (30 days)',
+    users: 'Users',
+    email: 'Email',
+    createdAt: 'Created',
+    lastLoginAt: 'Last login',
+    taskCount: 'Tasks',
+    never: 'Never',
+    deleteUser: 'Delete user',
+    deleteUserConfirmTitle: 'Delete user?',
+    deleteUserConfirmDescription: 'All data for {email} will be permanently deleted. This cannot be undone.',
+    cannotDeleteSelf: 'You cannot delete your own account from here',
+    userDeleted: 'User deleted',
+  },
+
+  account: {
+    title: 'Account',
+    currentEmail: 'Current email',
+    newEmail: 'New email',
+    changeEmail: 'Change email',
+    changingEmail: 'Changing...',
+    emailChangeRequested: 'Verification email sent',
+    emailChangeRequestedDescription: 'Check your new email inbox to confirm the change.',
+    emailChanged: 'Email changed',
+    emailChangedDescription: 'Your email has been updated successfully.',
+    dangerZone: 'Danger zone',
+    deleteAccount: 'Delete my account',
+    deleteAccountConfirmTitle: 'Delete your account?',
+    deleteAccountConfirmDescription: 'All your tasks and data will be permanently deleted. This cannot be undone.',
+    deleteAccountTypeEmail: 'Type your email to confirm',
+    deletingAccount: 'Deleting...',
+    accountDeleted: 'Account deleted',
   },
 };
 

@@ -130,6 +130,43 @@ const de: Translations = {
     description: 'Die Eisenhower-Matrix ist eine Produktivitätsmethode, die dir hilft, Aufgaben nach Dringlichkeit und Wichtigkeit in vier Quadranten einzuteilen und zu priorisieren. Konzentriere dich auf das, was wirklich zählt, und verschwende keine Zeit mit Ablenkungen.',
     quadrantsTitle: 'Vier Quadranten für deine Prioritäten',
   },
+
+  admin: {
+    title: 'Verwaltung',
+    stats: 'Statistiken',
+    totalUsers: 'Benutzer insgesamt',
+    activeUsers30d: 'Aktive Benutzer (30 Tage)',
+    users: 'Benutzer',
+    email: 'E-Mail',
+    createdAt: 'Erstellt',
+    lastLoginAt: 'Letzte Anmeldung',
+    taskCount: 'Aufgaben',
+    never: 'Nie',
+    deleteUser: 'Benutzer löschen',
+    deleteUserConfirmTitle: 'Benutzer löschen?',
+    deleteUserConfirmDescription: 'Alle Daten von {email} werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.',
+    cannotDeleteSelf: 'Sie können Ihr eigenes Konto nicht von dieser Seite löschen',
+    userDeleted: 'Benutzer gelöscht',
+  },
+
+  account: {
+    title: 'Konto',
+    currentEmail: 'Aktuelle E-Mail',
+    newEmail: 'Neue E-Mail',
+    changeEmail: 'E-Mail ändern',
+    changingEmail: 'Änderung...',
+    emailChangeRequested: 'Bestätigungs-E-Mail gesendet',
+    emailChangeRequestedDescription: 'Prüfe den Posteingang deiner neuen E-Mail-Adresse, um die Änderung zu bestätigen.',
+    emailChanged: 'E-Mail geändert',
+    emailChangedDescription: 'Deine E-Mail-Adresse wurde erfolgreich aktualisiert.',
+    dangerZone: 'Gefahrenzone',
+    deleteAccount: 'Mein Konto löschen',
+    deleteAccountConfirmTitle: 'Konto löschen?',
+    deleteAccountConfirmDescription: 'Alle deine Aufgaben und Daten werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.',
+    deleteAccountTypeEmail: 'Gib deine E-Mail zur Bestätigung ein',
+    deletingAccount: 'Löschung...',
+    accountDeleted: 'Konto gelöscht',
+  },
 };
 
 export default de;

@@ -130,6 +130,43 @@ const pl: Translations = {
     description: 'Macierz Eisenhowera to metoda produktywności, która pomaga organizować i priorytetyzować zadania, dzieląc je na cztery ćwiartki na podstawie pilności i ważności. Skup się na tym, co naprawdę ważne i przestań tracić czas na rozpraszacze.',
     quadrantsTitle: 'Cztery ćwiartki do organizacji priorytetów',
   },
+
+  admin: {
+    title: 'Administracja',
+    stats: 'Statystyki',
+    totalUsers: 'Łączna liczba użytkowników',
+    activeUsers30d: 'Aktywni użytkownicy (30 dni)',
+    users: 'Użytkownicy',
+    email: 'E-mail',
+    createdAt: 'Utworzono',
+    lastLoginAt: 'Ostatnie logowanie',
+    taskCount: 'Zadania',
+    never: 'Nigdy',
+    deleteUser: 'Usuń użytkownika',
+    deleteUserConfirmTitle: 'Usunąć użytkownika?',
+    deleteUserConfirmDescription: 'Wszystkie dane użytkownika {email} zostaną trwale usunięte. Tej czynności nie można cofnąć.',
+    cannotDeleteSelf: 'Nie możesz usunąć własnego konta z tej strony',
+    userDeleted: 'Użytkownik usunięty',
+  },
+
+  account: {
+    title: 'Konto',
+    currentEmail: 'Obecny e-mail',
+    newEmail: 'Nowy e-mail',
+    changeEmail: 'Zmień e-mail',
+    changingEmail: 'Zmiana...',
+    emailChangeRequested: 'E-mail weryfikacyjny wysłany',
+    emailChangeRequestedDescription: 'Sprawdź skrzynkę odbiorczą nowego adresu e-mail, aby potwierdzić zmianę.',
+    emailChanged: 'E-mail zmieniony',
+    emailChangedDescription: 'Twój adres e-mail został pomyślnie zaktualizowany.',
+    dangerZone: 'Strefa zagrożenia',
+    deleteAccount: 'Usuń moje konto',
+    deleteAccountConfirmTitle: 'Usunąć konto?',
+    deleteAccountConfirmDescription: 'Wszystkie Twoje zadania i dane zostaną trwale usunięte. Tej czynności nie można cofnąć.',
+    deleteAccountTypeEmail: 'Wpisz swój e-mail, aby potwierdzić',
+    deletingAccount: 'Usuwanie...',
+    accountDeleted: 'Konto usunięte',
+  },
 };
 
 export default pl;
