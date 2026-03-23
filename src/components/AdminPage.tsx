@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, ShieldCheck, Trash2, Users } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, ShieldCheck, Trash2, Users } from 'lucide-react';
 import { useCsrf } from '@/hooks/CsrfContext';
 import { useAuth } from '@/auth/AuthContext';
 import { useLanguage } from '@/i18n';
@@ -19,6 +19,8 @@ interface AdminStats {
   activeUsers30d: number;
 }
 
+const PAGE_SIZE = 50;
+
 function formatDate(timestamp: number): string {
   return new Date(timestamp).toLocaleString(undefined, {
     year: 'numeric',
@@ -36,21 +38,26 @@ export function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   if (!user?.isAdmin) {
     return <Navigate to="/" replace />;
   }
 
-  const fetchData = useCallback(async () => {
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  const fetchData = useCallback(async (p: number) => {
     try {
       setLoading(true);
       const [usersRes, statsRes] = await Promise.all([
-        fetch('/api/admin/users', { credentials: 'same-origin' }),
+        fetch(`/api/admin/users?page=${p}&pageSize=${PAGE_SIZE}`, { credentials: 'same-origin' }),
         fetch('/api/admin/stats', { credentials: 'same-origin' }),
       ]);
       if (usersRes.ok) {
-        const data = await usersRes.json() as { users: AdminUser[] };
+        const data = await usersRes.json() as { users: AdminUser[]; total: number };
         setUsers(data.users);
+        setTotal(data.total);
       }
       if (statsRes.ok) {
         const data = await statsRes.json() as AdminStats;
@@ -62,8 +69,8 @@ export function AdminPage() {
   }, []);
 
   useEffect(() => {
-    void Promise.all([fetchCsrfToken(), fetchData()]);
-  }, [fetchCsrfToken, fetchData]);
+    void Promise.all([fetchCsrfToken(), fetchData(page)]);
+  }, [fetchCsrfToken, fetchData, page]);
 
   const deleteUser = useCallback(async (userId: string) => {
     try {
@@ -71,6 +78,7 @@ export function AdminPage() {
       const response = await fetchWithCsrf(`/api/admin/users/${userId}`, { method: 'DELETE' });
       if (response.ok) {
         setUsers(prev => prev.filter(u => u.id !== userId));
+        setTotal(prev => prev - 1);
         if (stats) setStats({ ...stats, totalUsers: stats.totalUsers - 1 });
       } else {
         const body = await response.text();
@@ -126,67 +134,91 @@ export function AdminPage() {
           ) : users.length === 0 ? (
             <p className="p-4 text-slate-500">{t.admin.never}</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full table-fixed text-sm">
-                <colgroup>
-                  <col />
-                  <col className="w-36" />
-                  <col className="w-44" />
-                  <col className="w-20" />
-                  <col className="w-32" />
-                </colgroup>
-                <thead>
-                  <tr className="border-b border-slate-200 text-left text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                    <th className="px-4 py-2 font-medium">{t.admin.email}</th>
-                    <th className="px-4 py-2 font-medium">{t.admin.createdAt}</th>
-                    <th className="px-4 py-2 font-medium">{t.admin.lastLoginAt}</th>
-                    <th className="px-4 py-2 font-medium">{t.admin.taskCount}</th>
-                    <th className="px-4 py-2"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map(u => (
-                    <tr key={u.id} className="border-b border-slate-100 dark:border-slate-700/50">
-                      <td className="px-4 py-2.5 text-slate-900 dark:text-slate-100">{u.email}</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{formatDate(u.createdAt)}</td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">
-                        {u.lastLoginAt ? formatDate(u.lastLoginAt) : t.admin.never}
-                      </td>
-                      <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{u.taskCount}</td>
-                      <td className="h-10 px-4 text-right">
-                        {u.email !== user.email && (
-                          confirmDeleteId === u.id ? (
-                            <span className="inline-flex items-center gap-1">
-                              <button
-                                onClick={() => void deleteUser(u.id)}
-                                disabled={deletingId === u.id}
-                                className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
-                              >
-                                {deletingId === u.id ? '...' : 'OK'}
-                              </button>
-                              <button
-                                onClick={() => setConfirmDeleteId(null)}
-                                className="rounded px-2 py-1 text-xs text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-700"
-                              >
-                                {t.tasks.cancel}
-                              </button>
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => setConfirmDeleteId(u.id)}
-                              className="rounded p-1 text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950"
-                              title={t.admin.deleteUser}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )
-                        )}
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full table-fixed text-sm">
+                  <colgroup>
+                    <col />
+                    <col className="w-36" />
+                    <col className="w-44" />
+                    <col className="w-20" />
+                    <col className="w-32" />
+                  </colgroup>
+                  <thead>
+                    <tr className="border-b border-slate-200 text-left text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                      <th className="px-4 py-2 font-medium">{t.admin.email}</th>
+                      <th className="px-4 py-2 font-medium">{t.admin.createdAt}</th>
+                      <th className="px-4 py-2 font-medium">{t.admin.lastLoginAt}</th>
+                      <th className="px-4 py-2 font-medium">{t.admin.taskCount}</th>
+                      <th className="px-4 py-2"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {users.map(u => (
+                      <tr key={u.id} className="border-b border-slate-100 dark:border-slate-700/50">
+                        <td className="truncate px-4 py-2.5 text-slate-900 dark:text-slate-100">{u.email}</td>
+                        <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{formatDate(u.createdAt)}</td>
+                        <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">
+                          {u.lastLoginAt ? formatDate(u.lastLoginAt) : t.admin.never}
+                        </td>
+                        <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{u.taskCount}</td>
+                        <td className="h-10 px-4 text-right">
+                          {u.email !== user.email && (
+                            confirmDeleteId === u.id ? (
+                              <span className="inline-flex items-center gap-1">
+                                <button
+                                  onClick={() => void deleteUser(u.id)}
+                                  disabled={deletingId === u.id}
+                                  className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+                                >
+                                  {deletingId === u.id ? '...' : 'OK'}
+                                </button>
+                                <button
+                                  onClick={() => setConfirmDeleteId(null)}
+                                  className="rounded px-2 py-1 text-xs text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-700"
+                                >
+                                  {t.tasks.cancel}
+                                </button>
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => setConfirmDeleteId(u.id)}
+                                className="rounded p-1 text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950"
+                                title={t.admin.deleteUser}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 dark:border-slate-700">
+                  <p className="text-sm text-slate-500">{page} / {totalPages}</p>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                      className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-700"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                      disabled={page >= totalPages}
+                      className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-700"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

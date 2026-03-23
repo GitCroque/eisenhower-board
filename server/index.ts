@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import express, { Request, Response, NextFunction } from 'express';
 import compression from 'compression';
 import path from 'path';
@@ -49,6 +50,15 @@ import {
 } from '../shared/validation.js';
 
 const app = express();
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: 0.1,
+  });
+}
+
 const PORT = process.env.PORT || 3080;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const SESSION_ABSOLUTE_TTL_MS = 90 * 24 * 60 * 60 * 1000; // 90 days absolute max
@@ -1001,6 +1011,7 @@ app.post('/api/archived-tasks/:id/restore', mutationLimiter, requireAuth, valida
 });
 
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  Sentry.captureException(err);
   console.error('Unhandled server error:', err);
   if (req.path.startsWith('/api/')) {
     res.status(500).json({ error: 'Internal server error' });
@@ -1011,10 +1022,12 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
 
 // --- Admin routes ---
 
-app.get('/api/admin/users', adminReadLimiter, requireAuth, requireAdmin, (_req: Request, res: Response) => {
+app.get('/api/admin/users', adminReadLimiter, requireAuth, requireAdmin, (req: Request, res: Response) => {
   try {
-    const users = getAllUsersWithTaskCount();
-    res.json({ users });
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize) || 50));
+    const result = getAllUsersWithTaskCount(page, pageSize);
+    res.json(result);
   } catch (err) {
     console.error('GET /api/admin/users error:', err);
     res.status(500).json({ error: 'Failed to fetch users' });

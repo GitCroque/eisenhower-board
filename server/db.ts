@@ -248,11 +248,14 @@ const stmts = {
 
   // Admin
   getAllUsersWithTaskCount: db.prepare(`
-    SELECT u.id, u.email, u.created_at, u.last_login_at,
-      (SELECT COUNT(*) FROM tasks t WHERE t.user_id = u.id) as task_count
+    SELECT u.id, u.email, u.created_at, u.last_login_at, COUNT(t.id) as task_count
     FROM users u
+    LEFT JOIN tasks t ON t.user_id = u.id
+    GROUP BY u.id
     ORDER BY u.created_at DESC
+    LIMIT ? OFFSET ?
   `),
+  countUsers: db.prepare('SELECT COUNT(*) as total FROM users'),
   getAdminStats: db.prepare(`
     SELECT
       (SELECT COUNT(*) FROM users) as total_users,
@@ -526,21 +529,35 @@ export interface AdminUser {
   taskCount: number;
 }
 
-export function getAllUsersWithTaskCount(): AdminUser[] {
-  const rows = stmts.getAllUsersWithTaskCount.all() as {
+export interface PaginatedAdminUsers {
+  users: AdminUser[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export function getAllUsersWithTaskCount(page: number = 1, pageSize: number = 50): PaginatedAdminUsers {
+  const offset = (page - 1) * pageSize;
+  const rows = stmts.getAllUsersWithTaskCount.all(pageSize, offset) as {
     id: string;
     email: string;
     created_at: number;
     last_login_at: number | null;
     task_count: number;
   }[];
-  return rows.map(r => ({
-    id: r.id,
-    email: r.email,
-    createdAt: r.created_at,
-    lastLoginAt: r.last_login_at,
-    taskCount: r.task_count,
-  }));
+  const { total } = stmts.countUsers.get() as { total: number };
+  return {
+    users: rows.map(r => ({
+      id: r.id,
+      email: r.email,
+      createdAt: r.created_at,
+      lastLoginAt: r.last_login_at,
+      taskCount: r.task_count,
+    })),
+    total,
+    page,
+    pageSize,
+  };
 }
 
 export function getAdminStats(activeThreshold: number): { totalUsers: number; activeUsers30d: number } {
