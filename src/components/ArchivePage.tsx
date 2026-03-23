@@ -209,7 +209,7 @@ export function ArchivePage() {
         </h1>
       </header>
 
-      <form onSubmit={handleApplyFilters} className="mb-5 grid gap-3 rounded-xl border border-white/60 bg-white/70 p-4 backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/70 md:grid-cols-4">
+      <form onSubmit={handleApplyFilters} className="mb-5 grid gap-3 rounded-xl border border-white/60 bg-white/70 p-4 backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/70 md:grid-cols-5">
         <input
           type="text"
           value={query}
@@ -234,20 +234,18 @@ export function ArchivePage() {
           onChange={(event) => setFromDate(event.target.value)}
           className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
         />
-        <div className="flex gap-2">
-          <input
-            type="date"
-            value={toDate}
-            onChange={(event) => setToDate(event.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
-          >
-            {t.archive.applyFilters}
-          </button>
-        </div>
+        <input
+          type="date"
+          value={toDate}
+          onChange={(event) => setToDate(event.target.value)}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+        />
+        <button
+          type="submit"
+          className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
+        >
+          {t.archive.applyFilters}
+        </button>
       </form>
 
       {archivedTasks.length === 0 ? (
