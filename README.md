@@ -1,8 +1,8 @@
-# Eisenhower Board
+# Focus by Eisenhower
 
 A free, open-source web application to organize your tasks using the [Eisenhower Matrix](https://en.wikipedia.org/wiki/Time_management#The_Eisenhower_Method) — a productivity method that helps you prioritize by sorting tasks into four quadrants based on urgency and importance.
 
-**Use it now at [tasks.letmiko.app](https://tasks.letmiko.app)** — no install required, just sign in with your email.
+**Use it now at [focus.letmiko.app](https://focus.letmiko.app)** — no install required, just sign in with your email.
 
 |  |  |
 |:---:|:---:|
@@ -12,7 +12,7 @@ A free, open-source web application to organize your tasks using the [Eisenhower
 ## Features
 
 - **Drag & drop** tasks between quadrants
-- **Passwordless sign-in** — magic-link sent to your email
+- **Passwordless sign-in** — localized magic-link sent to your email
 - **Multi-user** — each account has its own private board
 - **14 languages** — auto-detected from your browser
 - **Dark / light mode** — follows your system preference
@@ -31,6 +31,7 @@ A free, open-source web application to organize your tasks using the [Eisenhower
 | Drag & drop | [@dnd-kit](https://dndkit.com/) |
 | Dark mode | [next-themes](https://github.com/pacocoursey/next-themes) |
 | Icons | [Lucide](https://lucide.dev/) |
+| Email | [Resend](https://resend.com/) (HTTPS API) or SMTP via [Nodemailer](https://nodemailer.com/) |
 | Backend | [Express](https://expressjs.com/) |
 | Database | [SQLite](https://www.sqlite.org/) via [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) |
 | Validation | [Zod](https://zod.dev/) |
@@ -40,7 +41,22 @@ A free, open-source web application to organize your tasks using the [Eisenhower
 
 The application is available as a Docker image for `linux/amd64` and `linux/arm64` on the [GitHub Container Registry](https://github.com/GitCroque/eisenhower-board/pkgs/container/eisenhower-board).
 
-Create a `.env` file with your SMTP configuration, then run:
+### Railway (recommended)
+
+The app is deployed on [Railway](https://railway.com/) with auto-deploy from GitHub. A `railway.toml` is included in the repo.
+
+Required Railway variables:
+
+| Variable | Description |
+|----------|-------------|
+| `APP_BASE_URL` | Public URL (e.g. `https://focus.letmiko.app`) |
+| `TRUST_PROXY` | Hop count for reverse proxy (`1` for Railway) |
+| `RESEND_API_KEY` | [Resend](https://resend.com/) API key for sending emails |
+| `MAIL_FROM` | Sender email address (must be verified in Resend) |
+
+### Docker
+
+Create a `.env` file with your configuration, then run:
 
 ```bash
 docker compose --profile prod up -d
@@ -51,13 +67,19 @@ Required environment variables:
 | Variable | Description |
 |----------|-------------|
 | `APP_BASE_URL` | Public URL (e.g. `https://your-domain.com`) |
-| `TRUST_PROXY` | Proxy trust setting (`false` by default, use `true`, a hop count, or subnet in reverse-proxy deployments) |
-| `SMTP_HOST` | SMTP server hostname |
+| `TRUST_PROXY` | Proxy trust setting (`false` by default, use `1` or a subnet behind a reverse proxy) |
+| `MAIL_FROM` | Sender email address |
+
+Email provider (one of):
+
+| Variable | Description |
+|----------|-------------|
+| `RESEND_API_KEY` | Resend API key (recommended, uses HTTPS) |
+| `SMTP_HOST` | SMTP server hostname (fallback) |
 | `SMTP_PORT` | SMTP port (default: `465`) |
 | `SMTP_SECURE` | Use TLS (default: `true`) |
 | `SMTP_USER` | SMTP username |
 | `SMTP_PASS` | SMTP password |
-| `MAIL_FROM` | Sender email address |
 
 Optional environment variables:
 
@@ -65,7 +87,7 @@ Optional environment variables:
 |----------|-------------|
 | `SQLITE_JOURNAL_MODE` | SQLite journal mode (`WAL` by default). Set `DELETE` on volumes that do not support WAL shared-memory files, such as some NAS, NFS, CIFS, or FUSE-backed mounts. |
 
-Data is stored in a SQLite database inside the `eisenhower-data` volume and persists between restarts. The only external requirement is an SMTP server for sending sign-in emails.
+Data is stored in a SQLite database inside the `eisenhower-data` volume and persists between restarts.
 
 ## Development
 
@@ -98,7 +120,7 @@ eisenhower-board/
 ├── server/               # Express + SQLite backend
 │   ├── index.ts          # API routes, auth, CSRF
 │   ├── db.ts             # SQLite database layer
-│   ├── mailer.ts         # SMTP magic-link emails
+│   ├── mailer.ts         # Magic-link emails (Resend API or SMTP)
 │   └── tsconfig.json     # Server TypeScript config
 ├── shared/               # Shared code (frontend + backend)
 │   ├── types.ts          # Task, QuadrantKey, QuadrantsState
@@ -111,7 +133,8 @@ eisenhower-board/
 │   ├── i18n/             # 14 languages
 │   └── types/            # TypeScript types
 ├── Dockerfile            # Multi-stage Alpine build
-└── docker-compose.yml    # Docker Compose (dev + prod profile)
+├── docker-compose.yml    # Docker Compose (dev + prod profile)
+└── railway.toml          # Railway deployment config
 ```
 
 ## License
