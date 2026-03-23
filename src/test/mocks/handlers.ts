@@ -22,7 +22,7 @@ export const handlers = [
   http.get('/api/auth/me', () => {
     return HttpResponse.json({
       authenticated: true,
-      user: { email: 'test@example.com' },
+      user: { email: 'test@example.com', isAdmin: false },
     });
   }),
 
