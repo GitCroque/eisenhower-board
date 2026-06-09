@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20.18-alpine AS build
+FROM node:22-alpine@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920 AS build
 WORKDIR /app
 
 # Version from release tag (passed via --build-arg)
@@ -18,7 +18,7 @@ RUN npm run build
 RUN npm run build:server
 
 # Production
-FROM node:20.18-alpine
+FROM node:22-alpine@sha256:968df39aedcea65eeb078fb336ed7191baf48f972b4479711397108be0966920
 WORKDIR /app
 
 # Copy package files first for better layer caching
@@ -52,7 +52,7 @@ ENV DATA_DIR=/app/data
 EXPOSE 3080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3080/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
+  CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3080) + '/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "dist-server/server/index.js"]
