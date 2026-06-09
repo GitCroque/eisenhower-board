@@ -247,11 +247,13 @@ describe('useApi', () => {
       expect(result.current.loading).toBe(false);
     });
 
+    let moved: boolean | undefined;
     await act(async () => {
-      await result.current.moveTask('1', 'urgentImportant', 'notUrgentImportant');
+      moved = await result.current.moveTask('1', 'urgentImportant', 'notUrgentImportant');
     });
 
     // Optimistic update moves the task to the target quadrant
+    expect(moved).toBe(true);
     expect(result.current.quadrants.urgentImportant).toHaveLength(0);
     expect(result.current.quadrants.notUrgentImportant).toHaveLength(1);
     expect(result.current.quadrants.notUrgentImportant[0].text).toBe('Urgent task');
@@ -264,11 +266,30 @@ describe('useApi', () => {
       expect(result.current.loading).toBe(false);
     });
 
+    let moved: boolean | undefined;
     await act(async () => {
-      await result.current.moveTask('1', 'urgentImportant', 'urgentImportant');
+      moved = await result.current.moveTask('1', 'urgentImportant', 'urgentImportant');
     });
 
+    expect(moved).toBe(false);
     expect(result.current.quadrants.urgentImportant).toHaveLength(1);
+  });
+
+  it('resolves false when the task is missing from the source quadrant', async () => {
+    const { result } = renderHook(() => useApi(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    let moved: boolean | undefined;
+    await act(async () => {
+      moved = await result.current.moveTask('missing-id', 'urgentImportant', 'notUrgentImportant');
+    });
+
+    expect(moved).toBe(false);
+    expect(result.current.quadrants.urgentImportant).toHaveLength(1);
+    expect(result.current.quadrants.notUrgentImportant).toHaveLength(0);
   });
 
   it('completes a task', async () => {

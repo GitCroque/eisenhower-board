@@ -72,6 +72,11 @@ const zh: Translations = {
     retry: '重试',
   },
 
+  errors: {
+    loadFailed: '加载数据失败',
+    actionFailed: '操作失败，请重试。',
+  },
+
   archive: {
     title: '已归档任务',
     noTasks: '没有已归档的任务',
@@ -124,6 +129,8 @@ const zh: Translations = {
     sessionCheckFailedTitle: '无法验证您的会话',
     sessionCheckFailedDescription: '请检查网络连接，然后在登录前重试。',
     retrySessionCheck: '重试',
+    requestFailed: '无法发送登录链接，请重试。',
+    rateLimited: '尝试次数过多，请稍后再试。',
   },
 
   landing: {
@@ -133,7 +140,6 @@ const zh: Translations = {
 
   admin: {
     title: '管理',
-    stats: '统计',
     totalUsers: '用户总数',
     activeUsers30d: '活跃用户（30天）',
     users: '用户',
@@ -143,10 +149,7 @@ const zh: Translations = {
     taskCount: '任务数',
     never: '从未',
     deleteUser: '删除用户',
-    deleteUserConfirmTitle: '删除用户？',
-    deleteUserConfirmDescription: '{email} 的所有数据将被永久删除。此操作无法撤消。',
-    cannotDeleteSelf: '您无法在此处删除自己的账户',
-    userDeleted: '用户已删除',
+    noUsers: '暂无用户',
   },
 
   account: {
@@ -157,15 +160,11 @@ const zh: Translations = {
     changingEmail: '更改中...',
     emailChangeRequested: '验证邮件已发送',
     emailChangeRequestedDescription: '请查收新邮箱的收件箱以确认更改。',
-    emailChanged: '邮箱已更改',
-    emailChangedDescription: '您的邮箱已成功更新。',
     dangerZone: '危险区域',
     deleteAccount: '删除我的账户',
-    deleteAccountConfirmTitle: '删除您的账户？',
     deleteAccountConfirmDescription: '您的所有任务和数据将被永久删除。此操作无法撤消。',
     deleteAccountTypeEmail: '输入您的邮箱以确认',
     deletingAccount: '删除中...',
-    accountDeleted: '账户已删除',
   },
 };
 

@@ -5,6 +5,8 @@ import { useLanguage } from '@/i18n';
 import { useArchivedTasks } from '@/hooks/useApi';
 import { QuadrantKey } from '@/types';
 import { cn } from '@/lib/utils';
+import { formatDate } from '@/lib/formatDate';
+import { ErrorState } from './ErrorState';
 import { Layout } from './Layout';
 import {
   AlertDialog,
@@ -32,15 +34,7 @@ const quadrantFilterOptions: Array<QuadrantKey | 'all'> = [
   'notUrgentNotImportant',
 ];
 
-function formatDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+const paginationButtonClass = 'inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90';
 
 function getInitialPage(searchParams: URLSearchParams): number {
   const parsed = Number(searchParams.get('page'));
@@ -64,7 +58,7 @@ function getInitialQuadrant(searchParams: URLSearchParams): QuadrantKey | 'all' 
 }
 
 export function ArchivePage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = useMemo(() => getInitialPage(searchParams), [searchParams]);
@@ -95,6 +89,11 @@ export function ArchivePage() {
   const [fromDate, setFromDate] = useState(filters.from);
   const [toDate, setToDate] = useState(filters.to);
   const [quadrantFilter, setQuadrantFilter] = useState<QuadrantKey | 'all'>(filters.quadrant);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+
+  useEffect(() => {
+    if (!loading) setHasLoadedOnce(true);
+  }, [loading]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -161,6 +160,7 @@ export function ArchivePage() {
   };
 
   const handleJumpToPage = () => {
+    if (!jumpPage.trim()) return;
     const target = Number(jumpPage);
     if (!Number.isFinite(target)) return;
     const normalized = Math.min(totalPages, Math.max(1, Math.floor(target)));
@@ -168,7 +168,7 @@ export function ArchivePage() {
     setJumpPage('');
   };
 
-  if (loading) {
+  if (loading && !hasLoadedOnce) {
     return (
       <Layout maxWidth="max-w-4xl">
         <div className="flex min-h-[400px] items-center justify-center">
@@ -181,15 +181,7 @@ export function ArchivePage() {
   if (error) {
     return (
       <Layout maxWidth="max-w-4xl">
-        <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
-          <p className="text-red-600 dark:text-red-400">{t.states.error}: {error}</p>
-          <button
-            onClick={() => void refetch()}
-            className="rounded-lg border border-white/60 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 backdrop-blur-md transition-all duration-200 hover:bg-white/90 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:bg-slate-800/90"
-          >
-            {t.states.retry}
-          </button>
-        </div>
+        <ErrorState message={t.errors.loadFailed} onRetry={() => void refetch()} />
       </Layout>
     );
   }
@@ -248,6 +240,10 @@ export function ArchivePage() {
         </button>
       </form>
 
+      {loading && (
+        <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">{t.states.loading}</p>
+      )}
+
       {archivedTasks.length === 0 ? (
         <div className="rounded-xl border border-white/60 bg-white/70 p-8 text-center backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-800/70">
           <p className="text-slate-500 dark:text-slate-400">{t.archive.noTasks}</p>
@@ -266,11 +262,11 @@ export function ArchivePage() {
                     {t.quadrants[task.quadrant].title}
                   </span>
                   <span className="text-slate-500 dark:text-slate-400">
-                    {t.archive.completedOn} {formatDate(task.completedAt)}
+                    {t.archive.completedOn} {formatDate(task.completedAt, language, 'dateTimeLong')}
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-1 opacity-100 transition-all duration-200 md:opacity-0 md:group-hover:opacity-100">
+              <div className="flex items-center gap-1 opacity-100 transition-all duration-200 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
                 <button
                   onClick={() => void handleRestore(task.id)}
                   className="rounded-md p-1 text-slate-400 transition-all duration-200 hover:scale-110 hover:text-blue-600"
@@ -297,7 +293,7 @@ export function ArchivePage() {
           <button
             onClick={() => updateSearch(page - 1, filters)}
             disabled={page <= 1}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90"
+            className={paginationButtonClass}
             aria-label={t.archive.previousPage}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -310,7 +306,7 @@ export function ArchivePage() {
           <button
             onClick={() => updateSearch(page + 1, filters)}
             disabled={page >= totalPages}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90"
+            className={paginationButtonClass}
             aria-label={t.archive.nextPage}
           >
             <ChevronRight className="h-4 w-4" />

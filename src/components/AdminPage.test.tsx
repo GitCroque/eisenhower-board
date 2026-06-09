@@ -116,6 +116,26 @@ describe('AdminPage', () => {
     expect(screen.getByText('bob@test.com')).toBeInTheDocument();
   });
 
+  it('shows an error state with retry when the admin data fails to load', async () => {
+    mockAdminAuth();
+
+    mockFetch.mockImplementation(async (url: string) => {
+      if (url === '/api/csrf-token') {
+        return new Response(JSON.stringify({ token: 'csrf-token' }), { status: 200 });
+      }
+
+      return new Response(JSON.stringify({ error: 'fail' }), { status: 500 });
+    });
+
+    renderAdminPage();
+
+    await waitFor(() => {
+      expect(screen.getByText(/échec du chargement des données/i)).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('button', { name: /réessayer/i })).toBeInTheDocument();
+  });
+
   it('redirects non-admin to home', async () => {
     mockUseAuth.mockReturnValue({
       user: { email: 'user@test.com', isAdmin: false },
@@ -199,8 +219,8 @@ describe('AdminPage', () => {
     const trashButtons = screen.getAllByTitle(/supprimer l'utilisateur/i);
     await user.click(trashButtons[0]);
 
-    // Confirmation: click OK
-    await user.click(screen.getByRole('button', { name: 'OK' }));
+    // Confirmation: click the confirm button (fr dialogs.confirm)
+    await user.click(screen.getByRole('button', { name: 'Supprimer' }));
 
     // Assert DELETE was called for user-1
     await waitFor(() => {

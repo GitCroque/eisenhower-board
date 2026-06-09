@@ -135,6 +135,23 @@ describe('TaskItem', () => {
     vi.useRealTimers();
   });
 
+  it('ignores additional complete clicks while completing', async () => {
+    vi.useFakeTimers();
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const onComplete = vi.fn();
+    renderTaskItem(vi.fn(), onComplete);
+
+    const completeButton = screen.getByRole('button', { name: /complete/i });
+    await click(user, completeButton);
+    await click(user, completeButton);
+
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
   it('enters edit mode when edit button is clicked', async () => {
     const user = userEvent.setup();
     renderTaskItem();

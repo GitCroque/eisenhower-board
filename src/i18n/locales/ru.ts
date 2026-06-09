@@ -72,6 +72,11 @@ const ru: Translations = {
     retry: 'Повторить',
   },
 
+  errors: {
+    loadFailed: 'Не удалось загрузить данные',
+    actionFailed: 'Действие не выполнено. Попробуйте ещё раз.',
+  },
+
   archive: {
     title: 'Архивированные задачи',
     noTasks: 'Нет архивированных задач',
@@ -119,6 +124,8 @@ const ru: Translations = {
     sessionCheckFailedTitle: 'Не удалось проверить сеанс',
     sessionCheckFailedDescription: 'Проверьте подключение и попробуйте снова перед входом.',
     retrySessionCheck: 'Повторить',
+    requestFailed: 'Не удалось отправить ссылку для входа. Попробуйте ещё раз.',
+    rateLimited: 'Слишком много попыток. Повторите попытку позже.',
   },
 
   accessibility: {
@@ -133,7 +140,6 @@ const ru: Translations = {
 
   admin: {
     title: 'Администрирование',
-    stats: 'Статистика',
     totalUsers: 'Всего пользователей',
     activeUsers30d: 'Активные пользователи (30 дней)',
     users: 'Пользователи',
@@ -143,10 +149,7 @@ const ru: Translations = {
     taskCount: 'Задачи',
     never: 'Никогда',
     deleteUser: 'Удалить пользователя',
-    deleteUserConfirmTitle: 'Удалить пользователя?',
-    deleteUserConfirmDescription: 'Все данные пользователя {email} будут безвозвратно удалены. Это действие нельзя отменить.',
-    cannotDeleteSelf: 'Вы не можете удалить свой собственный аккаунт отсюда',
-    userDeleted: 'Пользователь удалён',
+    noUsers: 'Нет пользователей',
   },
 
   account: {
@@ -157,15 +160,11 @@ const ru: Translations = {
     changingEmail: 'Изменение...',
     emailChangeRequested: 'Письмо для подтверждения отправлено',
     emailChangeRequestedDescription: 'Проверьте входящие сообщения на новом адресе для подтверждения изменения.',
-    emailChanged: 'Почта изменена',
-    emailChangedDescription: 'Ваш адрес электронной почты успешно обновлён.',
     dangerZone: 'Опасная зона',
     deleteAccount: 'Удалить мой аккаунт',
-    deleteAccountConfirmTitle: 'Удалить ваш аккаунт?',
     deleteAccountConfirmDescription: 'Все ваши задачи и данные будут безвозвратно удалены. Это действие нельзя отменить.',
     deleteAccountTypeEmail: 'Введите свою почту для подтверждения',
     deletingAccount: 'Удаление...',
-    accountDeleted: 'Аккаунт удалён',
   },
 };
 

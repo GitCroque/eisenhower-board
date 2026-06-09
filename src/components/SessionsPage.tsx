@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield, Trash2 } from 'lucide-react';
 import { useCsrf } from '@/hooks/CsrfContext';
 import { useLanguage } from '@/i18n';
+import { formatDate } from '@/lib/formatDate';
 import { Layout } from './Layout';
 
 interface AuthSession {
@@ -18,31 +19,27 @@ interface SessionsResponse {
   sessions: AuthSession[];
 }
 
-function formatDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
 export function SessionsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [sessions, setSessions] = useState<AuthSession[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<'load' | 'action' | null>(null);
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [revokingOthers, setRevokingOthers] = useState(false);
   const { fetchCsrfToken, fetchWithCsrf } = useCsrf();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchSessions = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       setError(null);
       setLoading(true);
       const response = await fetch('/api/auth/sessions', {
         credentials: 'same-origin',
+        signal: controller.signal,
       });
       if (response.status === 401) {
         window.location.reload();
@@ -54,7 +51,9 @@ export function SessionsPage() {
       const data = await response.json() as SessionsResponse;
       setSessions(data.sessions);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      console.error('Failed to fetch sessions:', err);
+      setError('load');
     } finally {
       setLoading(false);
     }
@@ -62,6 +61,7 @@ export function SessionsPage() {
 
   useEffect(() => {
     void Promise.all([fetchCsrfToken(), fetchSessions()]);
+    return () => abortControllerRef.current?.abort();
   }, [fetchCsrfToken, fetchSessions]);
 
   const revokeSession = useCallback(async (sessionId: string) => {
@@ -80,7 +80,8 @@ export function SessionsPage() {
       }
       setSessions((prev) => prev.filter((session) => session.id !== sessionId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      console.error('Failed to revoke session:', err);
+      setError('action');
     } finally {
       setRevokingId(null);
     }
@@ -102,7 +103,8 @@ export function SessionsPage() {
       }
       setSessions((prev) => prev.filter((session) => session.current));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      console.error('Failed to revoke other sessions:', err);
+      setError('action');
     } finally {
       setRevokingOthers(false);
     }
@@ -145,7 +147,7 @@ export function SessionsPage() {
 
       {error && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
-          {error}
+          {error === 'load' ? t.errors.loadFailed : t.errors.actionFailed}
         </div>
       )}
 
@@ -173,10 +175,10 @@ export function SessionsPage() {
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">IP: {session.ip || t.sessions.unknownIp}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {t.sessions.createdAt}: {formatDate(session.createdAt)}
+                  {t.sessions.createdAt}: {formatDate(session.createdAt, language, 'dateTime')}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {t.sessions.lastSeenAt}: {formatDate(session.lastSeenAt)}
+                  {t.sessions.lastSeenAt}: {formatDate(session.lastSeenAt, language, 'dateTime')}
                 </p>
               </div>
               {!session.current && (

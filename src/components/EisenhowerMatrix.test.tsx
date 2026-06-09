@@ -105,7 +105,7 @@ describe('EisenhowerMatrix', () => {
     renderMatrix();
 
     await waitFor(() => {
-      expect(screen.getByText(/failed to fetch tasks/i)).toBeInTheDocument();
+      expect(screen.getByText(/failed to load data/i)).toBeInTheDocument();
     });
 
     expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
@@ -136,7 +136,7 @@ describe('EisenhowerMatrix', () => {
     renderMatrix();
 
     await waitFor(() => {
-      expect(screen.getByText(/failed to fetch tasks/i)).toBeInTheDocument();
+      expect(screen.getByText(/failed to load data/i)).toBeInTheDocument();
     });
 
     await user.click(screen.getByRole('button', { name: /retry/i }));
@@ -164,6 +164,49 @@ describe('EisenhowerMatrix', () => {
     await waitFor(() => {
       expect(screen.getByText('Brand new task')).toBeInTheDocument();
     });
+  });
+
+  it('only submits one task when Enter is pressed twice quickly', async () => {
+    let postCount = 0;
+    let resolvePost: ((response: Response) => void) | undefined;
+
+    mockFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url === '/api/csrf-token') {
+        return new Response(JSON.stringify({ token: 'test-csrf-token' }), { status: 200 });
+      }
+      if (url === '/api/tasks' && (!options?.method || options.method === 'GET')) {
+        return new Response(JSON.stringify(defaultTasks), { status: 200 });
+      }
+      if (url === '/api/tasks' && options?.method === 'POST') {
+        postCount++;
+        return new Promise<Response>((resolve) => {
+          resolvePost = resolve;
+        });
+      }
+      return new Response('', { status: 404 });
+    });
+
+    const user = userEvent.setup();
+    renderMatrix();
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: /add a task/i })).toHaveLength(4);
+    });
+
+    const addButtons = screen.getAllByRole('button', { name: /add a task/i });
+    await user.click(addButtons[0]);
+
+    const input = screen.getByPlaceholderText(/enter/i);
+    await user.type(input, 'Slow task');
+    await user.keyboard('{Enter}{Enter}');
+
+    resolvePost?.(new Response(JSON.stringify({ id: 'new-1', text: 'Slow task', createdAt: Date.now() }), { status: 201 }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Slow task')).toBeInTheDocument();
+    });
+
+    expect(postCount).toBe(1);
   });
 
   it('shows empty state when no tasks', async () => {

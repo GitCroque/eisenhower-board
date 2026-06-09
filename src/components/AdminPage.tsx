@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, ShieldCheck, Trash2, Users } from 'lucide-react';
 import { useCsrf } from '@/hooks/CsrfContext';
 import { useAuth } from '@/auth/AuthContext';
 import { useLanguage } from '@/i18n';
+import { formatDate } from '@/lib/formatDate';
+import { ErrorState } from './ErrorState';
 import { Layout } from './Layout';
 
 interface AdminUser {
@@ -21,48 +23,48 @@ interface AdminStats {
 
 const PAGE_SIZE = 50;
 
-function formatDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
 export function AdminPage() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { fetchCsrfToken, fetchWithCsrf } = useCsrf();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-
-  if (!user?.isAdmin) {
-    return <Navigate to="/" replace />;
-  }
-
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchData = useCallback(async (p: number) => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
+      setError(false);
       setLoading(true);
       const [usersRes, statsRes] = await Promise.all([
-        fetch(`/api/admin/users?page=${p}&pageSize=${PAGE_SIZE}`, { credentials: 'same-origin' }),
-        fetch('/api/admin/stats', { credentials: 'same-origin' }),
+        fetch(`/api/admin/users?page=${p}&pageSize=${PAGE_SIZE}`, { credentials: 'same-origin', signal: controller.signal }),
+        fetch('/api/admin/stats', { credentials: 'same-origin', signal: controller.signal }),
       ]);
-      if (usersRes.ok) {
-        const data = await usersRes.json() as { users: AdminUser[]; total: number };
-        setUsers(data.users);
-        setTotal(data.total);
+      if (usersRes.status === 401 || statsRes.status === 401) {
+        window.location.reload();
+        return;
       }
-      if (statsRes.ok) {
-        const data = await statsRes.json() as AdminStats;
-        setStats(data);
+      if (!usersRes.ok || !statsRes.ok) {
+        throw new Error('Failed to fetch admin data');
       }
+      const usersData = await usersRes.json() as { users: AdminUser[]; total: number };
+      setUsers(usersData.users);
+      setTotal(usersData.total);
+      const statsData = await statsRes.json() as AdminStats;
+      setStats(statsData);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      console.error('Failed to fetch admin data:', err);
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -70,6 +72,7 @@ export function AdminPage() {
 
   useEffect(() => {
     void Promise.all([fetchCsrfToken(), fetchData(page)]);
+    return () => abortControllerRef.current?.abort();
   }, [fetchCsrfToken, fetchData, page]);
 
   const deleteUser = useCallback(async (userId: string) => {
@@ -92,12 +95,19 @@ export function AdminPage() {
     }
   }, [fetchWithCsrf, stats]);
 
+  if (!user?.isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
   return (
     <Layout maxWidth="max-w-5xl">
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <Link
             to="/"
+            aria-label={t.archive.backToMatrix}
             className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -127,12 +137,14 @@ export function AdminPage() {
             <h2 className="font-medium text-slate-900 dark:text-slate-100">{t.admin.users}</h2>
           </div>
 
-          {loading ? (
+          {error ? (
+            <ErrorState message={t.errors.loadFailed} onRetry={() => void fetchData(page)} />
+          ) : loading ? (
             <div className="flex min-h-[200px] items-center justify-center">
-              <p className="text-slate-500">...</p>
+              <p className="text-slate-500">{t.states.loading}</p>
             </div>
           ) : users.length === 0 ? (
-            <p className="p-4 text-slate-500">{t.admin.never}</p>
+            <p className="p-4 text-slate-500">{t.admin.noUsers}</p>
           ) : (
             <>
               <div className="overflow-x-auto">
@@ -157,9 +169,9 @@ export function AdminPage() {
                     {users.map(u => (
                       <tr key={u.id} className="border-b border-slate-100 dark:border-slate-700/50">
                         <td className="truncate px-4 py-2.5 text-slate-900 dark:text-slate-100">{u.email}</td>
-                        <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{formatDate(u.createdAt)}</td>
+                        <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{formatDate(u.createdAt, language)}</td>
                         <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">
-                          {u.lastLoginAt ? formatDate(u.lastLoginAt) : t.admin.never}
+                          {u.lastLoginAt ? formatDate(u.lastLoginAt, language) : t.admin.never}
                         </td>
                         <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{u.taskCount}</td>
                         <td className="h-10 px-4 text-right">
@@ -171,7 +183,7 @@ export function AdminPage() {
                                   disabled={deletingId === u.id}
                                   className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
                                 >
-                                  {deletingId === u.id ? '...' : 'OK'}
+                                  {deletingId === u.id ? t.states.loading : t.dialogs.confirm}
                                 </button>
                                 <button
                                   onClick={() => setConfirmDeleteId(null)}
@@ -185,6 +197,7 @@ export function AdminPage() {
                                 onClick={() => setConfirmDeleteId(u.id)}
                                 className="rounded p-1 text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950"
                                 title={t.admin.deleteUser}
+                                aria-label={t.admin.deleteUser}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -204,6 +217,7 @@ export function AdminPage() {
                     <button
                       onClick={() => setPage(p => Math.max(1, p - 1))}
                       disabled={page <= 1}
+                      aria-label={t.archive.previousPage}
                       className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-700"
                     >
                       <ChevronLeft className="h-4 w-4" />
@@ -211,6 +225,7 @@ export function AdminPage() {
                     <button
                       onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                       disabled={page >= totalPages}
+                      aria-label={t.archive.nextPage}
                       className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-700"
                     >
                       <ChevronRight className="h-4 w-4" />

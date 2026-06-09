@@ -72,6 +72,11 @@ const de: Translations = {
     retry: 'Erneut versuchen',
   },
 
+  errors: {
+    loadFailed: 'Daten konnten nicht geladen werden',
+    actionFailed: 'Die Aktion ist fehlgeschlagen. Bitte versuche es erneut.',
+  },
+
   archive: {
     title: 'Archivierte Aufgaben',
     noTasks: 'Keine archivierten Aufgaben',
@@ -124,6 +129,8 @@ const de: Translations = {
     sessionCheckFailedTitle: 'Deine Sitzung konnte nicht geprüft werden',
     sessionCheckFailedDescription: 'Prüfe deine Verbindung und versuche es erneut, bevor du dich anmeldest.',
     retrySessionCheck: 'Erneut versuchen',
+    requestFailed: 'Der Anmeldelink konnte nicht gesendet werden. Bitte versuche es erneut.',
+    rateLimited: 'Zu viele Versuche. Bitte versuche es später erneut.',
   },
 
   landing: {
@@ -133,7 +140,6 @@ const de: Translations = {
 
   admin: {
     title: 'Verwaltung',
-    stats: 'Statistiken',
     totalUsers: 'Benutzer insgesamt',
     activeUsers30d: 'Aktive Benutzer (30 Tage)',
     users: 'Benutzer',
@@ -143,10 +149,7 @@ const de: Translations = {
     taskCount: 'Aufgaben',
     never: 'Nie',
     deleteUser: 'Benutzer löschen',
-    deleteUserConfirmTitle: 'Benutzer löschen?',
-    deleteUserConfirmDescription: 'Alle Daten von {email} werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.',
-    cannotDeleteSelf: 'Sie können Ihr eigenes Konto nicht von dieser Seite löschen',
-    userDeleted: 'Benutzer gelöscht',
+    noUsers: 'Keine Benutzer',
   },
 
   account: {
@@ -157,15 +160,11 @@ const de: Translations = {
     changingEmail: 'Änderung...',
     emailChangeRequested: 'Bestätigungs-E-Mail gesendet',
     emailChangeRequestedDescription: 'Prüfe den Posteingang deiner neuen E-Mail-Adresse, um die Änderung zu bestätigen.',
-    emailChanged: 'E-Mail geändert',
-    emailChangedDescription: 'Deine E-Mail-Adresse wurde erfolgreich aktualisiert.',
     dangerZone: 'Gefahrenzone',
     deleteAccount: 'Mein Konto löschen',
-    deleteAccountConfirmTitle: 'Konto löschen?',
     deleteAccountConfirmDescription: 'Alle deine Aufgaben und Daten werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.',
     deleteAccountTypeEmail: 'Gib deine E-Mail zur Bestätigung ein',
     deletingAccount: 'Löschung...',
-    accountDeleted: 'Konto gelöscht',
   },
 };
 

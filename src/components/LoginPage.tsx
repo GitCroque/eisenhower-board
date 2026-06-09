@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { MailCheck, AlertCircle, Calendar, Users, Trash2 } from 'lucide-react';
-import { useAuth } from '@/auth/AuthContext';
+import { MagicLinkRequestError, useAuth } from '@/auth/AuthContext';
 import { useLanguage } from '@/i18n';
 import { LanguageSelector } from './LanguageSelector';
 import { ThemeToggle } from './ThemeToggle';
@@ -43,7 +43,7 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<'requestFailed' | 'rateLimited' | null>(null);
 
   const canSubmit = isValidEmail(email.trim()) && !loading;
 
@@ -60,7 +60,7 @@ export function LoginPage() {
       await requestMagicLink(normalizedEmail, language);
       setSubmittedEmail(normalizedEmail);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to send sign-in link');
+      setError(err instanceof MagicLinkRequestError && err.rateLimited ? 'rateLimited' : 'requestFailed');
     } finally {
       setLoading(false);
     }
@@ -160,7 +160,7 @@ export function LoginPage() {
 
           {error && (
             <p className="mt-4 text-sm text-red-600 dark:text-red-400">
-              {error}
+              {t.auth[error]}
             </p>
           )}
         </div>

@@ -72,6 +72,11 @@ const uk: Translations = {
     retry: 'Повторити',
   },
 
+  errors: {
+    loadFailed: 'Не вдалося завантажити дані',
+    actionFailed: 'Дію не виконано. Спробуйте ще раз.',
+  },
+
   archive: {
     title: 'Архівовані завдання',
     noTasks: 'Немає архівованих завдань',
@@ -119,6 +124,8 @@ const uk: Translations = {
     sessionCheckFailedTitle: 'Не вдалося перевірити сесію',
     sessionCheckFailedDescription: 'Перевірте зʼєднання та спробуйте знову перед входом.',
     retrySessionCheck: 'Повторити',
+    requestFailed: 'Не вдалося надіслати посилання для входу. Спробуйте ще раз.',
+    rateLimited: 'Забагато спроб. Спробуйте пізніше.',
   },
 
   accessibility: {
@@ -133,7 +140,6 @@ const uk: Translations = {
 
   admin: {
     title: 'Адміністрування',
-    stats: 'Статистика',
     totalUsers: 'Всього користувачів',
     activeUsers30d: 'Активні користувачі (30 днів)',
     users: 'Користувачі',
@@ -143,10 +149,7 @@ const uk: Translations = {
     taskCount: 'Завдання',
     never: 'Ніколи',
     deleteUser: 'Видалити користувача',
-    deleteUserConfirmTitle: 'Видалити користувача?',
-    deleteUserConfirmDescription: 'Усі дані користувача {email} будуть безповоротно видалені. Цю дію не можна скасувати.',
-    cannotDeleteSelf: 'Ви не можете видалити свій власний обліковий запис звідси',
-    userDeleted: 'Користувача видалено',
+    noUsers: 'Немає користувачів',
   },
 
   account: {
@@ -157,15 +160,11 @@ const uk: Translations = {
     changingEmail: 'Зміна...',
     emailChangeRequested: 'Лист для підтвердження надіслано',
     emailChangeRequestedDescription: 'Перевірте вхідні повідомлення на новій адресі для підтвердження зміни.',
-    emailChanged: 'Пошту змінено',
-    emailChangedDescription: 'Вашу адресу електронної пошти успішно оновлено.',
     dangerZone: 'Небезпечна зона',
     deleteAccount: 'Видалити мій обліковий запис',
-    deleteAccountConfirmTitle: 'Видалити ваш обліковий запис?',
     deleteAccountConfirmDescription: 'Усі ваші завдання та дані будуть безповоротно видалені. Цю дію не можна скасувати.',
     deleteAccountTypeEmail: 'Введіть свою пошту для підтвердження',
     deletingAccount: 'Видалення...',
-    accountDeleted: 'Обліковий запис видалено',
   },
 };
 

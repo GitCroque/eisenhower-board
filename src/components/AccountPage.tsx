@@ -13,9 +13,11 @@ export function AccountPage() {
   const [newEmail, setNewEmail] = useState('');
   const [changingEmail, setChangingEmail] = useState(false);
   const [emailChangeSuccess, setEmailChangeSuccess] = useState(false);
+  const [emailChangeError, setEmailChangeError] = useState(false);
 
   const [confirmEmail, setConfirmEmail] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (!user) return null;
@@ -28,11 +30,12 @@ export function AccountPage() {
     if (!canChangeEmail) return;
     try {
       setChangingEmail(true);
+      setEmailChangeError(false);
       await changeEmail(newEmail.trim(), language);
       setNewEmail('');
       setEmailChangeSuccess(true);
     } catch {
-      // Generic response — no specific error
+      setEmailChangeError(true);
     } finally {
       setChangingEmail(false);
     }
@@ -43,9 +46,11 @@ export function AccountPage() {
     if (!canDelete) return;
     try {
       setDeleting(true);
+      setDeleteError(false);
       await deleteAccount();
       navigate('/');
     } catch {
+      setDeleteError(true);
       setDeleting(false);
     }
   };
@@ -56,6 +61,7 @@ export function AccountPage() {
         <div className="flex items-center gap-3">
           <Link
             to="/"
+            aria-label={t.archive.backToMatrix}
             className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -98,6 +104,12 @@ export function AccountPage() {
                 {changingEmail ? t.account.changingEmail : t.account.changeEmail}
               </button>
             </form>
+          )}
+
+          {emailChangeError && (
+            <p className="mt-3 text-sm text-red-600 dark:text-red-400">
+              {t.errors.actionFailed}
+            </p>
           )}
         </div>
 
@@ -149,6 +161,11 @@ export function AccountPage() {
                     {t.tasks.cancel}
                   </button>
                 </div>
+                {deleteError && (
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    {t.errors.actionFailed}
+                  </p>
+                )}
               </form>
             </div>
           )}

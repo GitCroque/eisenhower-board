@@ -72,6 +72,11 @@ const es: Translations = {
     retry: 'Reintentar',
   },
 
+  errors: {
+    loadFailed: 'Error al cargar los datos',
+    actionFailed: 'La acción ha fallado. Inténtalo de nuevo.',
+  },
+
   archive: {
     title: 'Tareas archivadas',
     noTasks: 'No hay tareas archivadas',
@@ -124,6 +129,8 @@ const es: Translations = {
     sessionCheckFailedTitle: 'No se pudo verificar tu sesión',
     sessionCheckFailedDescription: 'Comprueba tu conexión e inténtalo de nuevo antes de iniciar sesión.',
     retrySessionCheck: 'Reintentar',
+    requestFailed: 'No se pudo enviar el enlace de inicio de sesión. Inténtalo de nuevo.',
+    rateLimited: 'Demasiados intentos. Inténtalo de nuevo más tarde.',
   },
 
   landing: {
@@ -133,7 +140,6 @@ const es: Translations = {
 
   admin: {
     title: 'Administración',
-    stats: 'Estadísticas',
     totalUsers: 'Usuarios en total',
     activeUsers30d: 'Usuarios activos (30 días)',
     users: 'Usuarios',
@@ -143,10 +149,7 @@ const es: Translations = {
     taskCount: 'Tareas',
     never: 'Nunca',
     deleteUser: 'Eliminar usuario',
-    deleteUserConfirmTitle: '¿Eliminar usuario?',
-    deleteUserConfirmDescription: 'Todos los datos de {email} serán eliminados permanentemente. Esta acción es irreversible.',
-    cannotDeleteSelf: 'No puedes eliminar tu propia cuenta desde esta página',
-    userDeleted: 'Usuario eliminado',
+    noUsers: 'No hay usuarios',
   },
 
   account: {
@@ -157,15 +160,11 @@ const es: Translations = {
     changingEmail: 'Modificando...',
     emailChangeRequested: 'Email de verificación enviado',
     emailChangeRequestedDescription: 'Revisa la bandeja de entrada de tu nuevo email para confirmar el cambio.',
-    emailChanged: 'Email modificado',
-    emailChangedDescription: 'Tu email ha sido actualizado con éxito.',
     dangerZone: 'Zona de peligro',
     deleteAccount: 'Eliminar mi cuenta',
-    deleteAccountConfirmTitle: '¿Eliminar tu cuenta?',
     deleteAccountConfirmDescription: 'Todas tus tareas y datos serán eliminados permanentemente. Esta acción es irreversible.',
     deleteAccountTypeEmail: 'Escribe tu email para confirmar',
     deletingAccount: 'Eliminando...',
-    accountDeleted: 'Cuenta eliminada',
   },
 };
 

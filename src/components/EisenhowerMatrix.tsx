@@ -1,15 +1,26 @@
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, pointerWithin } from '@dnd-kit/core';
+import { CollisionDetection, DndContext, DragEndEvent, DragOverlay, DragStartEvent, pointerWithin, rectIntersection } from '@dnd-kit/core';
 import { useState, useCallback, useMemo } from 'react';
 import { useApi } from '@/hooks/useApi';
 import { useLanguage } from '@/i18n';
 import { useToast } from './ui/toast';
 import { Task, QuadrantKey } from '@/types';
+import { ErrorState } from './ErrorState';
 import { QuadrantCard } from './QuadrantCard';
 
 interface QuadrantStyle {
   colorClass: string;
   iconColor: string;
 }
+
+// Pointer-based detection for mouse and touch, with a rectangle
+// intersection fallback so keyboard drag and drop keeps working.
+const collisionDetection: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+  if (pointerCollisions.length > 0) {
+    return pointerCollisions;
+  }
+  return rectIntersection(args);
+};
 
 const QUADRANT_STYLES: Record<QuadrantKey, QuadrantStyle> = {
   urgentImportant: {
@@ -53,7 +64,9 @@ export function EisenhowerMatrix() {
     if (sourceQuadrant === targetQuadrant) return;
 
     void moveTask(active.id as string, sourceQuadrant, targetQuadrant)
-      .then(() => showToast(t.toasts.taskMoved, 'success'))
+      .then((moved) => {
+        if (moved) showToast(t.toasts.taskMoved, 'success');
+      })
       .catch(() => showToast(t.toasts.error, 'error'));
   }, [moveTask, showToast, t.toasts]);
 
@@ -165,24 +178,14 @@ export function EisenhowerMatrix() {
   }
 
   if (error) {
-    return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
-        <div className="text-red-600 dark:text-red-400">{t.states.error}: {error}</div>
-        <button
-          onClick={() => void refetch()}
-          className="rounded-lg border border-white/60 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 backdrop-blur-md transition-all duration-200 hover:bg-white/90 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:bg-slate-800/90"
-        >
-          {t.states.retry}
-        </button>
-      </div>
-    );
+    return <ErrorState message={t.errors.loadFailed} onRetry={() => void refetch()} />;
   }
 
   return (
     <DndContext
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      collisionDetection={pointerWithin}
+      collisionDetection={collisionDetection}
     >
       <div className="w-full max-w-7xl mx-auto">
         {/* Container with left margin for vertical label */}

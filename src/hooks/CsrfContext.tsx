@@ -61,6 +61,10 @@ export function CsrfProvider({ children }: CsrfProviderProps) {
     });
 
     if (response.status === 403) {
+      const body = await response.clone().json().catch(() => null) as { code?: string } | null;
+      if (body?.code !== 'CSRF') {
+        return response;
+      }
       await fetchCsrfToken();
       const retryHeaders: HeadersInit = {
         ...options.headers,

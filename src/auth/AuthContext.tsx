@@ -26,6 +26,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const API_BASE = '/api';
 
+export class MagicLinkRequestError extends Error {
+  readonly rateLimited: boolean;
+
+  constructor(rateLimited: boolean) {
+    super(rateLimited ? 'Magic link request rate limited' : 'Magic link request failed');
+    this.name = 'MagicLinkRequestError';
+    this.rateLimited = rateLimited;
+  }
+}
+
 async function fetchAuthMe(): Promise<AuthMeResponse> {
   const response = await fetch(`${API_BASE}/auth/me`, {
     credentials: 'same-origin',
@@ -74,7 +84,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     if (!response.ok) {
-      throw new Error('Unable to process sign-in request. Please try again.');
+      throw new MagicLinkRequestError(response.status === 429);
     }
   }, []);
 
@@ -92,9 +102,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [fetchWithCsrf]);
 
   const deleteAccount = useCallback(async () => {
-    await fetchWithCsrf(`${API_BASE}/account`, {
+    const response = await fetchWithCsrf(`${API_BASE}/account`, {
       method: 'DELETE',
     });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete account');
+    }
+
     setUser(null);
   }, [fetchWithCsrf]);
 

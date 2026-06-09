@@ -43,6 +43,7 @@ export const QuadrantCard = memo(function QuadrantCard({
 }: QuadrantCardProps) {
   const [inputValue, setInputValue] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useLanguage();
 
   const { setNodeRef, isOver } = useDroppable({
@@ -54,15 +55,17 @@ export const QuadrantCard = memo(function QuadrantCard({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const nextText = inputValue.trim();
-    if (nextText) {
-      try {
-        await onAddTask(nextText);
-      } catch {
-        return;
-      }
-      setInputValue('');
-      setIsAdding(false);
+    if (!nextText || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onAddTask(nextText);
+    } catch {
+      return;
+    } finally {
+      setIsSubmitting(false);
     }
+    setInputValue('');
+    setIsAdding(false);
   };
 
   return (
@@ -108,6 +111,7 @@ export const QuadrantCard = memo(function QuadrantCard({
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={t.tasks.enterTask}
               aria-label={t.tasks.enterTask}
+              disabled={isSubmitting}
               autoFocus
               className="border-white/60 bg-white/80 backdrop-blur-md transition-all duration-200 focus:bg-white/95 dark:border-slate-700/60 dark:bg-slate-800/80 dark:focus:bg-slate-800/95"
             />
@@ -115,6 +119,7 @@ export const QuadrantCard = memo(function QuadrantCard({
               <Button
                 type="submit"
                 size="sm"
+                disabled={isSubmitting}
                 className="flex-1 border border-white/20 bg-slate-900/80 shadow-lg backdrop-blur-md transition-all duration-200 hover:bg-slate-900 dark:bg-white/80 dark:text-slate-900 dark:hover:bg-white/90"
               >
                 {t.tasks.add}

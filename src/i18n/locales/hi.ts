@@ -72,6 +72,11 @@ const hi: Translations = {
     retry: 'पुनः प्रयास करें',
   },
 
+  errors: {
+    loadFailed: 'डेटा लोड करने में विफल',
+    actionFailed: 'कार्रवाई विफल रही। कृपया पुनः प्रयास करें।',
+  },
+
   archive: {
     title: 'संग्रहीत कार्य',
     noTasks: 'कोई संग्रहीत कार्य नहीं',
@@ -124,6 +129,8 @@ const hi: Translations = {
     sessionCheckFailedTitle: 'आपके सत्र की पुष्टि नहीं हो सकी',
     sessionCheckFailedDescription: 'साइन इन करने से पहले अपना कनेक्शन जांचें और फिर से प्रयास करें।',
     retrySessionCheck: 'फिर से प्रयास करें',
+    requestFailed: 'साइन-इन लिंक भेजा नहीं जा सका। कृपया पुनः प्रयास करें।',
+    rateLimited: 'बहुत अधिक प्रयास। कृपया बाद में पुनः प्रयास करें।',
   },
 
   landing: {
@@ -133,7 +140,6 @@ const hi: Translations = {
 
   admin: {
     title: 'प्रशासन',
-    stats: 'आँकड़े',
     totalUsers: 'कुल उपयोगकर्ता',
     activeUsers30d: 'सक्रिय उपयोगकर्ता (30 दिन)',
     users: 'उपयोगकर्ता',
@@ -143,10 +149,7 @@ const hi: Translations = {
     taskCount: 'कार्य',
     never: 'कभी नहीं',
     deleteUser: 'उपयोगकर्ता हटाएं',
-    deleteUserConfirmTitle: 'उपयोगकर्ता हटाएं?',
-    deleteUserConfirmDescription: '{email} का सारा डेटा स्थायी रूप से हटा दिया जाएगा। यह क्रिया पूर्ववत नहीं की जा सकती।',
-    cannotDeleteSelf: 'आप यहाँ से अपना खाता नहीं हटा सकते',
-    userDeleted: 'उपयोगकर्ता हटाया गया',
+    noUsers: 'कोई उपयोगकर्ता नहीं',
   },
 
   account: {
@@ -157,15 +160,11 @@ const hi: Translations = {
     changingEmail: 'बदला जा रहा है...',
     emailChangeRequested: 'सत्यापन ईमेल भेजा गया',
     emailChangeRequestedDescription: 'परिवर्तन की पुष्टि के लिए अपने नए ईमेल का इनबॉक्स जांचें।',
-    emailChanged: 'ईमेल बदला गया',
-    emailChangedDescription: 'आपका ईमेल सफलतापूर्वक अपडेट हो गया है।',
     dangerZone: 'खतरनाक क्षेत्र',
     deleteAccount: 'मेरा खाता हटाएं',
-    deleteAccountConfirmTitle: 'अपना खाता हटाएं?',
     deleteAccountConfirmDescription: 'आपके सभी कार्य और डेटा स्थायी रूप से हटा दिए जाएंगे। यह क्रिया पूर्ववत नहीं की जा सकती।',
     deleteAccountTypeEmail: 'पुष्टि के लिए अपना ईमेल दर्ज करें',
     deletingAccount: 'हटाया जा रहा है...',
-    accountDeleted: 'खाता हटाया गया',
   },
 };
 

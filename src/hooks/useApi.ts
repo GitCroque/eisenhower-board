@@ -50,7 +50,7 @@ interface UseApiResult {
   addTask: (quadrantKey: QuadrantKey, text: string) => Promise<void>;
   deleteTask: (quadrantKey: QuadrantKey, taskId: string) => Promise<void>;
   editTask: (quadrantKey: QuadrantKey, taskId: string, newText: string) => Promise<void>;
-  moveTask: (taskId: string, sourceQuadrant: QuadrantKey, targetQuadrant: QuadrantKey) => Promise<void>;
+  moveTask: (taskId: string, sourceQuadrant: QuadrantKey, targetQuadrant: QuadrantKey) => Promise<boolean>;
   completeTask: (quadrantKey: QuadrantKey, taskId: string) => Promise<void>;
   refetch: () => Promise<void>;
 }
@@ -225,10 +225,17 @@ export function useApi(): UseApiResult {
       if (fetchDebounceTimerRef.current !== null) {
         return;
       }
-      fetchDebounceTimerRef.current = window.setTimeout(() => {
+      const run = () => {
         fetchDebounceTimerRef.current = null;
+        // Defer the refetch while moves are pending, otherwise the
+        // optimistic update would be visually rolled back.
+        if (pendingMovesRef.current.size > 0) {
+          fetchDebounceTimerRef.current = window.setTimeout(run, CHANNEL_DEBOUNCE_MS);
+          return;
+        }
         void fetchTasks();
-      }, CHANNEL_DEBOUNCE_MS);
+      };
+      fetchDebounceTimerRef.current = window.setTimeout(run, CHANNEL_DEBOUNCE_MS);
     };
 
     channel.addEventListener('message', handler);
@@ -316,12 +323,12 @@ export function useApi(): UseApiResult {
     }
   }, [broadcastTasksChange, fetchWithCsrf]);
 
-  const moveTask = useCallback(async (taskId: string, sourceQuadrant: QuadrantKey, targetQuadrant: QuadrantKey) => {
-    if (sourceQuadrant === targetQuadrant) return;
+  const moveTask = useCallback(async (taskId: string, sourceQuadrant: QuadrantKey, targetQuadrant: QuadrantKey): Promise<boolean> => {
+    if (sourceQuadrant === targetQuadrant) return false;
 
     const currentQuadrants = quadrantsRef.current;
     const movedTask = currentQuadrants[sourceQuadrant].find((t) => t.id === taskId);
-    if (!movedTask) return;
+    if (!movedTask) return false;
 
     tasksEtagRef.current = null;
     setQuadrants((prev) => ({
@@ -344,8 +351,8 @@ export function useApi(): UseApiResult {
       void flushMoveBatch();
     }, MOVE_BATCH_DELAY_MS);
 
-    return new Promise<void>((resolve, reject) => {
-      pendingMovePromisesRef.current.push({ resolve, reject });
+    return new Promise<boolean>((resolve, reject) => {
+      pendingMovePromisesRef.current.push({ resolve: () => resolve(true), reject });
     });
   }, [flushMoveBatch]);
 

@@ -81,6 +81,12 @@ export interface Translations {
     retry: string;
   };
 
+  // Errors shown to the user
+  errors: {
+    loadFailed: string;
+    actionFailed: string;
+  };
+
   // Archive
   archive: {
     title: string;
@@ -137,6 +143,8 @@ export interface Translations {
     sessionCheckFailedTitle: string;
     sessionCheckFailedDescription: string;
     retrySessionCheck: string;
+    requestFailed: string;
+    rateLimited: string;
   };
 
   // Landing page
@@ -148,7 +156,6 @@ export interface Translations {
   // Admin dashboard
   admin: {
     title: string;
-    stats: string;
     totalUsers: string;
     activeUsers30d: string;
     users: string;
@@ -158,10 +165,7 @@ export interface Translations {
     taskCount: string;
     never: string;
     deleteUser: string;
-    deleteUserConfirmTitle: string;
-    deleteUserConfirmDescription: string;
-    cannotDeleteSelf: string;
-    userDeleted: string;
+    noUsers: string;
   };
 
   // Account management
@@ -173,15 +177,11 @@ export interface Translations {
     changingEmail: string;
     emailChangeRequested: string;
     emailChangeRequestedDescription: string;
-    emailChanged: string;
-    emailChangedDescription: string;
     dangerZone: string;
     deleteAccount: string;
-    deleteAccountConfirmTitle: string;
     deleteAccountConfirmDescription: string;
     deleteAccountTypeEmail: string;
     deletingAccount: string;
-    accountDeleted: string;
   };
 }
 
@@ -257,6 +257,11 @@ export const en: Translations = {
     retry: 'Retry',
   },
 
+  errors: {
+    loadFailed: 'Failed to load data',
+    actionFailed: 'The action failed. Please try again.',
+  },
+
   archive: {
     title: 'Archived Tasks',
     noTasks: 'No archived tasks',
@@ -309,6 +314,8 @@ export const en: Translations = {
     sessionCheckFailedTitle: 'Unable to verify your session',
     sessionCheckFailedDescription: 'Check your connection and try again before signing in.',
     retrySessionCheck: 'Retry',
+    requestFailed: 'Unable to send the sign-in link. Please try again.',
+    rateLimited: 'Too many attempts. Please try again later.',
   },
 
   landing: {
@@ -318,7 +325,6 @@ export const en: Translations = {
 
   admin: {
     title: 'Administration',
-    stats: 'Statistics',
     totalUsers: 'Total users',
     activeUsers30d: 'Active users (30 days)',
     users: 'Users',
@@ -328,10 +334,7 @@ export const en: Translations = {
     taskCount: 'Tasks',
     never: 'Never',
     deleteUser: 'Delete user',
-    deleteUserConfirmTitle: 'Delete user?',
-    deleteUserConfirmDescription: 'All data for {email} will be permanently deleted. This cannot be undone.',
-    cannotDeleteSelf: 'You cannot delete your own account from here',
-    userDeleted: 'User deleted',
+    noUsers: 'No users',
   },
 
   account: {
@@ -342,15 +345,11 @@ export const en: Translations = {
     changingEmail: 'Changing...',
     emailChangeRequested: 'Verification email sent',
     emailChangeRequestedDescription: 'Check your new email inbox to confirm the change.',
-    emailChanged: 'Email changed',
-    emailChangedDescription: 'Your email has been updated successfully.',
     dangerZone: 'Danger zone',
     deleteAccount: 'Delete my account',
-    deleteAccountConfirmTitle: 'Delete your account?',
     deleteAccountConfirmDescription: 'All your tasks and data will be permanently deleted. This cannot be undone.',
     deleteAccountTypeEmail: 'Type your email to confirm',
     deletingAccount: 'Deleting...',
-    accountDeleted: 'Account deleted',
   },
 };
 

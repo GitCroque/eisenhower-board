@@ -72,6 +72,11 @@ const nl: Translations = {
     retry: 'Opnieuw proberen',
   },
 
+  errors: {
+    loadFailed: 'Laden van gegevens mislukt',
+    actionFailed: 'De actie is mislukt. Probeer het opnieuw.',
+  },
+
   archive: {
     title: 'Gearchiveerde taken',
     noTasks: 'Geen gearchiveerde taken',
@@ -124,6 +129,8 @@ const nl: Translations = {
     sessionCheckFailedTitle: 'Je sessie kon niet worden gecontroleerd',
     sessionCheckFailedDescription: 'Controleer je verbinding en probeer het opnieuw voordat je inlogt.',
     retrySessionCheck: 'Opnieuw proberen',
+    requestFailed: 'De inloglink kon niet worden verzonden. Probeer het opnieuw.',
+    rateLimited: 'Te veel pogingen. Probeer het later opnieuw.',
   },
 
   landing: {
@@ -133,7 +140,6 @@ const nl: Translations = {
 
   admin: {
     title: 'Beheer',
-    stats: 'Statistieken',
     totalUsers: 'Totaal aantal gebruikers',
     activeUsers30d: 'Actieve gebruikers (30 dagen)',
     users: 'Gebruikers',
@@ -143,10 +149,7 @@ const nl: Translations = {
     taskCount: 'Taken',
     never: 'Nooit',
     deleteUser: 'Gebruiker verwijderen',
-    deleteUserConfirmTitle: 'Gebruiker verwijderen?',
-    deleteUserConfirmDescription: 'Alle gegevens van {email} worden permanent verwijderd. Deze actie kan niet ongedaan worden gemaakt.',
-    cannotDeleteSelf: 'Je kunt je eigen account niet verwijderen vanaf deze pagina',
-    userDeleted: 'Gebruiker verwijderd',
+    noUsers: 'Geen gebruikers',
   },
 
   account: {
@@ -157,15 +160,11 @@ const nl: Translations = {
     changingEmail: 'Wijzigen...',
     emailChangeRequested: 'Verificatie-e-mail verzonden',
     emailChangeRequestedDescription: 'Controleer de inbox van je nieuwe e-mailadres om de wijziging te bevestigen.',
-    emailChanged: 'E-mail gewijzigd',
-    emailChangedDescription: 'Je e-mailadres is succesvol bijgewerkt.',
     dangerZone: 'Gevarenzone',
     deleteAccount: 'Mijn account verwijderen',
-    deleteAccountConfirmTitle: 'Account verwijderen?',
     deleteAccountConfirmDescription: 'Al je taken en gegevens worden permanent verwijderd. Deze actie kan niet ongedaan worden gemaakt.',
     deleteAccountTypeEmail: 'Typ je e-mailadres ter bevestiging',
     deletingAccount: 'Verwijderen...',
-    accountDeleted: 'Account verwijderd',
   },
 };
 

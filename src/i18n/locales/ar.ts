@@ -72,6 +72,11 @@ const ar: Translations = {
     retry: 'إعادة المحاولة',
   },
 
+  errors: {
+    loadFailed: 'فشل تحميل البيانات',
+    actionFailed: 'فشل الإجراء. يرجى المحاولة مرة أخرى.',
+  },
+
   archive: {
     title: 'المهام المؤرشفة',
     noTasks: 'لا توجد مهام مؤرشفة',
@@ -124,6 +129,8 @@ const ar: Translations = {
     sessionCheckFailedTitle: 'تعذر التحقق من جلستك',
     sessionCheckFailedDescription: 'تحقق من اتصالك ثم حاول مرة أخرى قبل تسجيل الدخول.',
     retrySessionCheck: 'أعد المحاولة',
+    requestFailed: 'تعذر إرسال رابط تسجيل الدخول. يرجى المحاولة مرة أخرى.',
+    rateLimited: 'محاولات كثيرة جدًا. يرجى المحاولة لاحقًا.',
   },
 
   landing: {
@@ -133,7 +140,6 @@ const ar: Translations = {
 
   admin: {
     title: 'الإدارة',
-    stats: 'الإحصائيات',
     totalUsers: 'إجمالي المستخدمين',
     activeUsers30d: 'المستخدمون النشطون (30 يوماً)',
     users: 'المستخدمون',
@@ -143,10 +149,7 @@ const ar: Translations = {
     taskCount: 'المهام',
     never: 'أبداً',
     deleteUser: 'حذف المستخدم',
-    deleteUserConfirmTitle: 'حذف المستخدم؟',
-    deleteUserConfirmDescription: 'سيتم حذف جميع بيانات {email} نهائياً. لا يمكن التراجع عن هذا الإجراء.',
-    cannotDeleteSelf: 'لا يمكنك حذف حسابك الخاص من هنا',
-    userDeleted: 'تم حذف المستخدم',
+    noUsers: 'لا يوجد مستخدمون',
   },
 
   account: {
@@ -157,15 +160,11 @@ const ar: Translations = {
     changingEmail: 'جارٍ التغيير...',
     emailChangeRequested: 'تم إرسال بريد التحقق',
     emailChangeRequestedDescription: 'تحقق من صندوق الوارد لبريدك الإلكتروني الجديد لتأكيد التغيير.',
-    emailChanged: 'تم تغيير البريد الإلكتروني',
-    emailChangedDescription: 'تم تحديث بريدك الإلكتروني بنجاح.',
     dangerZone: 'منطقة الخطر',
     deleteAccount: 'حذف حسابي',
-    deleteAccountConfirmTitle: 'حذف حسابك؟',
     deleteAccountConfirmDescription: 'سيتم حذف جميع مهامك وبياناتك نهائياً. لا يمكن التراجع عن هذا الإجراء.',
     deleteAccountTypeEmail: 'اكتب بريدك الإلكتروني للتأكيد',
     deletingAccount: 'جارٍ الحذف...',
-    accountDeleted: 'تم حذف الحساب',
   },
 };
 

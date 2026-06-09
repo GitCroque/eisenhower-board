@@ -13,6 +13,8 @@ import { ToastProvider } from './components/ui/toast';
 import { Layout } from './components/Layout';
 import { LoginPage } from './components/LoginPage';
 
+const headerIconButtonClass = 'inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:text-slate-900 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-slate-200';
+
 const ArchivePage = lazy(() =>
   import('./components/ArchivePage').then((m) => ({ default: m.ArchivePage }))
 );
@@ -57,14 +59,14 @@ function MatrixPage() {
           <div className="flex shrink-0 gap-2">
             <Link
               to="/archive"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:text-slate-900 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-slate-200"
+              className={headerIconButtonClass}
               aria-label={t.archive.openArchive}
             >
               <Archive className="h-4 w-4" />
             </Link>
             <Link
               to="/sessions"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:text-slate-900 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-slate-200"
+              className={headerIconButtonClass}
               aria-label={t.sessions.openSessions}
               title={t.sessions.openSessions}
             >
@@ -72,7 +74,7 @@ function MatrixPage() {
             </Link>
             <Link
               to="/account"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:text-slate-900 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-slate-200"
+              className={headerIconButtonClass}
               aria-label={t.account.title}
               title={t.account.title}
             >
@@ -92,7 +94,7 @@ function MatrixPage() {
             <ThemeToggle />
             <button
               onClick={() => void logout()}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/60 bg-white/70 text-slate-600 backdrop-blur-md transition-all duration-200 hover:bg-white/90 hover:text-slate-900 dark:border-slate-700/60 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-slate-200"
+              className={headerIconButtonClass}
               aria-label={t.auth.signOut}
               title={t.auth.signOut}
             >

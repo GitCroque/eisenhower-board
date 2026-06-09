@@ -60,6 +60,7 @@ export const TaskItem = memo(function TaskItem({ task, quadrantKey, onDelete, on
   }, []);
 
   const handleComplete = () => {
+    if (isCompleting) return;
     setIsCompleting(true);
     completeTimeoutRef.current = window.setTimeout(() => {
       completeTimeoutRef.current = null;
@@ -136,7 +137,7 @@ export const TaskItem = memo(function TaskItem({ task, quadrantKey, onDelete, on
           <p className="min-w-0 flex-1 text-slate-700 [overflow-wrap:anywhere] dark:text-slate-200">{task.text}</p>
         )}
         {!isEditing && (
-          <div className="flex items-center gap-2 opacity-100 transition-all duration-200 md:opacity-0 md:group-hover:opacity-100">
+          <div className="flex items-center gap-2 opacity-100 transition-all duration-200 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
             <button
               onClick={handleComplete}
               onPointerDown={(e) => e.stopPropagation()}

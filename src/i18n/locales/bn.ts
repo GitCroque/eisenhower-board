@@ -72,6 +72,11 @@ const bn: Translations = {
     retry: 'পুনরায় চেষ্টা করুন',
   },
 
+  errors: {
+    loadFailed: 'ডেটা লোড করতে ব্যর্থ',
+    actionFailed: 'কাজটি ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
+  },
+
   archive: {
     title: 'সংরক্ষিত কাজ',
     noTasks: 'কোনো সংরক্ষিত কাজ নেই',
@@ -124,6 +129,8 @@ const bn: Translations = {
     sessionCheckFailedTitle: 'আপনার সেশন যাচাই করা যায়নি',
     sessionCheckFailedDescription: 'সাইন ইন করার আগে আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।',
     retrySessionCheck: 'আবার চেষ্টা করুন',
+    requestFailed: 'সাইন-ইন লিঙ্ক পাঠানো যায়নি। আবার চেষ্টা করুন।',
+    rateLimited: 'অনেক বেশি চেষ্টা। পরে আবার চেষ্টা করুন।',
   },
 
   landing: {
@@ -133,7 +140,6 @@ const bn: Translations = {
 
   admin: {
     title: 'প্রশাসন',
-    stats: 'পরিসংখ্যান',
     totalUsers: 'মোট ব্যবহারকারী',
     activeUsers30d: 'সক্রিয় ব্যবহারকারী (৩০ দিন)',
     users: 'ব্যবহারকারী',
@@ -143,10 +149,7 @@ const bn: Translations = {
     taskCount: 'কাজ',
     never: 'কখনো না',
     deleteUser: 'ব্যবহারকারী মুছুন',
-    deleteUserConfirmTitle: 'ব্যবহারকারী মুছুন?',
-    deleteUserConfirmDescription: '{email}-এর সমস্ত ডেটা স্থায়ীভাবে মুছে ফেলা হবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।',
-    cannotDeleteSelf: 'আপনি এখান থেকে নিজের অ্যাকাউন্ট মুছতে পারবেন না',
-    userDeleted: 'ব্যবহারকারী মুছে ফেলা হয়েছে',
+    noUsers: 'কোনো ব্যবহারকারী নেই',
   },
 
   account: {
@@ -157,15 +160,11 @@ const bn: Translations = {
     changingEmail: 'পরিবর্তন হচ্ছে...',
     emailChangeRequested: 'যাচাইকরণ ইমেল পাঠানো হয়েছে',
     emailChangeRequestedDescription: 'পরিবর্তন নিশ্চিত করতে আপনার নতুন ইমেলের ইনবক্স দেখুন।',
-    emailChanged: 'ইমেল পরিবর্তিত হয়েছে',
-    emailChangedDescription: 'আপনার ইমেল সফলভাবে আপডেট হয়েছে।',
     dangerZone: 'বিপদ অঞ্চল',
     deleteAccount: 'আমার অ্যাকাউন্ট মুছুন',
-    deleteAccountConfirmTitle: 'আপনার অ্যাকাউন্ট মুছুন?',
     deleteAccountConfirmDescription: 'আপনার সমস্ত কাজ এবং ডেটা স্থায়ীভাবে মুছে ফেলা হবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।',
     deleteAccountTypeEmail: 'নিশ্চিত করতে আপনার ইমেল লিখুন',
     deletingAccount: 'মুছে ফেলা হচ্ছে...',
-    accountDeleted: 'অ্যাকাউন্ট মুছে ফেলা হয়েছে',
   },
 };
 

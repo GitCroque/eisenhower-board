@@ -72,6 +72,11 @@ const fr: Translations = {
     retry: 'Réessayer',
   },
 
+  errors: {
+    loadFailed: 'Échec du chargement des données',
+    actionFailed: "L'action a échoué. Veuillez réessayer.",
+  },
+
   archive: {
     title: 'Tâches archivées',
     noTasks: 'Aucune tâche archivée',
@@ -124,6 +129,8 @@ const fr: Translations = {
     sessionCheckFailedTitle: 'Impossible de vérifier votre session',
     sessionCheckFailedDescription: 'Vérifiez votre connexion puis réessayez avant de vous connecter.',
     retrySessionCheck: 'Réessayer',
+    requestFailed: "Impossible d'envoyer le lien de connexion. Veuillez réessayer.",
+    rateLimited: 'Trop de tentatives. Veuillez réessayer plus tard.',
   },
 
   landing: {
@@ -133,7 +140,6 @@ const fr: Translations = {
 
   admin: {
     title: 'Administration',
-    stats: 'Statistiques',
     totalUsers: 'Utilisateurs au total',
     activeUsers30d: 'Utilisateurs actifs (30 jours)',
     users: 'Utilisateurs',
@@ -143,10 +149,7 @@ const fr: Translations = {
     taskCount: 'Tâches',
     never: 'Jamais',
     deleteUser: "Supprimer l'utilisateur",
-    deleteUserConfirmTitle: "Supprimer l'utilisateur ?",
-    deleteUserConfirmDescription: 'Toutes les données de {email} seront définitivement supprimées. Cette action est irréversible.',
-    cannotDeleteSelf: "Vous ne pouvez pas supprimer votre propre compte depuis cette page",
-    userDeleted: 'Utilisateur supprimé',
+    noUsers: 'Aucun utilisateur',
   },
 
   account: {
@@ -157,15 +160,11 @@ const fr: Translations = {
     changingEmail: 'Modification...',
     emailChangeRequested: 'Email de vérification envoyé',
     emailChangeRequestedDescription: 'Consultez la boîte de réception de votre nouvel email pour confirmer le changement.',
-    emailChanged: 'Email modifié',
-    emailChangedDescription: 'Votre email a été mis à jour avec succès.',
     dangerZone: 'Zone de danger',
     deleteAccount: 'Supprimer mon compte',
-    deleteAccountConfirmTitle: 'Supprimer votre compte ?',
     deleteAccountConfirmDescription: 'Toutes vos tâches et données seront définitivement supprimées. Cette action est irréversible.',
     deleteAccountTypeEmail: 'Saisissez votre email pour confirmer',
     deletingAccount: 'Suppression...',
-    accountDeleted: 'Compte supprimé',
   },
 };
 

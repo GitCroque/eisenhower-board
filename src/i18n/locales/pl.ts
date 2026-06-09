@@ -72,6 +72,11 @@ const pl: Translations = {
     retry: 'Ponów',
   },
 
+  errors: {
+    loadFailed: 'Nie udało się wczytać danych',
+    actionFailed: 'Akcja nie powiodła się. Spróbuj ponownie.',
+  },
+
   archive: {
     title: 'Zarchiwizowane zadania',
     noTasks: 'Brak zarchiwizowanych zadań',
@@ -124,6 +129,8 @@ const pl: Translations = {
     sessionCheckFailedTitle: 'Nie udało się sprawdzić sesji',
     sessionCheckFailedDescription: 'Sprawdź połączenie i spróbuj ponownie przed zalogowaniem.',
     retrySessionCheck: 'Spróbuj ponownie',
+    requestFailed: 'Nie udało się wysłać linku logowania. Spróbuj ponownie.',
+    rateLimited: 'Zbyt wiele prób. Spróbuj ponownie później.',
   },
 
   landing: {
@@ -133,7 +140,6 @@ const pl: Translations = {
 
   admin: {
     title: 'Administracja',
-    stats: 'Statystyki',
     totalUsers: 'Łączna liczba użytkowników',
     activeUsers30d: 'Aktywni użytkownicy (30 dni)',
     users: 'Użytkownicy',
@@ -143,10 +149,7 @@ const pl: Translations = {
     taskCount: 'Zadania',
     never: 'Nigdy',
     deleteUser: 'Usuń użytkownika',
-    deleteUserConfirmTitle: 'Usunąć użytkownika?',
-    deleteUserConfirmDescription: 'Wszystkie dane użytkownika {email} zostaną trwale usunięte. Tej czynności nie można cofnąć.',
-    cannotDeleteSelf: 'Nie możesz usunąć własnego konta z tej strony',
-    userDeleted: 'Użytkownik usunięty',
+    noUsers: 'Brak użytkowników',
   },
 
   account: {
@@ -157,15 +160,11 @@ const pl: Translations = {
     changingEmail: 'Zmiana...',
     emailChangeRequested: 'E-mail weryfikacyjny wysłany',
     emailChangeRequestedDescription: 'Sprawdź skrzynkę odbiorczą nowego adresu e-mail, aby potwierdzić zmianę.',
-    emailChanged: 'E-mail zmieniony',
-    emailChangedDescription: 'Twój adres e-mail został pomyślnie zaktualizowany.',
     dangerZone: 'Strefa zagrożenia',
     deleteAccount: 'Usuń moje konto',
-    deleteAccountConfirmTitle: 'Usunąć konto?',
     deleteAccountConfirmDescription: 'Wszystkie Twoje zadania i dane zostaną trwale usunięte. Tej czynności nie można cofnąć.',
     deleteAccountTypeEmail: 'Wpisz swój e-mail, aby potwierdzić',
     deletingAccount: 'Usuwanie...',
-    accountDeleted: 'Konto usunięte',
   },
 };
 
